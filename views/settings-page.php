@@ -44,6 +44,7 @@ if ( ! $is_upgrade ) {
 	</nav>
 
 	<?php do_action( 'woi_pdf_settings_output_' . $current_tab, $current_tab, $nonce ); ?>
+	<?php do_action( 'woi_pdf_before_settings', $current_tab, $nonce ); ?>
 
 	<?php if ( $is_upgrade ) : ?>
 		<div class="wpo-wcpdf-upgrade-notice" style="margin-top:1em;">
