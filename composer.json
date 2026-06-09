@@ -42,6 +42,8 @@
     },
     "scripts": {
         "strauss": "vendor/bin/strauss",
+        "post-install-cmd": ["@strauss"],
+        "post-update-cmd": ["@strauss"],
         "test": "vendor/bin/phpunit"
     },
     "config": {
