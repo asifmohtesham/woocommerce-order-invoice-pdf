@@ -4,8 +4,8 @@
  * Plugin URI:           https://example.com/woocommerce-orders-invoice-pdf
  * Description:          PDF invoices, packing slips, proforma, credit notes, receipts and summaries for WooCommerce — standalone merged plugin.
  * Version:              1.0.0
- * Author:               WP Overnight
- * Author URI:           https://www.wpovernight.com
+ * Author:               Muhammad Asif Mohtesham
+ * Author URI:           https://github.com/asifmohtesham
  * License:              GPLv2 or later
  * License URI:          https://opensource.org/licenses/gpl-license.php
  * Text Domain:          woocommerce-orders-invoice-pdf
