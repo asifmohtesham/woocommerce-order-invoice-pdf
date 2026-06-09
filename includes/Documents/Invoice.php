@@ -123,7 +123,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 		do_action( 'woi_pdf_init_document', $this );
 	}
 
-	public function exists() {
+	public function exists(): bool {
 		return ! empty( $this->data['number'] );
 	}
 
@@ -131,8 +131,8 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 	// NumberedDocumentInterface
 	// -------------------------------------------------------------------------
 
-	public function get_number(): ?DocumentNumber {
-		$number = parent::get_number();
+	public function get_number( $document_type = '', $order = null, $context = 'view', $formatted = false ): ?DocumentNumber {
+		$number = parent::get_number( $document_type, $order, $context, $formatted );
 		return ( $number instanceof DocumentNumber ) ? $number : null;
 	}
 
@@ -140,8 +140,8 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 		parent::set_number( $number );
 	}
 
-	public function get_date(): ?\WC_DateTime {
-		$date = parent::get_date();
+	public function get_date( $document_type = '', $order = null, $context = 'view', $formatted = false ): ?\WC_DateTime {
+		$date = parent::get_date( $document_type, $order, $context, $formatted );
 		return ( $date instanceof \WC_DateTime ) ? $date : null;
 	}
 

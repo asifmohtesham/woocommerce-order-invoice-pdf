@@ -44,7 +44,7 @@ class Summary extends BulkDocument {
 		remove_action( 'woi_pdf_custom_styles', array( WOI_PDF()->main, 'set_header_logo_height' ), 9, 2 );
 	}
 
-	public function get_date(): ?\WC_DateTime {
+	public function get_date( $document_type = '', $order = null, $context = 'view', $formatted = false ): ?\WC_DateTime {
 		return new \WC_DateTime( 'now', new \DateTimeZone( 'UTC' ) );
 	}
 
