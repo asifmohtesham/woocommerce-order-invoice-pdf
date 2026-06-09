@@ -2390,3 +2390,10 @@ if ( ! function_exists( 'woi_pdf_edi_maybe_save_order_peppol_data' ) ) {
 if ( ! function_exists( 'woi_pdf_edi_peppol_save_customer_identifiers' ) ) {
 	function woi_pdf_edi_peppol_save_customer_identifiers( $customer_id, $values ): void {}
 }
+
+// Stub: WooCommerce Product Bundles integration — extension not present in this build.
+if ( ! function_exists( 'woi_pdf_templates_is_product_bundles_plugin_active' ) ) {
+	function woi_pdf_templates_is_product_bundles_plugin_active(): bool {
+		return class_exists( 'WC_Bundles' );
+	}
+}
