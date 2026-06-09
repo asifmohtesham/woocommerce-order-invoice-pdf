@@ -326,8 +326,8 @@ class Assets {
 
 			}
 
-			// edi
-			if ( 'edi' === $tab ) {
+			// edi — only available when the EDI extension is installed
+			if ( 'edi' === $tab && class_exists( 'WOI\\PDF\\EDI\\Standards\\EN16931' ) ) {
 				wp_enqueue_script(
 					'wpo-ips-edi',
 					WOI_PDF()->plugin_url() . '/assets/js/edi-script' . $suffix . '.js',
