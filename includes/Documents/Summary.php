@@ -207,6 +207,39 @@ class Summary extends BulkDocument {
 			),
 		)[ $mode ] ?? array();
 	}
+
+	public function init_settings(): void {
+		$page = $option_group = $option_name = 'woi_pdf_documents_settings_summary';
+
+		ob_start();
+		?>
+		<p><?php esc_html_e( 'The Summary of Invoices is a bulk document generated from the Orders list. It does not have per-order settings — configure the individual invoice template via the Invoice tab.', 'woocommerce-orders-invoice-pdf' ); ?></p>
+		<?php
+		$html = ob_get_clean();
+
+		$settings_fields = array(
+			array(
+				'type'     => 'section',
+				'id'       => 'summary_info',
+				'title'    => __( 'Summary of Invoices', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'section',
+			),
+			array(
+				'type'     => 'setting',
+				'id'       => 'summary_notice',
+				'title'    => '',
+				'callback' => 'html_section',
+				'section'  => 'summary_info',
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'summary_notice',
+					'html'        => $html,
+				),
+			),
+		);
+
+		\WOI_PDF()->settings->add_settings_fields( $settings_fields, $page, $option_group, $option_name );
+	}
 }
 
 endif; // class_exists

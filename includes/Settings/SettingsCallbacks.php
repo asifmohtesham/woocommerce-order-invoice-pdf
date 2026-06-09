@@ -378,6 +378,28 @@ class SettingsCallbacks {
 	}
 
 	/**
+	 * Alias used by EditorSettings — renders a textarea with width/height args.
+	 */
+	public function textarea( $args = array() ) {
+		$option_name = $args['option_name'] ?? '';
+		$id          = $args['id'] ?? '';
+		$settings    = get_option( $option_name, array() );
+		$value       = $settings[ $id ] ?? ( $args['default'] ?? '' );
+		$cols        = absint( $args['width'] ?? 50 );
+		$rows        = absint( $args['height'] ?? 4 );
+		?>
+		<textarea
+			id="<?php echo esc_attr( $id ); ?>"
+			name="<?php echo esc_attr( $option_name ); ?>[<?php echo esc_attr( $id ); ?>]"
+			rows="<?php echo esc_attr( $rows ); ?>"
+			cols="<?php echo esc_attr( $cols ); ?>"><?php echo esc_textarea( $value ); ?></textarea>
+		<?php if ( ! empty( $args['description'] ) ) : ?>
+			<p class="description"><?php echo wp_kses_post( $args['description'] ); ?></p>
+		<?php endif; ?>
+		<?php
+	}
+
+	/**
 	 * Render a singular text element (stored as its own option key, not nested).
 	 */
 	public function singular_text_element( $args = array() ) {

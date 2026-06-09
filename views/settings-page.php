@@ -12,12 +12,21 @@ if ( ! array_key_exists( $current_tab, $settings_tabs ) ) {
 // Static tabs (general, debug, edi…) → page 'woi_pdf_settings_{tab}'.
 $is_upgrade = ( 'upgrade' === $current_tab );
 
+// Static tab → option-page mapping overrides (where the class uses a non-standard name).
+$tab_option_page_map = array(
+	'editor' => 'woi_pdf_editor_settings',
+);
+
 if ( ! $is_upgrade ) {
-	// Document tabs have key 'woi_pdf_{type}' and register under 'woi_pdf_documents_settings_{type}'.
-	// Static tabs (general, debug, edi…) register under 'woi_pdf_settings_{tab}'.
-	$option_page = ( 0 === strpos( $current_tab, 'woi_pdf_' ) )
-		? 'woi_pdf_documents_settings_' . substr( $current_tab, strlen( 'woi_pdf_' ) )
-		: 'woi_pdf_settings_' . $current_tab;
+	if ( isset( $tab_option_page_map[ $current_tab ] ) ) {
+		$option_page = $tab_option_page_map[ $current_tab ];
+	} elseif ( 0 === strpos( $current_tab, 'woi_pdf_' ) ) {
+		// Document tabs: 'woi_pdf_{type}' → 'woi_pdf_documents_settings_{type}'.
+		$option_page = 'woi_pdf_documents_settings_' . substr( $current_tab, strlen( 'woi_pdf_' ) );
+	} else {
+		// Static tabs: 'general', 'debug', 'edi', … → 'woi_pdf_settings_{tab}'.
+		$option_page = 'woi_pdf_settings_' . $current_tab;
+	}
 }
 ?>
 <div class="wrap wpo-wcpdf-settings-page">
