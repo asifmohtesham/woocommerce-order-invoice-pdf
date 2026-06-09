@@ -30,7 +30,7 @@ class Assets {
 	 */
 	public function backend_scripts_styles( $hook ) {
 		$suffix        = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
-		$pdfjs_version = '4.3.136';
+		$pdfjs_version = '3.11.174';
 
 		global $wp_version;
 
@@ -189,7 +189,7 @@ class Assets {
 
 			wp_localize_script(
 				'woi-pdf-admin',
-				'woi_pdf_admin',
+				'wpo_wcpdf_admin',
 				array(
 					'ajaxurl'                   => admin_url( 'admin-ajax.php' ),
 					'search_index'              => $search_index,
