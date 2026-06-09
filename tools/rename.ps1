@@ -16,7 +16,7 @@ function Rename-WoiPdf($path) {
         @('wcpdf_filter_order_ids\(',          'woi_pdf_filter_order_ids(')
     )
     $content = Get-Content $path -Raw
-    foreach ($p in $pairs) { $content = $content -replace $p[0], $p[1] }
+    foreach ($p in $pairs) { $content = $content -creplace $p[0], $p[1] }
     Set-Content $path $content -NoNewline
 }
 # Usage: Rename-WoiPdf "path\to\file.php"
