@@ -23,7 +23,7 @@ class PackingSlip extends OrderDocumentMethods implements EmailAttachableInterfa
 	public function __construct( $order = 0 ) {
 		// set properties
 		$this->type  = 'packing-slip';
-		$this->title = __( 'Packing Slip', 'woocommerce-pdf-invoices-packing-slips' );
+		$this->title = __( 'Packing Slip', 'woocommerce-orders-invoice-pdf' );
 		$this->icon  = WOI_PDF()->plugin_url() . "/assets/images/packing-slip.svg";
 		
 		// call parent constructor
@@ -53,7 +53,7 @@ class PackingSlip extends OrderDocumentMethods implements EmailAttachableInterfa
 	 */
 	public function get_title() {
 		// override/not using $this->title to allow for language switching!
-		$title = __( 'Packing Slip', 'woocommerce-pdf-invoices-packing-slips' );
+		$title = __( 'Packing Slip', 'woocommerce-orders-invoice-pdf' );
 		$title = apply_filters_deprecated( "woi_pdf_{$this->slug}_title", array( $title, $this ), '3.8.7', 'woi_pdf_document_title' ); // deprecated
 		return apply_filters( 'woi_pdf_document_title', $title, $this );
 	}
@@ -65,7 +65,7 @@ class PackingSlip extends OrderDocumentMethods implements EmailAttachableInterfa
 	 */
 	public function get_number_title() {
 		// override to allow for language switching!
-		$title = __( 'Packing Slip Number:', 'woocommerce-pdf-invoices-packing-slips' );
+		$title = __( 'Packing Slip Number:', 'woocommerce-orders-invoice-pdf' );
 		$title = apply_filters_deprecated( "woi_pdf_{$this->slug}_number_title", array( $title, $this ), '3.8.7', 'woi_pdf_document_number_title' ); // deprecated
 		return apply_filters( 'woi_pdf_document_number_title', $title, $this );
 	}
@@ -77,7 +77,7 @@ class PackingSlip extends OrderDocumentMethods implements EmailAttachableInterfa
 	 */
 	public function get_date_title() {
 		// override to allow for language switching!
-		$title = __( 'Packing Slip Date:', 'woocommerce-pdf-invoices-packing-slips' );
+		$title = __( 'Packing Slip Date:', 'woocommerce-orders-invoice-pdf' );
 		$title = apply_filters_deprecated( "woi_pdf_{$this->slug}_date_title", array( $title, $this ), '3.8.7', 'woi_pdf_document_date_title' ); // deprecated
 		return apply_filters( 'woi_pdf_document_date_title', $title, $this );
 	}
@@ -85,7 +85,7 @@ class PackingSlip extends OrderDocumentMethods implements EmailAttachableInterfa
 	public function get_filename( $context = 'download', $args = array() ) {
 		$order_count = isset($args['order_ids']) ? count($args['order_ids']) : 1;
 
-		$name = _n( 'packing-slip', 'packing-slips', $order_count, 'woocommerce-pdf-invoices-packing-slips' );
+		$name = _n( 'packing-slip', 'packing-slips', $order_count, 'woocommerce-orders-invoice-pdf' );
 
 		if ( $order_count == 1 ) {
 			if ( isset( $this->settings['display_number'] ) ) {
@@ -128,7 +128,7 @@ class PackingSlip extends OrderDocumentMethods implements EmailAttachableInterfa
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'enabled',
-				'title'			=> __( 'Enable', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Enable', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'checkbox',
 				'section'		=> 'packing_slip',
 				'args'			=> array(
@@ -139,24 +139,24 @@ class PackingSlip extends OrderDocumentMethods implements EmailAttachableInterfa
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'display_billing_address',
-				'title'			=> __( 'Display billing address', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Display billing address', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'select',
 				'section'		=> 'packing_slip',
 				'args'			=> array(
 					'option_name'	=> $option_name,
 					'id'			=> 'display_billing_address',
 					'options' 		=> array(
-						''				=> __( 'No' , 'woocommerce-pdf-invoices-packing-slips' ),
-						'when_different'=> __( 'Only when different from shipping address' , 'woocommerce-pdf-invoices-packing-slips' ),
-						'always'		=> __( 'Always' , 'woocommerce-pdf-invoices-packing-slips' ),
+						''				=> __( 'No' , 'woocommerce-orders-invoice-pdf' ),
+						'when_different'=> __( 'Only when different from shipping address' , 'woocommerce-orders-invoice-pdf' ),
+						'always'		=> __( 'Always' , 'woocommerce-orders-invoice-pdf' ),
 					),
-					// 'description'	=> __( 'Display billing address (in addition to the default shipping address) if different from shipping address', 'woocommerce-pdf-invoices-packing-slips' ),
+					// 'description'	=> __( 'Display billing address (in addition to the default shipping address) if different from shipping address', 'woocommerce-orders-invoice-pdf' ),
 				)
 			),
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'display_email',
-				'title'			=> __( 'Display email address', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Display email address', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'checkbox',
 				'section'		=> 'packing_slip',
 				'args'			=> array(
@@ -167,7 +167,7 @@ class PackingSlip extends OrderDocumentMethods implements EmailAttachableInterfa
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'display_phone',
-				'title'			=> __( 'Display phone number', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Display phone number', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'checkbox',
 				'section'		=> 'packing_slip',
 				'args'			=> array(
@@ -178,7 +178,7 @@ class PackingSlip extends OrderDocumentMethods implements EmailAttachableInterfa
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'display_customer_notes',
-				'title'			=> __( 'Display customer notes', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Display customer notes', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'checkbox',
 				'section'		=> 'packing_slip',
 				'args'			=> array(
@@ -194,7 +194,7 @@ class PackingSlip extends OrderDocumentMethods implements EmailAttachableInterfa
 			ob_start();
 			?>
 			<div class="notice notice-info inline">
-				<p><a href="https://wpovernight.com/downloads/woocommerce-pdf-invoices-packing-slips-professional/" target="_blank"><?php esc_html_e( 'Upgrade to our Professional extension to attach packing slips to any email!', 'woocommerce-pdf-invoices-packing-slips' ); ?></a></p>
+				<p><a href="https://wpovernight.com/downloads/woocommerce-pdf-invoices-packing-slips-professional/" target="_blank"><?php esc_html_e( 'Upgrade to our Professional extension to attach packing slips to any email!', 'woocommerce-orders-invoice-pdf' ); ?></a></p>
 			</div>
 			<?php
 			$html = ob_get_clean();
@@ -203,7 +203,7 @@ class PackingSlip extends OrderDocumentMethods implements EmailAttachableInterfa
 				array(
 					'type'			=> 'setting',
 					'id'			=> 'attach_to_email_ids',
-					'title'			=> __( 'Attach to:', 'woocommerce-pdf-invoices-packing-slips' ),
+					'title'			=> __( 'Attach to:', 'woocommerce-orders-invoice-pdf' ),
 					'callback'		=> 'html_section',
 					'section'		=> 'packing_slip',
 					'args'			=> array(
@@ -242,14 +242,14 @@ class PackingSlip extends OrderDocumentMethods implements EmailAttachableInterfa
 		$settings_categories = array(
 			'pdf' => array(
 				'general'          => array(
-					'title'   => __( 'General', 'woocommerce-pdf-invoices-packing-slips' ),
+					'title'   => __( 'General', 'woocommerce-orders-invoice-pdf' ),
 					'members' => array(
 						'enabled',
 						'attach_to_email_ids',
 					),
 				),
 				'document_details' => array(
-					'title'   => __( 'Document details', 'woocommerce-pdf-invoices-packing-slips' ),
+					'title'   => __( 'Document details', 'woocommerce-orders-invoice-pdf' ),
 					'members' => array(
 						'display_email',
 						'display_phone',

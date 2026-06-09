@@ -93,7 +93,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 		}
 
 		if ( empty( $address ) ) {
-			$address = __( 'N/A', 'woocommerce-pdf-invoices-packing-slips' );
+			$address = __( 'N/A', 'woocommerce-orders-invoice-pdf' );
 		}
 
 		$address = apply_filters( 'woi_pdf_billing_address', woi_pdf_sanitize_html_content( $address, 'address' ), $this );
@@ -203,7 +203,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 			) {
 				$address = $this->order->get_formatted_billing_address();
 			} else {
-				$address = __( 'N/A', 'woocommerce-pdf-invoices-packing-slips' );
+				$address = __( 'N/A', 'woocommerce-orders-invoice-pdf' );
 			}
 		}
 
@@ -958,7 +958,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 			}
 
 			if ( ! empty( $label ) ) {
-				$totals[ $key ]['label'] = woi_pdf_dynamic_translate( $label, 'woocommerce-pdf-invoices-packing-slips' );
+				$totals[ $key ]['label'] = woi_pdf_dynamic_translate( $label, 'woocommerce-orders-invoice-pdf' );
 			}
 			
 			// Local pickup specific
@@ -999,7 +999,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 					if ( ! empty( $tax_string_array ) ) {
 						$tax_string = ' ' . sprintf(
 							/* translators: %s: tax information */
-							__( '(includes %s)', 'woocommerce-pdf-invoices-packing-slips' ),
+							__( '(includes %s)', 'woocommerce-orders-invoice-pdf' ),
 							implode( ', ', $tax_string_array )
 						);
 					}
@@ -1030,7 +1030,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 		$subtotal = ! empty( $subtotal ) && ( $pos = strpos( $subtotal, ' <small' ) ) ? substr( $subtotal, 0, $pos ) : $subtotal; //removing the 'excluding tax' text
 
 		$subtotal = array (
-			'label'	=> __('Subtotal', 'woocommerce-pdf-invoices-packing-slips' ),
+			'label'	=> __('Subtotal', 'woocommerce-orders-invoice-pdf' ),
 			'value'	=> $subtotal,
 		);
 
@@ -1055,7 +1055,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 		}
 
 		$shipping = array (
-			'label'	=> __('Shipping', 'woocommerce-pdf-invoices-packing-slips' ),
+			'label'	=> __('Shipping', 'woocommerce-orders-invoice-pdf' ),
 			'value'	=> $formatted_shipping_cost,
 			'tax'	=> $this->format_price( $shipping_tax ),
 		);
@@ -1086,7 +1086,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 		}
 
 		$discount = array (
-			'label'		=> __( 'Discount', 'woocommerce-pdf-invoices-packing-slips' ),
+			'label'		=> __( 'Discount', 'woocommerce-orders-invoice-pdf' ),
 			'value'		=> $this->format_price( $discount_value ),
 			'raw_value'	=> $discount_value,
 		);
@@ -1162,10 +1162,10 @@ abstract class OrderDocumentMethods extends OrderDocument {
 
 		if ($tax == 'excl' ) {
 			$total = $this->format_price( $total_unformatted - $this->order->get_total_tax() );
-			$label = __( 'Total ex. VAT', 'woocommerce-pdf-invoices-packing-slips' );
+			$label = __( 'Total ex. VAT', 'woocommerce-orders-invoice-pdf' );
 		} else {
 			$total = $this->format_price( ( $total_unformatted ) );
-			$label = __( 'Total', 'woocommerce-pdf-invoices-packing-slips' );
+			$label = __( 'Total', 'woocommerce-orders-invoice-pdf' );
 		}
 
 		$grand_total = array(
@@ -1379,10 +1379,10 @@ abstract class OrderDocumentMethods extends OrderDocument {
 		$date_labels = array(
 			'document_date' => sprintf(
 				/* translators: Document title */
-				__( '%s Date', 'woocommerce-pdf-invoices-packing-slips' ),
+				__( '%s Date', 'woocommerce-orders-invoice-pdf' ),
 				$this->title
 			),
-			'order_date'    => __( 'Order Date', 'woocommerce-pdf-invoices-packing-slips' ),
+			'order_date'    => __( 'Order Date', 'woocommerce-orders-invoice-pdf' ),
 		);
 
 		return $date_labels[ $date_string ] ?? '';
@@ -1396,7 +1396,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 	 * @return string
 	 */
 	public function get_invoice_number_title() {
-		$title = __( 'Invoice Number:', 'woocommerce-pdf-invoices-packing-slips' );
+		$title = __( 'Invoice Number:', 'woocommerce-orders-invoice-pdf' );
 		return apply_filters_deprecated( "woi_pdf_invoice_number_title", array( $title, $this ), '3.8.7', 'woi_pdf_document_number_title' );
 	}
 
@@ -1419,7 +1419,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 	 * @return string
 	 */
 	public function get_refund_reason_title(): string {
-		return apply_filters( 'woi_pdf_refund_reason_title', __( 'Reason for refund:', 'woocommerce-pdf-invoices-packing-slips' ), $this );
+		return apply_filters( 'woi_pdf_refund_reason_title', __( 'Reason for refund:', 'woocommerce-orders-invoice-pdf' ), $this );
 	}
 
 	/**

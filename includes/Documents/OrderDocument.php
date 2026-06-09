@@ -545,12 +545,12 @@ abstract class OrderDocument implements DocumentInterface {
 
 		$note = $refund_id ? sprintf(
 			/* translators: 1. credit note title, 2. refund id */
-			esc_html__( '%1$s (refund #%2$s) was regenerated.', 'woocommerce-pdf-invoices-packing-slips' ),
+			esc_html__( '%1$s (refund #%2$s) was regenerated.', 'woocommerce-orders-invoice-pdf' ),
 			ucfirst( $this->get_title() ),
 			$refund_id
 		) : sprintf(
 			/* translators: 1. document title */
-			esc_html__( '%s was regenerated', 'woocommerce-pdf-invoices-packing-slips' ),
+			esc_html__( '%s was regenerated', 'woocommerce-orders-invoice-pdf' ),
 			ucfirst( $this->get_title() )
 		);
 
@@ -993,7 +993,7 @@ abstract class OrderDocument implements DocumentInterface {
 			case 'document_number':
 				$title = sprintf(
 					/* translators: %s: document name */
-					__( '%s Number:', 'woocommerce-pdf-invoices-packing-slips' ),
+					__( '%s Number:', 'woocommerce-orders-invoice-pdf' ),
 					$this->title
 				);
 				$title = apply_filters_deprecated( "woi_pdf_{$this->slug}_number_title", array( $title, $this ), '3.8.7', 'woi_pdf_document_number_title' );
@@ -1001,47 +1001,47 @@ abstract class OrderDocument implements DocumentInterface {
 			case 'document_date':
 				$title = sprintf(
 					/* translators: %s: document name */
-					__( '%s Date:', 'woocommerce-pdf-invoices-packing-slips' ),
+					__( '%s Date:', 'woocommerce-orders-invoice-pdf' ),
 					$this->title
 				);
 				$title = apply_filters_deprecated( "woi_pdf_{$this->slug}_date_title", array( $title, $this ), '3.8.7', 'woi_pdf_document_date_title' );
 				break;
 			case 'document_due_date':
-				$title = __( 'Due Date:', 'woocommerce-pdf-invoices-packing-slips' );
+				$title = __( 'Due Date:', 'woocommerce-orders-invoice-pdf' );
 				$title = apply_filters_deprecated( "woi_pdf_{$this->slug}_due_date_title", array( $title, $this ), '3.8.7', 'woi_pdf_document_due_date_title' );
 				break;
 			case 'billing_address':
-				$title = __( 'Billing Address:', 'woocommerce-pdf-invoices-packing-slips' );
+				$title = __( 'Billing Address:', 'woocommerce-orders-invoice-pdf' );
 				break;
 			case 'shipping_address':
-				$title = __( 'Shipping Address:', 'woocommerce-pdf-invoices-packing-slips' );
+				$title = __( 'Shipping Address:', 'woocommerce-orders-invoice-pdf' );
 				break;
 			case 'order_number':
-				$title = __( 'Order Number:', 'woocommerce-pdf-invoices-packing-slips' );
+				$title = __( 'Order Number:', 'woocommerce-orders-invoice-pdf' );
 				break;
 			case 'order_date':
-				$title = __( 'Order Date:', 'woocommerce-pdf-invoices-packing-slips' );
+				$title = __( 'Order Date:', 'woocommerce-orders-invoice-pdf' );
 				break;
 			case 'payment_method':
-				$title = __( 'Payment Method:', 'woocommerce-pdf-invoices-packing-slips' );
+				$title = __( 'Payment Method:', 'woocommerce-orders-invoice-pdf' );
 				break;
 			case 'payment_date':
-				$title = __( 'Payment Date:', 'woocommerce-pdf-invoices-packing-slips' );
+				$title = __( 'Payment Date:', 'woocommerce-orders-invoice-pdf' );
 				break;
 			case 'shipping_method':
-				$title = __( 'Shipping Method:', 'woocommerce-pdf-invoices-packing-slips' );
+				$title = __( 'Shipping Method:', 'woocommerce-orders-invoice-pdf' );
 				break;
 			case 'sku':
-				$title = __( 'SKU:', 'woocommerce-pdf-invoices-packing-slips' );
+				$title = __( 'SKU:', 'woocommerce-orders-invoice-pdf' );
 				break;
 			case 'weight':
-				$title = __( 'Weight:', 'woocommerce-pdf-invoices-packing-slips' );
+				$title = __( 'Weight:', 'woocommerce-orders-invoice-pdf' );
 				break;
 			case 'notes':
-				$title = __( 'Notes:', 'woocommerce-pdf-invoices-packing-slips' );
+				$title = __( 'Notes:', 'woocommerce-orders-invoice-pdf' );
 				break;
 			case 'customer_notes':
-				$title = __( 'Customer Notes:', 'woocommerce-pdf-invoices-packing-slips' );
+				$title = __( 'Customer Notes:', 'woocommerce-orders-invoice-pdf' );
 				break;
 			default:
 				$title = '';
@@ -1890,10 +1890,10 @@ abstract class OrderDocument implements DocumentInterface {
 			if ( !in_array( $email->id, $non_order_emails ) ) {
 				switch ($email->id) {
 					case 'new_order':
-						$emails[$email->id] = sprintf('%s (%s)', $email->title, __( 'Admin email', 'woocommerce-pdf-invoices-packing-slips' ) );
+						$emails[$email->id] = sprintf('%s (%s)', $email->title, __( 'Admin email', 'woocommerce-orders-invoice-pdf' ) );
 						break;
 					case 'customer_invoice':
-						$emails[$email->id] = sprintf('%s (%s)', $email->title, __( 'Manual email', 'woocommerce-pdf-invoices-packing-slips' ) );
+						$emails[$email->id] = sprintf('%s (%s)', $email->title, __( 'Manual email', 'woocommerce-orders-invoice-pdf' ) );
 						break;
 					default:
 						$emails[$email->id] = $email->title;

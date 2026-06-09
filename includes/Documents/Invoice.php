@@ -24,7 +24,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 	public function __construct( $order = 0 ) {
 		// set properties
 		$this->type  = 'invoice';
-		$this->title = __( 'Invoice', 'woocommerce-pdf-invoices-packing-slips' );
+		$this->title = __( 'Invoice', 'woocommerce-orders-invoice-pdf' );
 		$this->icon  = WOI_PDF()->plugin_url() . "/assets/images/invoice.svg";
 
 		// call parent constructor
@@ -75,7 +75,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 	 */
 	public function get_title() {
 		// override/not using $this->title to allow for language switching!
-		$title = __( 'Invoice', 'woocommerce-pdf-invoices-packing-slips' );
+		$title = __( 'Invoice', 'woocommerce-orders-invoice-pdf' );
 		$title = apply_filters_deprecated( "woi_pdf_{$this->slug}_title", array( $title, $this ), '3.8.7', 'woi_pdf_document_title' ); // deprecated
 		return apply_filters( 'woi_pdf_document_title', $title, $this );
 	}
@@ -87,7 +87,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 	 */
 	public function get_number_title() {
 		// override to allow for language switching!
-		$title = __( 'Invoice Number:', 'woocommerce-pdf-invoices-packing-slips' );
+		$title = __( 'Invoice Number:', 'woocommerce-orders-invoice-pdf' );
 		$title = apply_filters_deprecated( "woi_pdf_{$this->slug}_number_title", array( $title, $this ), '3.8.7', 'woi_pdf_document_number_title' ); // deprecated
 		return apply_filters( 'woi_pdf_document_number_title', $title, $this );
 	}
@@ -99,7 +99,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 	 */
 	public function get_date_title() {
 		// override to allow for language switching!
-		$title = __( 'Invoice Date:', 'woocommerce-pdf-invoices-packing-slips' );
+		$title = __( 'Invoice Date:', 'woocommerce-orders-invoice-pdf' );
 		$title = apply_filters_deprecated( "woi_pdf_{$this->slug}_date_title", array( $title, $this ), '3.8.7', 'woi_pdf_document_date_title' ); // deprecated
 		return apply_filters( 'woi_pdf_document_date_title', $title, $this );
 	}
@@ -111,7 +111,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 	 */
 	public function get_shipping_address_title(): string {
 		// override to allow for language switching!
-		return apply_filters( 'woi_pdf_document_shipping_address_title', __( 'Ship To:', 'woocommerce-pdf-invoices-packing-slips' ), $this );
+		return apply_filters( 'woi_pdf_document_shipping_address_title', __( 'Ship To:', 'woocommerce-orders-invoice-pdf' ), $this );
 	}
 
 	public function init() {
@@ -174,7 +174,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 	public function get_filename( $context = 'download', $args = array() ) {
 		$order_count = isset($args['order_ids']) ? count($args['order_ids']) : 1;
 
-		$name = _n( 'invoice', 'invoices', $order_count, 'woocommerce-pdf-invoices-packing-slips' );
+		$name = _n( 'invoice', 'invoices', $order_count, 'woocommerce-orders-invoice-pdf' );
 
 		if ( $order_count == 1 ) {
 			if ( isset( $this->settings['display_number'] ) && $this->settings['display_number'] == 'invoice_number' ) {
@@ -259,7 +259,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'enabled',
-				'title'			=> __( 'Enable', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Enable', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'checkbox',
 				'section'		=> $this->type,
 				'args'			=> array(
@@ -270,7 +270,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'attach_to_email_ids',
-				'title'			=> __( 'Attach to:', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Attach to:', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'multiple_checkboxes',
 				'section'		=> $this->type,
 				'args'			=> array(
@@ -281,7 +281,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 					'description'	  => ! \WOI_PDF()->file_system->is_writable( \WOI_PDF()->main->get_tmp_path( 'attachments' ) )
 						? '<span class="wpo-warning">' . sprintf(
 							/* translators: 1. directory path */
-							__( 'It looks like the temp folder (<code>%s</code>) is not writable, check the permissions for this folder! Without having write access to this folder, the plugin will not be able to email invoices.', 'woocommerce-pdf-invoices-packing-slips' ),
+							__( 'It looks like the temp folder (<code>%s</code>) is not writable, check the permissions for this folder! Without having write access to this folder, the plugin will not be able to email invoices.', 'woocommerce-orders-invoice-pdf' ),
 							WOI_PDF()->main->get_tmp_path( 'attachments' )
 						  ) . '</span>'
 						: '',
@@ -290,7 +290,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'disable_for_statuses',
-				'title'			=> __( 'Disable for:', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Disable for:', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'select',
 				'section'		=> $this->type,
 				'args'			=> array(
@@ -299,29 +299,29 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 					'options_callback' => 'wc_get_order_statuses',
 					'multiple'         => true,
 					'enhanced_select'  => true,
-					'placeholder'      => __( 'Select one or more statuses', 'woocommerce-pdf-invoices-packing-slips' ),
+					'placeholder'      => __( 'Select one or more statuses', 'woocommerce-orders-invoice-pdf' ),
 				)
 			),
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'display_shipping_address',
-				'title'			=> __( 'Display shipping address', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Display shipping address', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'select',
 				'section'		=> $this->type,
 				'args'			=> array(
 					'option_name'		=> $option_name,
 					'id'				=> 'display_shipping_address',
 					'options' 		=> array(
-						''				=> __( 'No' , 'woocommerce-pdf-invoices-packing-slips' ),
-						'when_different'=> __( 'Only when different from billing address' , 'woocommerce-pdf-invoices-packing-slips' ),
-						'always'		=> __( 'Always' , 'woocommerce-pdf-invoices-packing-slips' ),
+						''				=> __( 'No' , 'woocommerce-orders-invoice-pdf' ),
+						'when_different'=> __( 'Only when different from billing address' , 'woocommerce-orders-invoice-pdf' ),
+						'always'		=> __( 'Always' , 'woocommerce-orders-invoice-pdf' ),
 					),
 				)
 			),
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'display_email',
-				'title'			=> __( 'Display email address', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Display email address', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'checkbox',
 				'section'		=> $this->type,
 				'args'			=> array(
@@ -332,7 +332,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'display_phone',
-				'title'			=> __( 'Display phone number', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Display phone number', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'checkbox',
 				'section'		=> $this->type,
 				'args'			=> array(
@@ -343,7 +343,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'display_customer_notes',
-				'title'			=> __( 'Display customer notes', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Display customer notes', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'checkbox',
 				'section'		=> $this->type,
 				'args'			=> array(
@@ -356,30 +356,30 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'display_date',
-				'title'			=> __( 'Display invoice date', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Display invoice date', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'select',
 				'section'		=> $this->type,
 				'args'			=> array(
 					'option_name'	=> $option_name,
 					'id'			=> 'display_date',
 					'options' 		=> array(
-						''				=> __( 'No' , 'woocommerce-pdf-invoices-packing-slips' ),
-						'document_date'	=> __( 'Invoice Date' , 'woocommerce-pdf-invoices-packing-slips' ),
-						'order_date'	=> __( 'Order Date' , 'woocommerce-pdf-invoices-packing-slips' ),
+						''				=> __( 'No' , 'woocommerce-orders-invoice-pdf' ),
+						'document_date'	=> __( 'Invoice Date' , 'woocommerce-orders-invoice-pdf' ),
+						'order_date'	=> __( 'Order Date' , 'woocommerce-orders-invoice-pdf' ),
 					),
 				)
 			),
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'due_date',
-				'title'			=> __( 'Display due date', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Display due date', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'checkbox_text_input',
 				'section'		=> $this->type,
 				'args'			=> array(
 					'option_name'        => $option_name,
 					'id'                 => 'due_date',
 					/* translators: number of days */
-					'text_input_wrap'    => __( '%s days', 'woocommerce-pdf-invoices-packing-slips' ),
+					'text_input_wrap'    => __( '%s days', 'woocommerce-orders-invoice-pdf' ),
 					'text_input_size'    => 3,
 					'text_input_id'      => 'due_date_days',
 					'text_input_default' => 30,
@@ -388,41 +388,41 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'display_number',
-				'title'			=> __( 'Display invoice number', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Display invoice number', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'select',
 				'section'		=> $this->type,
 				'args'			=> array(
 					'option_name'	=> $option_name,
 					'id'			=> 'display_number',
 					'options' 		=> array(
-						''					=> __( 'No' , 'woocommerce-pdf-invoices-packing-slips' ),
-						'invoice_number'	=> __( 'Invoice Number' , 'woocommerce-pdf-invoices-packing-slips' ),
-						'order_number'		=> __( 'Order Number' , 'woocommerce-pdf-invoices-packing-slips' ),
+						''					=> __( 'No' , 'woocommerce-orders-invoice-pdf' ),
+						'invoice_number'	=> __( 'Invoice Number' , 'woocommerce-orders-invoice-pdf' ),
+						'order_number'		=> __( 'Order Number' , 'woocommerce-orders-invoice-pdf' ),
 					),
 					'description'	=> sprintf(
 						'<strong>%s</strong> %s <a href="https://docs.wpovernight.com/woocommerce-pdf-invoices-packing-slips/invoice-numbers-explained/#why-is-the-pdf-invoice-number-different-from-the-woocommerce-order-number">%s</a>',
-						__( 'Warning!', 'woocommerce-pdf-invoices-packing-slips' ),
-						__( 'Using the Order Number as invoice number is not recommended as this may lead to gaps in the invoice number sequence (even when order numbers are sequential).', 'woocommerce-pdf-invoices-packing-slips' ),
-						__( 'More information', 'woocommerce-pdf-invoices-packing-slips' )
+						__( 'Warning!', 'woocommerce-orders-invoice-pdf' ),
+						__( 'Using the Order Number as invoice number is not recommended as this may lead to gaps in the invoice number sequence (even when order numbers are sequential).', 'woocommerce-orders-invoice-pdf' ),
+						__( 'More information', 'woocommerce-orders-invoice-pdf' )
 					),
 				)
 			),
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'next_invoice_number',
-				'title'			=> __( 'Next invoice number (without prefix/suffix etc.)', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Next invoice number (without prefix/suffix etc.)', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'next_number_edit',
 				'section'		=> $this->type,
 				'args'			=> array(
 					'store_callback' => array( $this, 'get_sequential_number_store' ),
 					'size'           => '10',
-					'description'    => __( 'This is the number that will be used for the next document. By default, numbering starts from 1 and increases for every new document. Note that if you override this and set it lower than the current/highest number, this could create duplicate numbers!', 'woocommerce-pdf-invoices-packing-slips' ),
+					'description'    => __( 'This is the number that will be used for the next document. By default, numbering starts from 1 and increases for every new document. Note that if you override this and set it lower than the current/highest number, this could create duplicate numbers!', 'woocommerce-orders-invoice-pdf' ),
 				)
 			),
 			array(
 				'type'     => 'setting',
 				'id'       => 'number_format',
-				'title'    => __( 'Number format', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'    => __( 'Number format', 'woocommerce-orders-invoice-pdf' ),
 				'callback' => 'multiple_text_input',
 				'section'  => $this->type,
 				'args'     => array(
@@ -430,33 +430,33 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 					'id'          => 'number_format',
 					'fields'      => array(
 						'prefix'  => array(
-							'label'       => __( 'Prefix' , 'woocommerce-pdf-invoices-packing-slips' ),
+							'label'       => __( 'Prefix' , 'woocommerce-orders-invoice-pdf' ),
 							'size'        => 20,
-							'description' => __( 'If set, this value will be used as number prefix.' , 'woocommerce-pdf-invoices-packing-slips' ) . ' ' . sprintf(
+							'description' => __( 'If set, this value will be used as number prefix.' , 'woocommerce-orders-invoice-pdf' ) . ' ' . sprintf(
 								/* translators: 1. document slug, 2-3 placeholders */
-								__( 'You can use the %1$s year and/or month with the %2$s or %3$s placeholders respectively.', 'woocommerce-pdf-invoices-packing-slips' ),
-								__( 'invoice', 'woocommerce-pdf-invoices-packing-slips' ), '<strong>[invoice_year]</strong>', '<strong>[invoice_month]</strong>'
-							) . ' ' . __( 'Check the Docs article below to see all the available placeholders for prefix/suffix.', 'woocommerce-pdf-invoices-packing-slips' ),
+								__( 'You can use the %1$s year and/or month with the %2$s or %3$s placeholders respectively.', 'woocommerce-orders-invoice-pdf' ),
+								__( 'invoice', 'woocommerce-orders-invoice-pdf' ), '<strong>[invoice_year]</strong>', '<strong>[invoice_month]</strong>'
+							) . ' ' . __( 'Check the Docs article below to see all the available placeholders for prefix/suffix.', 'woocommerce-orders-invoice-pdf' ),
 						),
 						'suffix'  => array(
-							'label'       => __( 'Suffix' , 'woocommerce-pdf-invoices-packing-slips' ),
+							'label'       => __( 'Suffix' , 'woocommerce-orders-invoice-pdf' ),
 							'size'        => 20,
-							'description' => __( 'If set, this value will be used as number suffix.' , 'woocommerce-pdf-invoices-packing-slips' ) . ' ' . sprintf(
+							'description' => __( 'If set, this value will be used as number suffix.' , 'woocommerce-orders-invoice-pdf' ) . ' ' . sprintf(
 								/* translators: 1. document slug, 2-3 placeholders */
-								__( 'You can use the %1$s year and/or month with the %2$s or %3$s placeholders respectively.', 'woocommerce-pdf-invoices-packing-slips' ),
-								__( 'invoice', 'woocommerce-pdf-invoices-packing-slips' ), '<strong>[invoice_year]</strong>', '<strong>[invoice_month]</strong>'
-							) . ' ' . __( 'Check the Docs article below to see all the available placeholders for prefix/suffix.', 'woocommerce-pdf-invoices-packing-slips' ),
+								__( 'You can use the %1$s year and/or month with the %2$s or %3$s placeholders respectively.', 'woocommerce-orders-invoice-pdf' ),
+								__( 'invoice', 'woocommerce-orders-invoice-pdf' ), '<strong>[invoice_year]</strong>', '<strong>[invoice_month]</strong>'
+							) . ' ' . __( 'Check the Docs article below to see all the available placeholders for prefix/suffix.', 'woocommerce-orders-invoice-pdf' ),
 						),
 						'padding' => array(
-							'label'       => __( 'Padding' , 'woocommerce-pdf-invoices-packing-slips' ),
+							'label'       => __( 'Padding' , 'woocommerce-orders-invoice-pdf' ),
 							'size'        => 20,
 							'type'        => 'number',
 							/* translators: document type */
 							'description' => sprintf(
 								/* translators: 1. example number, 2. document type, 3. example number without padding, 4. example number with padding */
-								__( 'Enter the number of digits you want to use as padding. For instance, enter %1$s to display the %2$s number %3$s as %4$s, filling it with zeros until the number set as padding is reached.' , 'woocommerce-pdf-invoices-packing-slips' ),
+								__( 'Enter the number of digits you want to use as padding. For instance, enter %1$s to display the %2$s number %3$s as %4$s, filling it with zeros until the number set as padding is reached.' , 'woocommerce-orders-invoice-pdf' ),
 								'<code>6</code>',
-								__( 'invoice', 'woocommerce-pdf-invoices-packing-slips' ),
+								__( 'invoice', 'woocommerce-orders-invoice-pdf' ),
 								'<code>123</code>',
 								'<code>000123</code>'
 							),
@@ -464,20 +464,20 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 					),
 					'description' => sprintf(
 							/* translators: %1$s: open anchor tag, %2$s: close anchor tag */
-							__( 'For more information about setting up the number format and see the available placeholders for the prefix and suffix, check this article: %1$sNumber format explained%2$s', 'woocommerce-pdf-invoices-packing-slips' ),
+							__( 'For more information about setting up the number format and see the available placeholders for the prefix and suffix, check this article: %1$sNumber format explained%2$s', 'woocommerce-orders-invoice-pdf' ),
 							'<a href="https://docs.wpovernight.com/woocommerce-pdf-invoices-packing-slips/number-format-explained/" target="_blank">',
 							'</a>'
-						) . '.<br><br><strong>' . __( 'Note', 'woocommerce-pdf-invoices-packing-slips' ) . '</strong>: ' . sprintf(
+						) . '.<br><br><strong>' . __( 'Note', 'woocommerce-orders-invoice-pdf' ) . '</strong>: ' . sprintf(
 							/* translators: document type */
-							__( 'Changes made to the number format will only be reflected on new orders. Also, if you have already created a custom %s number format with a filter, the above settings will be ignored.', 'woocommerce-pdf-invoices-packing-slips' ),
-							__( 'invoice', 'woocommerce-pdf-invoices-packing-slips' )
+							__( 'Changes made to the number format will only be reflected on new orders. Also, if you have already created a custom %s number format with a filter, the above settings will be ignored.', 'woocommerce-orders-invoice-pdf' ),
+							__( 'invoice', 'woocommerce-orders-invoice-pdf' )
 						),
 				)
 			),
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'reset_number_yearly',
-				'title'			=> __( 'Reset invoice number yearly', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Reset invoice number yearly', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'checkbox',
 				'section'		=> $this->type,
 				'args'			=> array(
@@ -488,17 +488,17 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'my_account_buttons',
-				'title'			=> __( 'Allow My Account invoice download', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Allow My Account invoice download', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'select',
 				'section'		=> $this->type,
 				'args'			=> array(
 					'option_name'	=> $option_name,
 					'id'			=> 'my_account_buttons',
 					'options' 		=> array(
-						'available'	=> __( 'Only when an invoice is already created/emailed' , 'woocommerce-pdf-invoices-packing-slips' ),
-						'custom'	=> __( 'Only for specific order statuses (define below)' , 'woocommerce-pdf-invoices-packing-slips' ),
-						'always'	=> __( 'Always' , 'woocommerce-pdf-invoices-packing-slips' ),
-						'never'		=> __( 'Never' , 'woocommerce-pdf-invoices-packing-slips' ),
+						'available'	=> __( 'Only when an invoice is already created/emailed' , 'woocommerce-orders-invoice-pdf' ),
+						'custom'	=> __( 'Only for specific order statuses (define below)' , 'woocommerce-orders-invoice-pdf' ),
+						'always'	=> __( 'Always' , 'woocommerce-orders-invoice-pdf' ),
+						'never'		=> __( 'Never' , 'woocommerce-orders-invoice-pdf' ),
 					),
 					'custom'		=> array(
 						'type'		=> 'multiple_checkboxes',
@@ -513,7 +513,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'invoice_number_column',
-				'title'			=> __( 'Enable invoice number column in the orders list', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Enable invoice number column in the orders list', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'checkbox',
 				'section'		=> $this->type,
 				'args'			=> array(
@@ -524,7 +524,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'invoice_date_column',
-				'title'			=> __( 'Enable invoice date column in the orders list', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Enable invoice date column in the orders list', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'checkbox',
 				'section'		=> $this->type,
 				'args'			=> array(
@@ -535,25 +535,25 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'invoice_number_search',
-				'title'			=> __( 'Enable invoice number search in the orders list', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Enable invoice number search in the orders list', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'checkbox',
 				'section'		=> $this->type,
 				'args'			=> array(
 					'option_name'	=> $option_name,
 					'id'			=> 'invoice_number_search',
-					'description'   => __( 'The search process may be slower on non-HPOS stores. For a more efficient search, you can utilize the <a href="https://woocommerce.com/document/high-performance-order-storage/" target="_blank">HPOS</a> feature to search for orders by invoice numbers using the search type selector. Additionally, it allows you to search for multiple orders using a comma-separated list of invoice numbers.', 'woocommerce-pdf-invoices-packing-slips' ),
+					'description'   => __( 'The search process may be slower on non-HPOS stores. For a more efficient search, you can utilize the <a href="https://woocommerce.com/document/high-performance-order-storage/" target="_blank">HPOS</a> feature to search for orders by invoice numbers using the search type selector. Additionally, it allows you to search for multiple orders using a comma-separated list of invoice numbers.', 'woocommerce-orders-invoice-pdf' ),
 				)
 			),
 			array(
 				'type'		    => 'setting',
 				'id'		    => 'invoice_number_partial_search',
-				'title'		    => __( 'Enable partial invoice number matching', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'		    => __( 'Enable partial invoice number matching', 'woocommerce-orders-invoice-pdf' ),
 				'callback'	    => 'checkbox',
 				'section'	    => $this->type,
 				'args'		    => array(
 					'option_name'	    => $option_name,
 					'id'			    => 'invoice_number_partial_search',
-					'description'	    => __( 'When enabled, searching for an invoice number will also match partial values (e.g. searching "123" will match "INV-123"). Requires invoice number search to be enabled.', 'woocommerce-pdf-invoices-packing-slips' ),
+					'description'	    => __( 'When enabled, searching for an invoice number will also match partial values (e.g. searching "123" will match "INV-123"). Requires invoice number search to be enabled.', 'woocommerce-orders-invoice-pdf' ),
 					'custom_attributes'	=> array(
 						'data-show_for_option_name'   => $option_name . '[invoice_number_search]',
 						'data-show_for_option_values' => wp_json_encode( array( '1' ) ),
@@ -564,20 +564,20 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 			array(
 				'type'			=> 'setting',
 				'id'			=> 'disable_free',
-				'title'			=> __( 'Disable for free orders', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'			=> __( 'Disable for free orders', 'woocommerce-orders-invoice-pdf' ),
 				'callback'		=> 'checkbox',
 				'section'		=> $this->type,
 				'args'			=> array(
 					'option_name'	=> $option_name,
 					'id'			=> 'disable_free',
 					/* translators: zero number */
-					'description'	=> sprintf(__( "Disable document when the order total is %s", 'woocommerce-pdf-invoices-packing-slips' ), function_exists('wc_price') ? wc_price( 0 ) : 0 ),
+					'description'	=> sprintf(__( "Disable document when the order total is %s", 'woocommerce-orders-invoice-pdf' ), function_exists('wc_price') ? wc_price( 0 ) : 0 ),
 				)
 			),
 			array(
 				'type'     => 'setting',
 				'id'       => 'mark_printed',
-				'title'    => __( 'Mark as printed', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'    => __( 'Mark as printed', 'woocommerce-orders-invoice-pdf' ),
 				'callback' => 'select',
 				'section'  => $this->type,
 				'args'     => array(
@@ -585,37 +585,37 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 					'id'          => 'mark_printed',
 					'options'     => array_merge(
 						[
-							'manually' => __( 'Manually', 'woocommerce-pdf-invoices-packing-slips' ),
+							'manually' => __( 'Manually', 'woocommerce-orders-invoice-pdf' ),
 						],
 						apply_filters( 'woi_pdf_document_triggers', [
-							'single'           => __( 'On single order action', 'woocommerce-pdf-invoices-packing-slips' ),
-							'bulk'             => __( 'On bulk order action', 'woocommerce-pdf-invoices-packing-slips' ),
-							'my_account'       => __( 'On my account', 'woocommerce-pdf-invoices-packing-slips' ),
-							'email_attachment' => __( 'On email attachment', 'woocommerce-pdf-invoices-packing-slips' ),
-							'document_data'    => __( 'On order document data (number and/or date set manually)', 'woocommerce-pdf-invoices-packing-slips' ),
+							'single'           => __( 'On single order action', 'woocommerce-orders-invoice-pdf' ),
+							'bulk'             => __( 'On bulk order action', 'woocommerce-orders-invoice-pdf' ),
+							'my_account'       => __( 'On my account', 'woocommerce-orders-invoice-pdf' ),
+							'email_attachment' => __( 'On email attachment', 'woocommerce-orders-invoice-pdf' ),
+							'document_data'    => __( 'On order document data (number and/or date set manually)', 'woocommerce-orders-invoice-pdf' ),
 						] )
 					),
 					'multiple'         => true,
 					'enhanced_select'  => true,
-					'description'      => __( 'Allows you to mark the document as printed, manually (in the order page) or automatically (based on the document creation context you have selected).', 'woocommerce-pdf-invoices-packing-slips' ),
+					'description'      => __( 'Allows you to mark the document as printed, manually (in the order page) or automatically (based on the document creation context you have selected).', 'woocommerce-orders-invoice-pdf' ),
 				)
 			),
 			array(
 				'type'     => 'setting',
 				'id'       => 'unmark_printed',
-				'title'    => __( 'Unmark as printed', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'    => __( 'Unmark as printed', 'woocommerce-orders-invoice-pdf' ),
 				'callback' => 'checkbox',
 				'section'  => $this->type,
 				'args'     => array(
 					'option_name' => $option_name,
 					'id'          => 'unmark_printed',
-					'description' => __( 'Adds a link in the order page to allow to remove the printed mark.', 'woocommerce-pdf-invoices-packing-slips' ),
+					'description' => __( 'Adds a link in the order page to allow to remove the printed mark.', 'woocommerce-orders-invoice-pdf' ),
 				)
 			),
 			array(
 				'type'     => 'setting',
 				'id'       => 'use_latest_settings',
-				'title'    => __( 'Always use most current settings', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'    => __( 'Always use most current settings', 'woocommerce-orders-invoice-pdf' ),
 				'callback' => 'checkbox',
 				'section'  => $this->type,
 				'args'     => array(
@@ -623,10 +623,10 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 					'id'          => 'use_latest_settings',
 					'description' => sprintf(
 						'%1$s<br><strong>%2$s</strong><br><a href="%3$s" target="_blank">%4$s</a>',
-						__( 'When enabled, the document will always reflect the most current settings (such as footer text, document name, etc.) rather than using historical settings.', 'woocommerce-pdf-invoices-packing-slips' ),
-						__( 'Caution: Enabling this will also mean that if you change your company name or address in the future, previously generated documents will also be affected.', 'woocommerce-pdf-invoices-packing-slips' ),
+						__( 'When enabled, the document will always reflect the most current settings (such as footer text, document name, etc.) rather than using historical settings.', 'woocommerce-orders-invoice-pdf' ),
+						__( 'Caution: Enabling this will also mean that if you change your company name or address in the future, previously generated documents will also be affected.', 'woocommerce-orders-invoice-pdf' ),
 						'https://docs.wpovernight.com/woocommerce-pdf-invoices-packing-slips/show-pdf-documents-with-the-latest-settings/',
-						__( 'Learn more about this setting', 'woocommerce-pdf-invoices-packing-slips' )
+						__( 'Learn more about this setting', 'woocommerce-orders-invoice-pdf' )
 					),
 				)
 			),
@@ -636,7 +636,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 			$settings_fields[] = array(
 				'type'     => 'setting',
 				'id'       => 'include_email_link',
-				'title'    => __( 'Include document link in emails', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'    => __( 'Include document link in emails', 'woocommerce-orders-invoice-pdf' ),
 				'callback' => 'select',
 				'section'  => $this->type,
 				'args'     => array(
@@ -645,28 +645,28 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 					'options_callback' => array( $this, 'get_wc_emails' ),
 					'multiple'         => true,
 					'enhanced_select'  => true,
-					'description'      => __( 'Select emails to include the document link.', 'woocommerce-pdf-invoices-packing-slips' )
+					'description'      => __( 'Select emails to include the document link.', 'woocommerce-orders-invoice-pdf' )
 				),
 			);
 
 			$settings_fields[] = array(
 				'type'     => 'setting',
 				'id'       => 'include_email_link_placement',
-				'title'    => __( 'Document link position in emails', 'woocommerce-pdf-invoices-packing-slips' ),
+				'title'    => __( 'Document link position in emails', 'woocommerce-orders-invoice-pdf' ),
 				'callback' => 'select',
 				'section'  => $this->type,
 				'args'     => array(
 					'option_name' => $option_name,
 					'id'          => 'include_email_link_placement',
 					'options'     => apply_filters( 'woi_pdf_document_link_guest_emails_template_hooks_options', array(
-						'order_details'            => __( 'Order details', 'woocommerce-pdf-invoices-packing-slips' ),
-						'order_meta'               => __( 'Order meta', 'woocommerce-pdf-invoices-packing-slips' ),
-						'before_order_table'       => __( 'Before order table', 'woocommerce-pdf-invoices-packing-slips' ),
-						'after_order_table'        => __( 'After order table', 'woocommerce-pdf-invoices-packing-slips' ),
-						'customer_address_section' => __( 'Customer address section', 'woocommerce-pdf-invoices-packing-slips' ),
-						'customer_details'         => __( 'Customer details', 'woocommerce-pdf-invoices-packing-slips' ),
+						'order_details'            => __( 'Order details', 'woocommerce-orders-invoice-pdf' ),
+						'order_meta'               => __( 'Order meta', 'woocommerce-orders-invoice-pdf' ),
+						'before_order_table'       => __( 'Before order table', 'woocommerce-orders-invoice-pdf' ),
+						'after_order_table'        => __( 'After order table', 'woocommerce-orders-invoice-pdf' ),
+						'customer_address_section' => __( 'Customer address section', 'woocommerce-orders-invoice-pdf' ),
+						'customer_details'         => __( 'Customer details', 'woocommerce-orders-invoice-pdf' ),
 					), $this ),
-					'description' => __( 'Select the placement of the document link in the guest customer emails.', 'woocommerce-pdf-invoices-packing-slips' ),
+					'description' => __( 'Select the placement of the document link in the guest customer emails.', 'woocommerce-orders-invoice-pdf' ),
 				),
 			);
 		}
@@ -679,10 +679,10 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 					unset( $settings_fields[$key] );
 				} elseif ( $settings_field['id'] == 'display_number' ) {
 					// alternate description for invoice number
-					$invoice_number_desc = __( 'Invoice numbers are created by a third-party extension.', 'woocommerce-pdf-invoices-packing-slips' );
+					$invoice_number_desc = __( 'Invoice numbers are created by a third-party extension.', 'woocommerce-orders-invoice-pdf' );
 					if ( $config_link = apply_filters( 'woocommerce_invoice_number_configuration_link', null ) ) {
 						/* translators: link */
-						$invoice_number_desc .= ' '.sprintf(__( 'Configure it <a href="%s">here</a>.', 'woocommerce-pdf-invoices-packing-slips' ), esc_attr( $config_link ) );
+						$invoice_number_desc .= ' '.sprintf(__( 'Configure it <a href="%s">here</a>.', 'woocommerce-orders-invoice-pdf' ), esc_attr( $config_link ) );
 					}
 					$settings_fields[$key]['args']['description'] = '<i>'.$invoice_number_desc.'</i>';
 				}
@@ -707,7 +707,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 		$settings_categories = array(
 			'pdf' => array(
 				'general'          => array(
-					'title'   => __( 'General', 'woocommerce-pdf-invoices-packing-slips' ),
+					'title'   => __( 'General', 'woocommerce-orders-invoice-pdf' ),
 					'members' => array(
 						'enabled',
 						'attach_to_email_ids',
@@ -718,7 +718,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 					),
 				),
 				'document_details' => array(
-					'title'   => __( 'Document details', 'woocommerce-pdf-invoices-packing-slips' ),
+					'title'   => __( 'Document details', 'woocommerce-orders-invoice-pdf' ),
 					'members' => array(
 						'display_email',
 						'display_phone',
@@ -732,7 +732,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 					)
 				),
 				'admin_display'    => array(
-					'title'   => __( 'Admin', 'woocommerce-pdf-invoices-packing-slips' ),
+					'title'   => __( 'Admin', 'woocommerce-orders-invoice-pdf' ),
 					'members' => array(
 						'invoice_number_column',
 						'invoice_date_column',
@@ -741,7 +741,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 					),
 				),
 				'advanced'         => array(
-					'title'   => __( 'Advanced', 'woocommerce-pdf-invoices-packing-slips' ),
+					'title'   => __( 'Advanced', 'woocommerce-orders-invoice-pdf' ),
 					'members' => array(
 						'next_invoice_number',
 						'reset_number_yearly',

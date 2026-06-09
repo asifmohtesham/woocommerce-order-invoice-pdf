@@ -35,7 +35,7 @@ class Summary extends BulkDocument {
 
 		// set additional properties
 		$this->slug            = 'summary';
-		$this->title           = __( 'Summary of Invoices', 'woocommerce-pdf-invoices-packing-slips' );
+		$this->title           = __( 'Summary of Invoices', 'woocommerce-orders-invoice-pdf' );
 		$this->order_ids       = apply_filters( 'woi_pdf_summary_order_ids', $order_ids );
 		$this->export_settings = apply_filters( 'woi_pdf_summary_export_settings', $export_settings );
 		$this->common_settings = WOI_PDF()->settings->get_common_document_settings();
@@ -49,12 +49,13 @@ class Summary extends BulkDocument {
 	}
 
 	public function output_date(): void {
-		echo date_i18n( woi_pdf_date_format( $this, 'document_date' ), $this->get_date() );
+		$date = $this->get_date();
+		echo date_i18n( woi_pdf_date_format( $this, 'document_date' ), $date ? $date->getTimestamp() : 0 );
 	}
 
 	public function get_date_title(): string {
 		// override to allow for language switching!
-		$title = __( 'Summary date', 'woocommerce-pdf-invoices-packing-slips' );
+		$title = __( 'Summary date', 'woocommerce-orders-invoice-pdf' );
 		$title = apply_filters_deprecated( "woi_pdf_{$this->slug}_date_title", array( $title, $this ), '2.15.11', 'woi_pdf_document_date_title' ); // deprecated
 		return apply_filters( 'woi_pdf_document_date_title', $title, $this );
 	}
@@ -76,7 +77,7 @@ class Summary extends BulkDocument {
 		if ( ! empty( $this->export_settings['date_after'] ) && ! empty( $this->export_settings['date_before'] ) ) {
 			$date_after  = date_i18n( woi_pdf_date_format( $this, $this->get_export_date_type() ), $this->export_settings['date_after'] );
 			$date_before = date_i18n( woi_pdf_date_format( $this, $this->get_export_date_type() ), $this->export_settings['date_before'] );
-			$to          = __( 'to', 'woocommerce-pdf-invoices-packing-slips' );
+			$to          = __( 'to', 'woocommerce-orders-invoice-pdf' );
 			return "{$date_after} {$to} {$date_before}";
 		} else {
 			return false;
@@ -92,7 +93,7 @@ class Summary extends BulkDocument {
 	}
 
 	public function get_filename( $context = 'download', $args = array() ): string {
-		$name     = __( 'summary', 'woocommerce-pdf-invoices-packing-slips' );
+		$name     = __( 'summary', 'woocommerce-orders-invoice-pdf' );
 		$suffix   = date( 'Y-m-d' ); // 2020-11-11
 		$filename = $name . '-' . $suffix . '.pdf';
 
@@ -127,23 +128,23 @@ class Summary extends BulkDocument {
 			'show_number_and_date' => array(
 				array(
 					'class' => 'credit-note-number',
-					'label' => __( 'Credit Note number and date', 'woocommerce-pdf-invoices-packing-slips' )
+					'label' => __( 'Credit Note number and date', 'woocommerce-orders-invoice-pdf' )
 				),
 			),
 			'show_number' => array(
 				array(
 					'class' => 'credit-note-number',
-					'label' => __( 'Credit Note number', 'woocommerce-pdf-invoices-packing-slips' )
+					'label' => __( 'Credit Note number', 'woocommerce-orders-invoice-pdf' )
 				),
 			),
 			'show_number_and_date_separated' => array(
 				array(
 					'class' => 'credit-note-date',
-					'label' => __( 'Credit Note date', 'woocommerce-pdf-invoices-packing-slips' )
+					'label' => __( 'Credit Note date', 'woocommerce-orders-invoice-pdf' )
 				),
 				array(
 					'class' => 'credit-note-number',
-					'label' => __( 'Credit Note number', 'woocommerce-pdf-invoices-packing-slips' )
+					'label' => __( 'Credit Note number', 'woocommerce-orders-invoice-pdf' )
 				),
 			),
 		)[ $mode ] ?? array();
