@@ -31,7 +31,7 @@ if ( ! $is_upgrade ) {
 ?>
 <?php
 $preview_states      = isset( $settings_tabs[ $current_tab ]['preview_states'] ) ? $settings_tabs[ $current_tab ]['preview_states'] : 1;
-$preview_states_lock = ( 3 === (int) $preview_states ) ? 'false' : 'true';
+$preview_states_lock = ( 3 === (int) $preview_states ) ? false : true;
 $preview_document_type = isset( $_GET['tab'] ) && 0 === strpos( $current_tab, 'woi_pdf_' )
 	? substr( $current_tab, strlen( 'woi_pdf_' ) )
 	: 'invoice';
