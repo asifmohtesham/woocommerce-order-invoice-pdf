@@ -13,7 +13,7 @@ class DocumentNumber {
 	public string $formatted_number;
 	public ?string $prefix      = null;
 	public ?string $suffix      = null;
-	public string $document_type;
+	public string $document_type   = '';
 	public ?int $order_id       = null;
 	public ?int $padding        = null;
 

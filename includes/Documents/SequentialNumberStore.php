@@ -262,8 +262,10 @@ $sql = "CREATE TABLE {$this->table_name} (
 	public function store_name_exists(): bool {
 		$table_name      = $this->table_name;
 		$table_name_safe = woi_pdf_sanitize_identifier( $table_name );
-		
-		$query  = $this->wpdb->prepare( "SHOW TABLES LIKE %s", $table_name_safe );
+		// Escape LIKE wildcards (_ and %) so underscores in table names are treated as literals.
+		$table_name_like = str_replace( array( '\\', '_', '%' ), array( '\\\\', '\\_', '\\%' ), $table_name_safe );
+
+		$query  = $this->wpdb->prepare( "SHOW TABLES LIKE %s", $table_name_like );
 		$result = $this->wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared
 
 		woi_pdf_catch_db_object_errors( $this->wpdb, __METHOD__ );
@@ -277,11 +279,21 @@ endif; // class_exists
 } // namespace WOI\PDF\Documents
 
 // Temporary stub for woi_pdf_prepare_identifier_query — replaced by woi-pdf-functions.php in Task 16.
+// Real signature: (string $query, array $identifiers, array $values = []): string
+// Identifiers use %i placeholders; values use %s/%d/%f placeholders.
 namespace {
 	if ( ! function_exists( 'woi_pdf_prepare_identifier_query' ) ) {
-		function woi_pdf_prepare_identifier_query( string $query, ...$args ): string {
+		function woi_pdf_prepare_identifier_query( string $query, array $identifiers = array(), array $values = array() ): string {
 			global $wpdb;
-			return $wpdb ? $wpdb->prepare( $query, ...$args ) : $query;
+			if ( ! $wpdb ) {
+				return $query;
+			}
+			// Substitute %i identifiers (table/column names) with backtick-quoted values.
+			foreach ( $identifiers as $identifier ) {
+				$query = preg_replace( '/%i/', '`' . esc_sql( (string) $identifier ) . '`', $query, 1 );
+			}
+			// Substitute remaining value placeholders via wpdb->prepare.
+			return empty( $values ) ? $query : $wpdb->prepare( $query, ...$values );
 		}
 	}
 }
