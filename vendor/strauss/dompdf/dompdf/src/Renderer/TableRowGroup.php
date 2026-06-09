@@ -1,0 +1,42 @@
+<?php
+/**
+ * @package dompdf
+ * @link    https://github.com/dompdf/dompdf
+ * @license http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License
+ *
+ * Modified by wpo on 09-June-2026 using {@see https://github.com/BrianHenryIE/strauss}.
+ */
+namespace WOI\PDF\Vendor\Dompdf\Renderer;
+
+use WOI\PDF\Vendor\Dompdf\Frame;
+
+/**
+ * Renders block frames
+ *
+ * @package dompdf
+ */
+class TableRowGroup extends Block
+{
+
+    /**
+     * @param Frame $frame
+     */
+    function render(Frame $frame)
+    {
+        $style = $frame->get_style();
+
+        $this->_set_opacity($frame->get_opacity($style->opacity));
+
+        $border_box = $frame->get_border_box();
+
+        $this->_render_border($frame, $border_box);
+        $this->_render_outline($frame, $border_box);
+
+        $id = $frame->get_node()->getAttribute("id");
+        if (strlen($id) > 0) {
+            $this->_canvas->add_named_dest($id);
+        }
+
+        $this->debugBlockLayout($frame, "red");
+    }
+}
