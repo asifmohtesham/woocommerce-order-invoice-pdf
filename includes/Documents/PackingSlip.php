@@ -40,8 +40,8 @@ class PackingSlip extends OrderDocumentMethods implements EmailAttachableInterfa
 	// EmailAttachableInterface
 	// -------------------------------------------------------------------------
 
-	public function get_attach_to_email_ids(): array {
-		return parent::get_attach_to_email_ids();
+	public function get_attach_to_email_ids( $output_format = 'pdf' ): array {
+		return parent::get_attach_to_email_ids( $output_format );
 	}
 
 	// -------------------------------------------------------------------------
