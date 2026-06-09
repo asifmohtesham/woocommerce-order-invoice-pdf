@@ -305,7 +305,10 @@ class Settings {
 					do_action( 'woi_pdf_preview_after_reload_settings' );
 				}
 
+				// In preview mode, treat the document as enabled even if the user hasn't saved settings yet.
+				add_filter( 'woi_pdf_document_is_enabled', '__return_true', 99 );
 				$document = woi_pdf_get_document( $document_type, $order );
+				remove_filter( 'woi_pdf_document_is_enabled', '__return_true', 99 );
 
 				if ( $document ) {
 					if ( ! $document->exists() ) {

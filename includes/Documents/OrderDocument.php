@@ -142,11 +142,11 @@ abstract class OrderDocument implements DocumentInterface {
 		$this->latest_settings = $this->get_settings( true );
 
 		// don't override/save settings on Preview requests
+		$preview_action = isset( $_REQUEST['action'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['action'] ) ) : '';
 		if (
-			isset( $_REQUEST['action'] ) &&
-			'woi_pdf_preview' === $_REQUEST['action'] &&
+			in_array( $preview_action, array( 'woi_pdf_preview', 'wpo_wcpdf_preview' ), true ) &&
 			isset( $_REQUEST['security'] ) &&
-			wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'woi_pdf_preview' )
+			wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'wpo_wcpdf_preview' )
 		) {
 			return;
 		}
