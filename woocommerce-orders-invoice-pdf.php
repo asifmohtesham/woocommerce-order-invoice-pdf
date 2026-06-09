@@ -118,6 +118,10 @@ class WOI_PDF {
 	public function plugin_path(): string {
 		return WOI_PDF_PLUGIN_PATH;
 	}
+
+	public function is_woocommerce_activated(): bool {
+		return class_exists( 'WooCommerce' );
+	}
 }
 
 endif;
