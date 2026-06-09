@@ -13,8 +13,10 @@ if ( ! array_key_exists( $current_tab, $settings_tabs ) ) {
 $is_upgrade = ( 'upgrade' === $current_tab );
 
 if ( ! $is_upgrade ) {
+	// Document tabs have key 'woi_pdf_{type}' and register under 'woi_pdf_documents_settings_{type}'.
+	// Static tabs (general, debug, edi…) register under 'woi_pdf_settings_{tab}'.
 	$option_page = ( 0 === strpos( $current_tab, 'woi_pdf_' ) )
-		? str_replace( 'woi_pdf_', 'woi_pdf_settings_', $current_tab )
+		? 'woi_pdf_documents_settings_' . substr( $current_tab, strlen( 'woi_pdf_' ) )
 		: 'woi_pdf_settings_' . $current_tab;
 }
 ?>
