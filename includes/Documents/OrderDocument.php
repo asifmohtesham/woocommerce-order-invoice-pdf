@@ -1167,7 +1167,7 @@ abstract class OrderDocument implements DocumentInterface {
 
 	}
 
-	public function set_number( $value, $order = null ) {
+	public function set_number( $value, $order = null ): void {
 		$order = empty( $order ) ? $this->order : $order;
 
 		// Ignore incorrectly stored serialized meta and only handle expected value types.
