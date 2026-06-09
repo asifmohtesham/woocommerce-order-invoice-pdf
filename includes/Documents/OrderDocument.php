@@ -393,7 +393,7 @@ abstract class OrderDocument implements DocumentInterface {
 		return $setting;
 	}
 
-	public function get_attach_to_email_ids( $output_format = 'pdf' ) {
+	public function get_attach_to_email_ids( $output_format = 'pdf' ): array {
 		$settings = $this->get_settings( false, $output_format );
 
 		return isset( $settings['attach_to_email_ids'] ) ? array_keys( array_filter( $settings['attach_to_email_ids'] ) ) : array();
