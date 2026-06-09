@@ -23,6 +23,7 @@ function Rename-WoiPdf($path) {
         @('wpo_wcpdf_',                    'woi_pdf_'),
         @('wpo_wcpdf',                     'woi_pdf'),
         @('wpo-wcpdf',                     'woi-pdf'),
+        @('wcpdf-',                        'woi-pdf-'),
         @('wpo_ips_',                       'woi_pdf_'),
         @('wcpdf_get_document(',           'woi_pdf_get_document('),
         @('wcpdf_filter_order_ids(',       'woi_pdf_filter_order_ids('),

@@ -1180,7 +1180,7 @@ class Main {
 	 * @return string Currency symbol
 	 */
 	public function use_currency_font( $currency_symbol, $currency ) {
-		$currency_symbol = sprintf( '<span class="wcpdf-currency-symbol">%s</span>', $currency_symbol );
+		$currency_symbol = sprintf( '<span class="woi-pdf-currency-symbol">%s</span>', $currency_symbol );
 		return $currency_symbol;
 	}
 
@@ -1189,7 +1189,7 @@ class Main {
 	 */
 	public function currency_symbol_font_styles () {
 		?>
-		.wcpdf-currency-symbol { font-family: 'Currencies'; }
+		.woi-pdf-currency-symbol { font-family: 'Currencies'; }
 		<?php
 	}
 
