@@ -160,7 +160,7 @@ abstract class OrderDocument implements DocumentInterface {
 			return array();
 		}
 
-		$order_settings = $this->order->get_meta( "_wcpdf_{$this->slug}_settings" );
+		$order_settings = $this->order->get_meta( "_woi_pdf_{$this->slug}_settings" );
 
 		return is_array( $order_settings ) ? $order_settings : array();
 	}
@@ -220,15 +220,15 @@ abstract class OrderDocument implements DocumentInterface {
 				);
 
 				$this->order->update_meta_data(
-					"_wcpdf_{$this->slug}_settings",
+					"_woi_pdf_{$this->slug}_settings",
 					$this->sanitize_settings_for_storage( $settings_to_store )
 				);
 
 				if ( 'invoice' === $this->slug ) {
 					if ( isset( $settings['display_date'] ) && 'order_date' === $settings['display_date'] ) {
-						$this->order->update_meta_data( "_wcpdf_{$this->slug}_display_date", 'order_date' );
+						$this->order->update_meta_data( "_woi_pdf_{$this->slug}_display_date", 'order_date' );
 					} else {
-						$this->order->update_meta_data( "_wcpdf_{$this->slug}_display_date", 'document_date' );
+						$this->order->update_meta_data( "_woi_pdf_{$this->slug}_display_date", 'document_date' );
 					}
 				}
 
@@ -399,11 +399,11 @@ abstract class OrderDocument implements DocumentInterface {
 		return isset( $settings['attach_to_email_ids'] ) ? array_keys( array_filter( $settings['attach_to_email_ids'] ) ) : array();
 	}
 
-	public function get_type() {
+	public function get_type(): string {
 		return $this->type;
 	}
 
-	public function is_enabled( $output_format = 'pdf' ) {
+	public function is_enabled( $output_format = 'pdf' ): bool {
 		$output_format = ( 'xml' === $output_format ) ? 'pdf' : $output_format; // currently not using separated settings for EDI
 		$is_enabled    = $this->get_setting( 'enabled', false, $output_format );
 
@@ -415,11 +415,11 @@ abstract class OrderDocument implements DocumentInterface {
 	}
 
 	public function read_data( $order ) {
-		$number = $order->get_meta( "_wcpdf_{$this->slug}_number_data" );
+		$number = $order->get_meta( "_woi_pdf_{$this->slug}_number_data" );
 		// fallback to legacy data for number
 		if ( empty( $number ) ) {
-			$number           = $order->get_meta( "_wcpdf_{$this->slug}_number" );
-			$formatted_number = $order->get_meta( "_wcpdf_formatted_{$this->slug}_number" );
+			$number           = $order->get_meta( "_woi_pdf_{$this->slug}_number" );
+			$formatted_number = $order->get_meta( "_woi_pdf_formatted_{$this->slug}_number" );
 
 			if ( ! empty( $formatted_number ) ) {
 				$number = compact( 'number', 'formatted_number' );
@@ -429,11 +429,11 @@ abstract class OrderDocument implements DocumentInterface {
 		// pass data to setter functions
 		$this->set_data( array(
 			// always load date before number, because date is used in number formatting
-			'date'             => $order->get_meta( "_wcpdf_{$this->slug}_date" ),
+			'date'             => $order->get_meta( "_woi_pdf_{$this->slug}_date" ),
 			'number'           => $number,
-			'notes'            => $order->get_meta( "_wcpdf_{$this->slug}_notes" ),
-			'display_date'	   => $order->get_meta( "_wcpdf_{$this->slug}_display_date" ),
-			'creation_trigger' => $order->get_meta( "_wcpdf_{$this->slug}_creation_trigger" ),
+			'notes'            => $order->get_meta( "_woi_pdf_{$this->slug}_notes" ),
+			'display_date'	   => $order->get_meta( "_woi_pdf_{$this->slug}_display_date" ),
+			'creation_trigger' => $order->get_meta( "_woi_pdf_{$this->slug}_creation_trigger" ),
 		), $order );
 
 		return;
@@ -455,29 +455,29 @@ abstract class OrderDocument implements DocumentInterface {
 
 		foreach ( $this->data as $key => $value ) {
 			if ( empty( $value ) ) {
-				$order->delete_meta_data( "_wcpdf_{$this->slug}_{$key}" );
+				$order->delete_meta_data( "_woi_pdf_{$this->slug}_{$key}" );
 				if ( 'date' === $key ) {
-					$order->delete_meta_data( "_wcpdf_{$this->slug}_{$key}_formatted" );
+					$order->delete_meta_data( "_woi_pdf_{$this->slug}_{$key}_formatted" );
 				} elseif ( 'number' === $key ) {
-					$order->delete_meta_data( "_wcpdf_{$this->slug}_{$key}_data" );
+					$order->delete_meta_data( "_woi_pdf_{$this->slug}_{$key}_data" );
 					// deleting the number = deleting the document, so also delete document settings
-					$order->delete_meta_data( "_wcpdf_{$this->slug}_settings" );
+					$order->delete_meta_data( "_woi_pdf_{$this->slug}_settings" );
 				} elseif ( 'notes' === $key || 'display_date' === $key ) {
-					$order->delete_meta_data( "_wcpdf_{$this->slug}_{$key}" );
+					$order->delete_meta_data( "_woi_pdf_{$this->slug}_{$key}" );
 				}
 
 			} else {
 				if ( 'date' === $key ) {
 					// store dates as timestamp and formatted as mysql time
-					$order->update_meta_data( "_wcpdf_{$this->slug}_{$key}", $value->getTimestamp() );
-					$order->update_meta_data( "_wcpdf_{$this->slug}_{$key}_formatted", $value->date( 'Y-m-d H:i:s' ) );
+					$order->update_meta_data( "_woi_pdf_{$this->slug}_{$key}", $value->getTimestamp() );
+					$order->update_meta_data( "_woi_pdf_{$this->slug}_{$key}_formatted", $value->date( 'Y-m-d H:i:s' ) );
 				} elseif ( 'number' === $key ) {
 					// store both formatted number and number data
-					$order->update_meta_data( "_wcpdf_{$this->slug}_{$key}", $value->formatted_number );
-					$order->update_meta_data( "_wcpdf_{$this->slug}_{$key}_data", $value->to_array() );
+					$order->update_meta_data( "_woi_pdf_{$this->slug}_{$key}", $value->formatted_number );
+					$order->update_meta_data( "_woi_pdf_{$this->slug}_{$key}_data", $value->to_array() );
 				} elseif ( 'notes' === $key || 'display_date' === $key ) {
 					// store notes
-					$order->update_meta_data( "_wcpdf_{$this->slug}_{$key}", $value );
+					$order->update_meta_data( "_woi_pdf_{$this->slug}_{$key}", $value );
 				}
 
 			}
@@ -506,7 +506,7 @@ abstract class OrderDocument implements DocumentInterface {
 			'creation_trigger',
 		), $this );
 		foreach ( $data_to_remove as $data_key ) {
-			$order->delete_meta_data( "_wcpdf_{$this->slug}_{$data_key}" );
+			$order->delete_meta_data( "_woi_pdf_{$this->slug}_{$data_key}" );
 		}
 
 		$order->save_meta_data();
@@ -538,9 +538,9 @@ abstract class OrderDocument implements DocumentInterface {
 		}
 
 		// EDI
-		if ( $this->is_enabled( 'xml' ) && wpo_ips_edi_is_available() ) {
-			wpo_ips_edi_save_order_taxes( $order );
-			wpo_ips_edi_maybe_save_order_peppol_data( $order );
+		if ( $this->is_enabled( 'xml' ) && woi_pdf_edi_is_available() ) {
+			woi_pdf_edi_save_order_taxes( $order );
+			woi_pdf_edi_maybe_save_order_peppol_data( $order );
 		}
 
 		$note = $refund_id ? sprintf(
@@ -616,10 +616,10 @@ abstract class OrderDocument implements DocumentInterface {
 			}
 		}
 
-		return apply_filters( 'wpo_ips_document_is_allowed_in_my_account', $allowed, $default, $output_format, $this );
+		return apply_filters( 'woi_pdf_document_is_allowed_in_my_account', $allowed, $default, $output_format, $this );
 	}
 
-	public function exists() {
+	public function exists(): bool {
 		return !empty( $this->data['date'] );
 	}
 
@@ -687,7 +687,7 @@ abstract class OrderDocument implements DocumentInterface {
 		$date = $this->get_data( 'date', $document_type, $order, $context );
 
 		if ( $date && $formatted ) {
-			$date = $date->date_i18n( wcpdf_date_format( $this, 'document_date' ) );
+			$date = $date->date_i18n( woi_pdf_date_format( $this, 'document_date' ) );
 		}
 
 		return apply_filters( "woi_pdf_{$this->slug}_date", $date, $document_type, $order, $context, $formatted, $this );
@@ -714,7 +714,7 @@ abstract class OrderDocument implements DocumentInterface {
 	 *
 	 * @return string
 	 */
-	public function get_title() {
+	public function get_title(): string {
 		return $this->get_title_for( 'document' );
 	}
 
@@ -1060,7 +1060,7 @@ abstract class OrderDocument implements DocumentInterface {
 	 */
 	public function due_date(): void {
 		$due_date_timestamp = $this->get_due_date();
-		$due_date           = apply_filters( "woi_pdf_{$this->slug}_formatted_due_date", date_i18n( wcpdf_date_format( $this, 'due_date' ), $due_date_timestamp ), $due_date_timestamp, $this );
+		$due_date           = apply_filters( "woi_pdf_{$this->slug}_formatted_due_date", date_i18n( woi_pdf_date_format( $this, 'due_date' ), $due_date_timestamp ), $due_date_timestamp, $this );
 		echo esc_html( $due_date );
 	}
 
@@ -1160,9 +1160,9 @@ abstract class OrderDocument implements DocumentInterface {
 
 			$this->data['date'] = $datetime;
 		} catch ( \Exception $e ) {
-			wcpdf_log_error( $e->getMessage() );
+			woi_pdf_log_error( $e->getMessage() );
 		} catch ( \Error $e ) {
-			wcpdf_log_error( $e->getMessage() );
+			woi_pdf_log_error( $e->getMessage() );
 		}
 
 	}
@@ -1172,7 +1172,7 @@ abstract class OrderDocument implements DocumentInterface {
 
 		// Ignore incorrectly stored serialized meta and only handle expected value types.
 		if ( is_string( $value ) && is_serialized( $value ) ) {
-			wcpdf_log_error( "Unexpected serialized string found for document number meta. Ignoring value. Meta value: {$value}" );
+			woi_pdf_log_error( "Unexpected serialized string found for document number meta. Ignoring value. Meta value: {$value}" );
 			$value = null;
 		}
 
@@ -1207,9 +1207,9 @@ abstract class OrderDocument implements DocumentInterface {
 
 			$this->data['notes'] = $value;
 		} catch ( \Exception $e ) {
-			wcpdf_log_error( $e->getMessage() );
+			woi_pdf_log_error( $e->getMessage() );
 		} catch ( \Error $e ) {
-			wcpdf_log_error( $e->getMessage() );
+			woi_pdf_log_error( $e->getMessage() );
 		}
 	}
 
@@ -1224,9 +1224,9 @@ abstract class OrderDocument implements DocumentInterface {
 
 			$this->data['display_date'] = $value;
 		} catch ( \Exception $e ) {
-			wcpdf_log_error( $e->getMessage() );
+			woi_pdf_log_error( $e->getMessage() );
 		} catch ( \Error $e ) {
-			wcpdf_log_error( $e->getMessage() );
+			woi_pdf_log_error( $e->getMessage() );
 		}
 	}
 
@@ -1323,7 +1323,7 @@ abstract class OrderDocument implements DocumentInterface {
 			$src = ( $use_path && ! empty( $attachment_path ) ) ? $attachment_path : $attachment_src;
 
 			if ( empty( $src ) ) {
-				wcpdf_log_error( 'Header logo file not found.', 'critical' );
+				woi_pdf_log_error( 'Header logo file not found.', 'critical' );
 				return;
 			}
 
@@ -1334,7 +1334,7 @@ abstract class OrderDocument implements DocumentInterface {
 			}
 
 			if ( ! woi_pdf_is_file_readable( $src ) ) {
-				wcpdf_log_error( 'Header logo file not readable: ' . $src, 'critical' );
+				woi_pdf_log_error( 'Header logo file not readable: ' . $src, 'critical' );
 				return;
 			}
 
@@ -1635,20 +1635,20 @@ abstract class OrderDocument implements DocumentInterface {
 
 		// temporarily apply filters that need to be removed again after the pdf is generated
 		$pdf_filters = apply_filters( 'woi_pdf_pdf_filters', array(), $this );
-		\wpo_ips_add_filters( $pdf_filters );
+		\woi_pdf_add_filters( $pdf_filters );
 
 		$pdf_settings = array(
 			'paper_size'		=> apply_filters( 'woi_pdf_paper_format', $this->get_setting( 'paper_size', 'A4' ), $this->get_type(), $this ),
 			'paper_orientation'	=> apply_filters( 'woi_pdf_paper_orientation', 'portrait', $this->get_type(), $this ),
 			'font_subsetting'	=> $this->get_setting( 'font_subsetting', false ),
 		);
-		$pdf_maker    = wcpdf_get_pdf_maker( $this->get_html(), $pdf_settings, $this );
+		$pdf_maker    = woi_pdf_get_pdf_maker( $this->get_html(), $pdf_settings, $this );
 		$pdf          = $pdf_maker->output();
 
 		do_action( 'woi_pdf_after_pdf', $this->get_type(), $this );
 
 		// remove temporary filters
-		\wpo_ips_remove_filters( $pdf_filters );
+		\woi_pdf_remove_filters( $pdf_filters );
 
 		do_action( 'woi_pdf_pdf_created', $pdf, $this );
 
@@ -1667,16 +1667,16 @@ abstract class OrderDocument implements DocumentInterface {
 			'paper_orientation'	=> apply_filters( 'woi_pdf_paper_orientation', 'portrait', $this->get_type(), $this ),
 			'font_subsetting'	=> $this->get_setting( 'font_subsetting', false ),
 		);
-		$pdf_maker = wcpdf_get_pdf_maker( $this->get_html(), $pdf_settings, $this );
+		$pdf_maker = woi_pdf_get_pdf_maker( $this->get_html(), $pdf_settings, $this );
 		$pdf       = $pdf_maker->output();
 
 		return $pdf;
 	}
 
-	public function get_html( $args = array() ) {
+	public function get_html( $args = array() ): string {
 		// temporarily apply filters that need to be removed again after the html is generated
 		$html_filters = apply_filters( 'woi_pdf_html_filters', array(), $this );
-		\wpo_ips_add_filters( $html_filters );
+		\woi_pdf_add_filters( $html_filters );
 
 		do_action( 'woi_pdf_before_html', $this->get_type(), $this );
 
@@ -1697,20 +1697,20 @@ abstract class OrderDocument implements DocumentInterface {
 
 		// clean up special characters
 		if ( apply_filters( 'woi_pdf_convert_encoding', function_exists( 'htmlspecialchars_decode' ) ) ) {
-			$html = htmlspecialchars_decode( wcpdf_convert_encoding( $html ), ENT_QUOTES );
+			$html = htmlspecialchars_decode( woi_pdf_convert_encoding( $html ), ENT_QUOTES );
 		}
 
 		do_action( 'woi_pdf_after_html', $this->get_type(), $this );
 
 		// remove temporary filters
-		\wpo_ips_remove_filters( $html_filters );
+		\woi_pdf_remove_filters( $html_filters );
 
 		return apply_filters( 'woi_pdf_get_html', $html, $this );
 	}
 
 	public function output_pdf( $output_mode = 'download' ) {
 		$pdf = $this->get_pdf();
-		wcpdf_pdf_headers( $this->get_filename(), $output_mode, $pdf );
+		woi_pdf_pdf_headers( $this->get_filename(), $output_mode, $pdf );
 		echo $pdf; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		exit();
 	}
@@ -1730,14 +1730,14 @@ abstract class OrderDocument implements DocumentInterface {
 		$document = $contents_only ? $this : woi_pdf_get_document( $this->get_type(), $this->order, true );
 
 		if ( ! $document ) {
-			wcpdf_log_error( 'Error generating order document for UBL!', 'error' );
+			woi_pdf_log_error( 'Error generating order document for UBL!', 'error' );
 			exit();
 		}
 
-		$filename_or_contents = wpo_ips_edi_write_file( $document, false, $contents_only );
+		$filename_or_contents = woi_pdf_edi_write_file( $document, false, $contents_only );
 
 		if ( ! $filename_or_contents ) {
-			wcpdf_log_error( 'Error writing UBL file!', 'error' );
+			woi_pdf_log_error( 'Error writing UBL file!', 'error' );
 			exit();
 		}
 
@@ -1748,7 +1748,7 @@ abstract class OrderDocument implements DocumentInterface {
 		$quoted = sprintf( '"%s"', addcslashes( basename( $filename_or_contents ), '"\\' ) );
 		$size   = filesize( $filename_or_contents );
 
-		wpo_ips_edi_file_headers( $quoted, $size );
+		woi_pdf_edi_file_headers( $quoted, $size );
 
 		// Disable output compression.
 		@ini_set( 'zlib.output_compression', 'Off' ); // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged
@@ -1761,7 +1761,7 @@ abstract class OrderDocument implements DocumentInterface {
 		if ( WOI_PDF()->file_system->exists( $filename_or_contents ) ) {
 			$sent = WOI_PDF()->file_system->output_file( $filename_or_contents );
 			if ( false === $sent ) {
-				wcpdf_log_error( sprintf( 'Could not output XML file (%s)', $filename_or_contents ), 'critical' );
+				woi_pdf_log_error( sprintf( 'Could not output XML file (%s)', $filename_or_contents ), 'critical' );
 			}
 
 			wp_delete_file( $filename_or_contents );
@@ -1797,7 +1797,7 @@ abstract class OrderDocument implements DocumentInterface {
 
 		// get filename
 		$output_format = ! empty( $args['output'] ) ? esc_attr( $args['output'] ) : 'pdf';
-		$filename      = $name . '-' . $suffix . wcpdf_get_document_output_format_extension( $output_format );
+		$filename      = $name . '-' . $suffix . woi_pdf_get_document_output_format_extension( $output_format );
 
 		// Filter filename
 		$order_ids = isset( $args['order_ids'] ) ? $args['order_ids'] : array( $this->order_id );
@@ -1997,16 +1997,16 @@ abstract class OrderDocument implements DocumentInterface {
 	 */
 	public function get_number_store_table_default_name( $store_base_name, $method ) {
 		global $wpdb;
-		return apply_filters( "woi_pdf_number_store_table_name", "{$wpdb->prefix}wcpdf_{$store_base_name}", $store_base_name, $method );
+		return apply_filters( "woi_pdf_number_store_table_name", "{$wpdb->prefix}woi_pdf_{$store_base_name}", $store_base_name, $method );
 	}
 
 	/**
 	 * Takes care of the rotation of database tables for the number store, used when 'reset yearly' is enabled:
 	 *
-	 * The table name for the current year is _always_ "{$wpdb->prefix}wcpdf_{$store_base_name}", e.g. wp_wcpdf_invoice_number
+	 * The table name for the current year is _always_ "{$wpdb->prefix}woi_pdf_{$store_base_name}", e.g. wp_woi_pdf_invoice_number
 	 *
 	 * when a year lapses, the existing table ('last year') is 'retired' by renaming it with the year appended,
-	 * e.g. wp_wcpdf_invoice_number_2021 (when the current/new year is 2022). If there was a table for the new year,
+	 * e.g. wp_woi_pdf_invoice_number_2021 (when the current/new year is 2022). If there was a table for the new year,
 	 * this will be renamed to the default store name (e.g. wp_wcdpdf_invoice_number)
 	 *
 	 * returns requested year if any error occurs, so that the current store table will be used
@@ -2056,7 +2056,7 @@ abstract class OrderDocument implements DocumentInterface {
 			$table_removed = $wpdb->query( $drop_query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 
 			if ( ! $table_removed ) {
-				wcpdf_log_error( sprintf(
+				woi_pdf_log_error( sprintf(
 					'An error occurred while trying to remove the duplicate number store %s: %s',
 					$retired_table_safe,
 					$wpdb->last_error
@@ -2082,7 +2082,7 @@ abstract class OrderDocument implements DocumentInterface {
 			$table_renamed = $wpdb->query( $rename_query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 
 			if ( ! $table_renamed ) {
-				wcpdf_log_error( sprintf(
+				woi_pdf_log_error( sprintf(
 					'An error occurred while trying to rename the number store from %s to %s: %s',
 					$default_table_safe,
 					$retired_table_safe,
@@ -2109,7 +2109,7 @@ abstract class OrderDocument implements DocumentInterface {
 			$table_renamed = $wpdb->query( $rename_query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 
 			if ( ! $table_renamed ) {
-				wcpdf_log_error( sprintf(
+				woi_pdf_log_error( sprintf(
 					'An error occurred while trying to rename the number store from %s to %s: %s',
 					$current_year_table_safe,
 					$default_table_safe,
@@ -2167,7 +2167,7 @@ abstract class OrderDocument implements DocumentInterface {
 				// OR that the first number simply has not been created yet (=no rows)
 				// we only log when there's an actual error
 				if ( ! empty( $wpdb->last_error ) ) {
-					wcpdf_log_error( sprintf(
+					woi_pdf_log_error( sprintf(
 						'An error occurred while trying to get the current year from the %s table: %s',
 						$table_name_safe,
 						$wpdb->last_error
@@ -2252,18 +2252,18 @@ abstract class OrderDocument implements DocumentInterface {
 	}
 
 	protected function add_filters( $filters ) {
-		\wcpdf_deprecated_function( __FUNCTION__, '5.0.0', 'wpo_ips_add_filters' );
-		return wpo_ips_add_filters( $filters );
+		\woi_pdf_deprecated_function( __FUNCTION__, '5.0.0', 'woi_pdf_add_filters' );
+		return woi_pdf_add_filters( $filters );
 	}
 
 	protected function remove_filters( $filters ) {
-		\wcpdf_deprecated_function( __FUNCTION__, '5.0.0', 'wpo_ips_remove_filters' );
-		return wpo_ips_remove_filters( $filters );
+		\woi_pdf_deprecated_function( __FUNCTION__, '5.0.0', 'woi_pdf_remove_filters' );
+		return woi_pdf_remove_filters( $filters );
 	}
 
 	protected function normalize_filter_args( $filter ) {
-		\wcpdf_deprecated_function( __FUNCTION__, '5.0.0', 'wpo_ips_normalize_filter_args' );
-		return wpo_ips_normalize_filter_args( $filter );
+		\woi_pdf_deprecated_function( __FUNCTION__, '5.0.0', 'woi_pdf_normalize_filter_args' );
+		return woi_pdf_normalize_filter_args( $filter );
 	}
 
 	/**

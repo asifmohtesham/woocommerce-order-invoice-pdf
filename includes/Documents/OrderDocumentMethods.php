@@ -481,7 +481,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 	 * Return/Show the current date
 	 */
 	public function get_current_date() {
-		return apply_filters( 'woi_pdf_date', date_i18n( wcpdf_date_format( $this, 'current_date' ) ) );
+		return apply_filters( 'woi_pdf_date', date_i18n( woi_pdf_date_format( $this, 'current_date' ) ) );
 	}
 	public function current_date() {
 		echo esc_html( $this->get_current_date() );
@@ -517,7 +517,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 			$payment_date = $this->order->get_date_paid();
 		}
 
-		$payment_date = empty( $payment_date ) ? null : apply_filters( 'woi_pdf_date', date_i18n( wcpdf_date_format( $this, 'order_date_paid' ), $payment_date->getTimestamp() ) );
+		$payment_date = empty( $payment_date ) ? null : apply_filters( 'woi_pdf_date', date_i18n( woi_pdf_date_format( $this, 'order_date_paid' ), $payment_date->getTimestamp() ) );
 
 		return apply_filters( 'woi_pdf_payment_date', $payment_date, $this );
 	}
@@ -568,7 +568,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 			$order_date = $this->order->get_date_created();
 		}
 
-		$date = $order_date->date_i18n( wcpdf_date_format( $this, 'order_date' ) );
+		$date = $order_date->date_i18n( woi_pdf_date_format( $this, 'order_date' ) );
 		$mysql_date = $order_date->date( "Y-m-d H:i:s" );
 		return apply_filters( 'woi_pdf_order_date', $date, $mysql_date, $this );
 	}
@@ -672,7 +672,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 				}
 
 				// Set item meta
-				$data['meta'] = wpo_ips_display_item_meta( $item, apply_filters( 'woi_pdf_display_item_meta_args', array( 'echo' => false ), $this ) );
+				$data['meta'] = woi_pdf_display_item_meta( $item, apply_filters( 'woi_pdf_display_item_meta_args', array( 'echo' => false ), $this ) );
 
 				$data_list[ $item_id ] = apply_filters( 'woi_pdf_order_item_data', $data, $this->order, $this->get_type() );
 			}
@@ -964,8 +964,8 @@ abstract class OrderDocumentMethods extends OrderDocument {
 			// Local pickup specific
 			if (
 				'shipping' === $key &&
-				\wpo_ips_order_has_local_pickup_method( $this->order ) &&
-				apply_filters( 'wpo_ips_show_pickup_location_details', true, $this )
+				\woi_pdf_order_has_local_pickup_method( $this->order ) &&
+				apply_filters( 'woi_pdf_show_pickup_location_details', true, $this )
 			) {
 				$order_shipping          = $this->get_order_shipping();
 				$totals[ $key ]['value'] = sprintf(
@@ -1283,7 +1283,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 	 * Use $this->get_number() instead.
 	 */
 	public function get_invoice_number() {
-		wcpdf_log_error( 'The method get_invoice_number() is deprecated since version 3.7.3, please use the method get_number() instead.' );
+		woi_pdf_log_error( 'The method get_invoice_number() is deprecated since version 3.7.3, please use the method get_number() instead.' );
 
 		if ( is_callable( array( $this, 'get_number' ) ) ) {
 			return $this->get_number( 'invoice', null, 'view', true );
@@ -1297,7 +1297,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 	 * Use $this->number( 'invoice' ) instead.
 	 */
 	public function invoice_number() {
-		wcpdf_log_error( 'The method invoice_number() is deprecated since version 3.7.3, please use the method number() instead.' );
+		woi_pdf_log_error( 'The method invoice_number() is deprecated since version 3.7.3, please use the method number() instead.' );
 
 		if ( is_callable( array( $this, 'number' ) ) ) {
 			$this->number( 'invoice' );
@@ -1311,7 +1311,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 	 * Use $this->get_date() instead.
 	 */
 	public function get_invoice_date() {
-		wcpdf_log_error( 'The method get_invoice_date() is deprecated since version 3.7.3, please use the method get_date() instead.' );
+		woi_pdf_log_error( 'The method get_invoice_date() is deprecated since version 3.7.3, please use the method get_date() instead.' );
 
 		if ( is_callable( array( $this, 'get_date' ) ) ) {
 			return $this->get_date( 'invoice', null, 'view', true );
@@ -1325,7 +1325,7 @@ abstract class OrderDocumentMethods extends OrderDocument {
 	 * Use $this->date( 'invoice' ) instead.
 	 */
 	public function invoice_date() {
-		wcpdf_log_error( 'The method invoice_date() is deprecated since version 3.7.3, please use the method date() instead.' );
+		woi_pdf_log_error( 'The method invoice_date() is deprecated since version 3.7.3, please use the method date() instead.' );
 
 		if ( is_callable( array( $this, 'date' ) ) ) {
 			$this->date( 'invoice' );
