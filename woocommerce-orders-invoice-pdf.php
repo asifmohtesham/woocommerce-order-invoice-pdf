@@ -38,9 +38,10 @@ class WOI_PDF {
 	public \WOI\PDF\Rest             $rest;
 	public \WOI\PDF\DocumentRenderer $renderer;
 	public \WOI\PDF\TemplateLoader   $template_loader;
-	public \WOI\PDF\Editor\EditorSettings $editor_settings;
-	public \WOI\PDF\Editor\EditorMain     $editor_main;
-	public \WOI\PDF\Editor\PriceStorage   $price_storage;
+	public \WOI\PDF\Editor\EditorSettings    $editor_settings;
+	public \WOI\PDF\Editor\EditorMain        $editor_main;
+	public \WOI\PDF\Editor\PriceStorage      $price_storage;
+	public \WOI\PDF\Compatibility\FileSystem $file_system;
 
 	public string $plugin_basename;
 
@@ -78,6 +79,7 @@ class WOI_PDF {
 	}
 
 	public function init(): void {
+		$this->file_system     = \WOI\PDF\Compatibility\FileSystem::instance();
 		$this->renderer        = new \WOI\PDF\DocumentRenderer();
 		$this->template_loader = new \WOI\PDF\TemplateLoader( WOI_PDF_PLUGIN_PATH );
 		$this->settings        = \WOI\PDF\Settings::instance();
