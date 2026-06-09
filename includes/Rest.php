@@ -252,8 +252,8 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 		 */
 		public function permissions_check( \WP_REST_Request $request ): bool {
 			return apply_filters(
-				'woi_pdf_pro_api_permission_check',
-				wc_rest_check_manager_permissions( 'settings', 'edit' ),
+				'woi_pdf_api_permission_check',
+				current_user_can( 'edit_shop_orders' ),
 				$request
 			);
 		}
@@ -366,7 +366,7 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			}
 
 			if ( empty( $document_data['date'] ) ) {
-				$document_data['date'] = current_time( 'timestamp', true );
+				$document_data['date'] = time();
 			}
 
 			$document->set_data( $document_data, $order );
@@ -436,7 +436,7 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			// Validate date.
 			if ( ! empty( $document_data['date'] ) ) {
 				$document_data['date'] = \DateTime::createFromFormat( \DateTime::ATOM, $document_data['date'] );
-				$document_data['date'] = $document_data['date'] ? $document_data['date']->getTimestamp() : current_time( 'timestamp', true );
+				$document_data['date'] = $document_data['date'] ? $document_data['date']->getTimestamp() : time();
 			}
 
 			if ( ! empty( $document_data['note'] ) ) {
