@@ -1,6 +1,8 @@
 <?php
 namespace WOI\PDF\Documents;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 interface NumberedDocumentInterface extends DocumentInterface {
     public function get_number(): ?DocumentNumber;
     public function set_number( int $number ): void;

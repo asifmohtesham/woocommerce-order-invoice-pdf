@@ -1,6 +1,8 @@
 <?php
 namespace WOI\PDF\Documents;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 interface DocumentInterface {
     public function get_type(): string;
     public function get_title(): string;
