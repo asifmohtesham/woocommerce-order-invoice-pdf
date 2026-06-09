@@ -160,7 +160,7 @@ class Proforma extends OrderDocumentMethods implements NumberedDocumentInterface
 		return ( $number instanceof DocumentNumber ) ? $number : null;
 	}
 
-	public function set_number( int $number, $order = null ): void {
+	public function set_number( $number, $order = null ): void {
 		parent::set_number( $number, $order );
 	}
 
