@@ -1,7 +1,27 @@
+# OS
 .DS_Store
 Thumbs.db
+
+# IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+
+# Environment
 .env
+
+# PHP / Composer
+/vendor/
+composer.phar
+
+# Testing
+.phpunit.result.cache
+/coverage/
+
+# Build artefacts
+*.zip
+*.tar.gz
+
+# Logs
+*.log
