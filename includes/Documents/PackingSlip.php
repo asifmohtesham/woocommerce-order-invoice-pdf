@@ -51,7 +51,7 @@ class PackingSlip extends OrderDocumentMethods implements EmailAttachableInterfa
 	 *
 	 * @return string
 	 */
-	public function get_title() {
+	public function get_title(): string {
 		// override/not using $this->title to allow for language switching!
 		$title = __( 'Packing Slip', 'woocommerce-orders-invoice-pdf' );
 		$title = apply_filters_deprecated( "woi_pdf_{$this->slug}_title", array( $title, $this ), '3.8.7', 'woi_pdf_document_title' ); // deprecated
