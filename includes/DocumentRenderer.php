@@ -57,7 +57,7 @@ class DocumentRenderer {
         $dompdf->render();
         do_action( 'woi_pdf_after_dompdf_render', $dompdf );
 
-        return $dompdf->output();
+        return (string) $dompdf->output();
     }
 
     /**
