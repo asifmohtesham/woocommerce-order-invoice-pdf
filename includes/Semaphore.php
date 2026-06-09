@@ -94,7 +94,7 @@ class Semaphore {
 		$this->locked_for  = apply_filters( self::$option_prefix . 'time', $locked_for > 0 ? $locked_for : 300, $this->option_name );
 		$this->retries     = apply_filters( self::$option_prefix . 'retries', $retries > 0 ? $retries : 0, $this->option_name );
 		$this->loggers     = apply_filters( self::$option_prefix . 'loggers', empty( $loggers ) ? array( wc_get_logger() ) : $loggers, $this->option_name );
-		$this->context     = apply_filters( self::$option_prefix . 'context', empty( $context ) ? array( 'source' => 'wpo-ips-semaphore' ) : $context, $this->option_name );
+		$this->context     = apply_filters( self::$option_prefix . 'context', empty( $context ) ? array( 'source' => 'woi-pdf-semaphore' ) : $context, $this->option_name );
 	}
 
 	/**
