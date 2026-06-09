@@ -44,15 +44,15 @@ if ( ! $is_upgrade ) {
 	</nav>
 
 	<?php do_action( 'woi_pdf_settings_output_' . $current_tab, $current_tab, $nonce ); ?>
-	<?php do_action( 'woi_pdf_before_settings', $current_tab, $nonce ); ?>
 
 	<?php if ( $is_upgrade ) : ?>
 		<div class="wpo-wcpdf-upgrade-notice" style="margin-top:1em;">
 			<p><?php esc_html_e( 'Upgrade to the Professional extension for additional features.', 'woocommerce-orders-invoice-pdf' ); ?></p>
 		</div>
 	<?php else : ?>
-		<form method="post" action="options.php">
+		<form method="post" action="options.php" id="woi-pdf-settings">
 			<input type="hidden" name="tab" value="<?php echo esc_attr( $current_tab ); ?>">
+			<?php do_action( 'woi_pdf_before_settings', $current_tab, $nonce ); ?>
 			<?php settings_fields( $option_page ); ?>
 			<?php do_settings_sections( $option_page ); ?>
 			<?php submit_button(); ?>

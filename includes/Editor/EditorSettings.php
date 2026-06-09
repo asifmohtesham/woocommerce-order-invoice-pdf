@@ -88,7 +88,7 @@ class EditorSettings {
 							<?php
 							echo wp_kses_post( sprintf(
 								/* translators: 1: template name, 2: template name */
-								__( 'The %1$s template has limited compatibility with the Customizer. You will need to switch your template to a premium one, e.g. %2$s, if you want to take full advantage of the Customizer.', 'woi_pdf_templates' ),
+								__( 'The %1$s template has limited compatibility with the Customiser. You will need to switch your template to a premium one, e.g. %2$s, if you want to take full advantage of the Customiser.', 'woi_pdf_templates' ),
 								'<strong>Simple</strong>',
 								'<strong>Simple Premium</strong>'
 							) );
@@ -142,9 +142,9 @@ class EditorSettings {
 
 		wp_localize_script(
 			'woi-pdf-templates-editor',
-			'woi_pdf_templates',
-			array(  
-				'ajaxurl'               => admin_url( 'admin-ajax.php' ), // URL to WordPress ajax handling page
+			'wpo_wcpdf_templates',
+			array(
+				'ajaxurl'               => admin_url( 'admin-ajax.php' ),
 				'nonce'                 => wp_create_nonce( 'woi_pdf_templates' ),
 				'load_defaults_confirm' => __( 'Are you sure you want to load the default settings? This will overwrite your current configuration for all documents.', 'woi_pdf_templates' ),
 			)
@@ -303,7 +303,7 @@ class EditorSettings {
 	 */
 	public function settings_tab( $tabs ) {
 		$tabs['editor'] = array(
-			'title'          => __( 'Customizer', 'woi_pdf_templates' ),
+			'title'          => __( 'Customiser', 'woi_pdf_templates' ),
 			'preview_states' => 2,
 		);
 		return $tabs;
@@ -1392,7 +1392,7 @@ class EditorSettings {
 						<h4 class="columns-header">
 							<?php echo $section_title; 
 							if ( $section_key == 'columns' ) { ?>
-								<span><?php _e( 'Need help?', 'woi_pdf_templates'); ?> <a href="https://docs.wpovernight.com/woocommerce-pdf-invoices-packing-slips/using-the-customizer/" target="_blank"><?php _e( 'Using the Customizer', 'woi_pdf_templates'); ?></a></span>
+								<span><?php _e( 'Need help?', 'woi_pdf_templates'); ?> <a href="https://docs.wpovernight.com/woocommerce-pdf-invoices-packing-slips/using-the-customizer/" target="_blank"><?php _e( 'Using the Customiser', 'woi_pdf_templates'); ?></a></span>
 							<?php } ?>
 						</h4>
 						<?php
@@ -2175,7 +2175,7 @@ class EditorSettings {
 	}
 	
 	public function customizer_setting_types( $setting_types ) {
-		$setting_types['customizer'] = __( 'Customizer', 'woi_pdf_templates' );
+		$setting_types['customizer'] = __( 'Customiser', 'woi_pdf_templates' );
 		return $setting_types;
 	}
 	
