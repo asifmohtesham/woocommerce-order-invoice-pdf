@@ -251,11 +251,11 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 		 * @return bool
 		 */
 		public function permissions_check( \WP_REST_Request $request ): bool {
-			return apply_filters(
-				'woi_pdf_api_permission_check',
-				current_user_can( 'edit_shop_orders' ),
-				$request
-			);
+			$order_id = absint( $request['order_id'] );
+			$default  = $order_id
+				? current_user_can( 'edit_shop_order', $order_id )
+				: current_user_can( 'edit_shop_orders' );
+			return apply_filters( 'woi_pdf_api_permission_check', $default, $request );
 		}
 
 		/**
