@@ -2345,3 +2345,48 @@ function woi_pdf_get_bacs_account_options(): array {
 
 	return $bacs_account_options;
 }
+
+// EDI extension stubs — the EDI/UBL extension is not included in this build.
+// These stubs keep base-plugin code paths from fataling when the extension is absent.
+if ( ! function_exists( 'woi_pdf_edi_is_available' ) ) {
+	function woi_pdf_edi_is_available(): bool { return false; }
+}
+if ( ! function_exists( 'woi_pdf_edi_preview_is_enabled' ) ) {
+	function woi_pdf_edi_preview_is_enabled(): bool { return false; }
+}
+if ( ! function_exists( 'woi_pdf_edi_send_attachments' ) ) {
+	function woi_pdf_edi_send_attachments(): bool { return false; }
+}
+if ( ! function_exists( 'woi_pdf_edi_peppol_is_available' ) ) {
+	function woi_pdf_edi_peppol_is_available(): bool { return false; }
+}
+if ( ! function_exists( 'woi_pdf_edi_get_tax_settings' ) ) {
+	function woi_pdf_edi_get_tax_settings(): array { return array(); }
+}
+if ( ! function_exists( 'woi_pdf_edi_get_order_customer_identifiers_data' ) ) {
+	function woi_pdf_edi_get_order_customer_identifiers_data( $order ): array { return array(); }
+}
+if ( ! function_exists( 'woi_pdf_edi_peppol_identifier_input_mode' ) ) {
+	function woi_pdf_edi_peppol_identifier_input_mode(): string { return 'simple'; }
+}
+if ( ! function_exists( 'woi_pdf_edi_vat_number_has_country_prefix' ) ) {
+	function woi_pdf_edi_vat_number_has_country_prefix( $vat ): bool { return false; }
+}
+if ( ! function_exists( 'woi_pdf_edi_generate_action_button_html' ) ) {
+	function woi_pdf_edi_generate_action_button_html( ...$args ): string { return ''; }
+}
+if ( ! function_exists( 'woi_pdf_edi_write_file' ) ) {
+	function woi_pdf_edi_write_file( $document, $save = false, $contents_only = false ) { return false; }
+}
+if ( ! function_exists( 'woi_pdf_edi_file_headers' ) ) {
+	function woi_pdf_edi_file_headers( $quoted, $size ): void {}
+}
+if ( ! function_exists( 'woi_pdf_edi_save_order_taxes' ) ) {
+	function woi_pdf_edi_save_order_taxes( $order ): void {}
+}
+if ( ! function_exists( 'woi_pdf_edi_maybe_save_order_peppol_data' ) ) {
+	function woi_pdf_edi_maybe_save_order_peppol_data( $order, $values = array() ): void {}
+}
+if ( ! function_exists( 'woi_pdf_edi_peppol_save_customer_identifiers' ) ) {
+	function woi_pdf_edi_peppol_save_customer_identifiers( $customer_id, $values ): void {}
+}
