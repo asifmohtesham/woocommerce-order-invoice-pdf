@@ -277,23 +277,3 @@ $sql = "CREATE TABLE {$this->table_name} (
 endif; // class_exists
 
 } // namespace WOI\PDF\Documents
-
-// Temporary stub for woi_pdf_prepare_identifier_query — replaced by woi-pdf-functions.php in Task 16.
-// Real signature: (string $query, array $identifiers, array $values = []): string
-// Identifiers use %i placeholders; values use %s/%d/%f placeholders.
-namespace {
-	if ( ! function_exists( 'woi_pdf_prepare_identifier_query' ) ) {
-		function woi_pdf_prepare_identifier_query( string $query, array $identifiers = array(), array $values = array() ): string {
-			global $wpdb;
-			if ( ! $wpdb ) {
-				return $query;
-			}
-			// Substitute %i identifiers (table/column names) with backtick-quoted values.
-			foreach ( $identifiers as $identifier ) {
-				$query = preg_replace( '/%i/', '`' . esc_sql( (string) $identifier ) . '`', $query, 1 );
-			}
-			// Substitute remaining value placeholders via wpdb->prepare.
-			return empty( $values ) ? $query : $wpdb->prepare( $query, ...$values );
-		}
-	}
-}
