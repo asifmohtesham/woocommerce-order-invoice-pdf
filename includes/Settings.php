@@ -63,9 +63,11 @@ class Settings {
 
 		// AJAX set number store
 		add_action( 'wp_ajax_woi_pdf_set_next_number', array( $this, 'set_number_store' ) );
+		add_action( 'wp_ajax_wpo_wcpdf_set_next_number', array( $this, 'set_number_store' ) );
 
 		// AJAX get header logo setting HTML
 		add_action( 'wp_ajax_woi_pdf_get_media_upload_setting_html', array( $this, 'get_media_upload_setting_html' ) );
+		add_action( 'wp_ajax_wpo_wcpdf_get_media_upload_setting_html', array( $this, 'get_media_upload_setting_html' ) );
 
 		// refresh template path cache each time the general settings are updated
 		add_action( "update_option_woi_pdf_settings_general", array( $this, 'general_settings_updated' ), 10, 3 );
@@ -77,8 +79,10 @@ class Settings {
 
 		// AJAX preview
 		add_action( 'wp_ajax_woi_pdf_preview', array( $this, 'ajax_preview' ) );
+		add_action( 'wp_ajax_wpo_wcpdf_preview', array( $this, 'ajax_preview' ) );
 		// AJAX preview order search
 		add_action( 'wp_ajax_woi_pdf_preview_order_search', array( $this, 'preview_order_search' ) );
+		add_action( 'wp_ajax_wpo_wcpdf_preview_order_search', array( $this, 'preview_order_search' ) );
 
 		// schedule yearly reset numbers
 		add_action( 'woi_pdf_schedule_yearly_reset_numbers', array( $this, 'yearly_reset_numbers' ) );
@@ -94,6 +98,7 @@ class Settings {
 
 		// Sync address from WooCommerce address.
 		add_action( 'wp_ajax_woi_pdf_sync_address', array( $this, 'sync_shop_address_with_woo' ) );
+		add_action( 'wp_ajax_wpo_wcpdf_sync_address', array( $this, 'sync_shop_address_with_woo' ) );
 	}
 
 	public function menu() {
@@ -223,7 +228,7 @@ class Settings {
 	}
 
 	public function ajax_preview() {
-		check_ajax_referer( 'woi_pdf_preview', 'security' );
+		check_ajax_referer( 'wpo_wcpdf_preview', 'security' );
 
 		try {
 			// check permissions
@@ -407,7 +412,7 @@ class Settings {
 	}
 
 	public function preview_order_search() {
-		check_ajax_referer( 'woi_pdf_preview', 'security' );
+		check_ajax_referer( 'wpo_wcpdf_preview', 'security' );
 
 		try {
 			// check permissions
@@ -862,7 +867,7 @@ class Settings {
 	public function set_number_store() {
 		$store = ! empty( $_POST['store'] ) ? sanitize_text_field( wp_unslash( $_POST['store'] ) ) : '';
 
-		check_ajax_referer( "woi_pdf_next_{$store}", 'security' );
+		check_ajax_referer( "wpo_wcpdf_next_{$store}", 'security' );
 
 		// check permissions
 		if ( ! $this->user_can_manage_settings() ) {

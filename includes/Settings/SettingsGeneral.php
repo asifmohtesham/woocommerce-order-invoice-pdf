@@ -18,6 +18,30 @@ class SettingsGeneral {
 
 	public function __construct() {
 		add_action( 'admin_init', array( $this, 'init_settings' ) );
+		add_action( 'wp_ajax_wcpdf_get_country_states', array( $this, 'ajax_get_shop_country_states' ) );
+	}
+
+	public function ajax_get_shop_country_states(): void {
+		$valid = check_ajax_referer( 'woi_pdf_admin_nonce', 'security', false )
+			|| check_ajax_referer( 'wpo_wcpdf_admin_nonce', 'security', false );
+
+		if ( ! $valid ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid nonce.', 'woocommerce-orders-invoice-pdf' ) ), 403 );
+		}
+
+		if ( empty( $_POST['country'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'No country code provided.', 'woocommerce-orders-invoice-pdf' ) ) );
+		}
+
+		$country_code    = sanitize_text_field( wp_unslash( $_POST['country'] ) );
+		$general         = get_option( 'woi_pdf_settings_general', array() );
+		$selected        = strtoupper( trim( $general['shop_address_state'] ?? '' ) );
+		$states          = woi_pdf_get_country_states( $country_code );
+
+		wp_send_json_success( array(
+			'states'   => $states ?: array(),
+			'selected' => $selected ?: '',
+		) );
 	}
 
 	public function get_settings_categories(): array {

@@ -30,7 +30,7 @@ class Assets {
 	 */
 	public function backend_scripts_styles( $hook ) {
 		$suffix        = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
-		$pdfjs_version = '3.11.174';
+		$pdfjs_version = '4.3.136';
 
 		global $wp_version;
 

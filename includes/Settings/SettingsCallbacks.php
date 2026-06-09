@@ -60,43 +60,62 @@ class SettingsCallbacks {
 		$id            = $args['id'] ?? '';
 		$settings      = get_option( $option_name, array() );
 		$attachment_id = isset( $settings[ $id ] ) ? absint( $settings[ $id ] ) : 0;
-		$img_url       = $attachment_id ? wp_get_attachment_url( $attachment_id ) : '';
-		$height_id     = $id . '_height';
-		$height        = isset( $settings[ $height_id ] ) ? esc_attr( $settings[ $height_id ] ) : '';
-		?>
-		<input type="hidden"
-			id="<?php echo esc_attr( $id ); ?>"
-			name="<?php echo esc_attr( $option_name ); ?>[<?php echo esc_attr( $id ); ?>]"
-			value="<?php echo esc_attr( $attachment_id ); ?>" />
-		<?php if ( $img_url ) : ?>
-			<a href="#" class="wpo-wcpdf-logo-preview-link" target="_blank">
-				<img src="<?php echo esc_url( $img_url ); ?>" style="max-height:60px;display:block;margin-bottom:5px;" />
-			</a>
-		<?php endif; ?>
-		<button type="button" class="button wpo-wcpdf-media-upload-button" data-target="<?php echo esc_attr( $id ); ?>">
-			<?php esc_html_e( 'Select image', 'woocommerce-orders-invoice-pdf' ); ?>
-		</button>
-		<?php if ( $attachment_id ) : ?>
-			<button type="button" class="button wpo-wcpdf-media-remove-button" data-target="<?php echo esc_attr( $id ); ?>">
-				<?php esc_html_e( 'Remove image', 'woocommerce-orders-invoice-pdf' ); ?>
-			</button>
-		<?php endif; ?>
-		<?php if ( ! empty( $args['height_id'] ) ) : ?>
-			<p>
-				<label for="<?php echo esc_attr( $args['height_id'] ); ?>">
-					<?php esc_html_e( 'Max height (in mm)', 'woocommerce-orders-invoice-pdf' ); ?>
-				</label>
-				<input type="number"
-					id="<?php echo esc_attr( $args['height_id'] ); ?>"
-					name="<?php echo esc_attr( $option_name ); ?>[<?php echo esc_attr( $args['height_id'] ); ?>]"
-					value="<?php echo esc_attr( $height ); ?>"
-					size="4" />
-			</p>
-		<?php endif; ?>
-		<?php if ( ! empty( $args['description'] ) ) : ?>
-			<p class="description"><?php echo wp_kses_post( $args['description'] ); ?></p>
-		<?php endif; ?>
-		<?php
+		$height_id     = ! empty( $args['height_id'] ) ? $args['height_id'] : ( $id . '_height' );
+		$height        = $settings[ $height_id ] ?? '';
+		$setting_name  = $option_name . '[' . $id . ']';
+
+		$uploader_title       = __( 'Select image', 'woocommerce-orders-invoice-pdf' );
+		$uploader_button_text = __( 'Use image', 'woocommerce-orders-invoice-pdf' );
+		$remove_button_text   = __( 'Remove image', 'woocommerce-orders-invoice-pdf' );
+
+		if ( $attachment_id ) {
+			$attachment = wp_get_attachment_image_src( $attachment_id, 'full', false );
+			if ( $attachment ) {
+				printf(
+					'<img src="%1$s" style="display:block" id="img-%2$s" class="media-upload-preview"/>',
+					esc_attr( $attachment[0] ),
+					esc_attr( $id )
+				);
+			}
+			printf(
+				'<span class="button wpo_remove_image_button" data-input_id="%1$s">%2$s</span> ',
+				esc_attr( $id ),
+				esc_html( $remove_button_text )
+			);
+		}
+
+		printf(
+			'<input id="%1$s" name="%2$s" type="hidden" value="%3$s" data-settings_callback_args="%4$s" data-ajax_nonce="%5$s" class="media-upload-id"/>',
+			esc_attr( $id ),
+			esc_attr( $setting_name ),
+			esc_attr( $attachment_id ),
+			esc_attr( wp_json_encode( $args ) ),
+			esc_attr( wp_create_nonce( 'woi_pdf_get_media_upload_setting_html' ) )
+		);
+
+		printf(
+			'<span class="button wpo_upload_image_button %4$s" data-uploader_title="%1$s" data-uploader_button_text="%2$s" data-remove_button_text="%3$s" data-input_id="%4$s">%2$s</span>',
+			esc_attr( $uploader_title ),
+			esc_attr( $uploader_button_text ),
+			esc_attr( $remove_button_text ),
+			esc_attr( $id )
+		);
+
+		if ( ! empty( $args['height_id'] ) ) {
+			echo '<p>';
+			printf(
+				'<label for="%1$s">%2$s</label> <input type="text" id="%1$s" name="%3$s[%1$s]" value="%4$s" size="4"/>',
+				esc_attr( $height_id ),
+				esc_html__( 'Max height (e.g. 3cm, 25mm)', 'woocommerce-orders-invoice-pdf' ),
+				esc_attr( $option_name ),
+				esc_attr( $height )
+			);
+			echo '</p>';
+		}
+
+		if ( ! empty( $args['description'] ) ) {
+			printf( '<p class="description">%s</p>', wp_kses_post( $args['description'] ) );
+		}
 	}
 
 	/**
@@ -321,18 +340,15 @@ class SettingsCallbacks {
 			$store_name  = '';
 		}
 		?>
-		<input type="number"
-			id="woi_pdf_next_number_<?php echo esc_attr( $store_name ); ?>"
-			name="woi_pdf_next_number[<?php echo esc_attr( $store_name ); ?>]"
-			value="<?php echo esc_attr( $next_number ); ?>"
-			min="1"
-			style="width:8em;" />
-		<button type="button"
-			class="button woi-pdf-set-next-number"
-			data-store="<?php echo esc_attr( $store_name ); ?>"
-			data-nonce="<?php echo esc_attr( wp_create_nonce( 'woi_pdf_set_next_number' ) ); ?>">
-			<?php esc_html_e( 'Set number', 'woocommerce-orders-invoice-pdf' ); ?>
-		</button>
+		<?php
+		printf(
+			'<input id="next_%1$s" class="next-number-input" type="number" size="10" value="%2$s" disabled="disabled" data-store="%1$s" data-nonce="%3$s"/> <span class="edit-next-number dashicons dashicons-edit"></span><span class="save-next-number button secondary" style="display:none;">%4$s</span>',
+			esc_attr( $store_name ),
+			esc_attr( $next_number ),
+			esc_attr( wp_create_nonce( "wpo_wcpdf_next_{$store_name}" ) ),
+			esc_html__( 'Save', 'woocommerce-orders-invoice-pdf' )
+		);
+		?>
 		<?php if ( $description ) : ?>
 			<p class="description"><?php echo wp_kses_post( $description ); ?></p>
 		<?php endif; ?>
