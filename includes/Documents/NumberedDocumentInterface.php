@@ -1,0 +1,9 @@
+<?php
+namespace WOI\PDF\Documents;
+
+interface NumberedDocumentInterface extends DocumentInterface {
+    public function get_number(): ?DocumentNumber;
+    public function set_number( int $number ): void;
+    public function get_date(): ?\WC_DateTime;
+    public function has_number(): bool;
+}
