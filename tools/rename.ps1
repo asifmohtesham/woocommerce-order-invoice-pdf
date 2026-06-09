@@ -1,9 +1,20 @@
 function Rename-WoiPdf($path) {
     $pairs = @(
+        # Double-backslash variants (class_exists guards: '\\WPO\\IPS\\ClassName')
+        @('\\WPO\\WC\\PDF_Invoices_Pro\\', '\\WOI\\PDF\\'),
+        @('\\WPO\\WC\\PDF_Invoices\\',     '\\WOI\\PDF\\'),
+        @('\\WPO\\WC\\PDF_Invoices_Templates\\', '\\WOI\\PDF\\Editor\\'),
+        @('\\WPO\\IPS\\',                  '\\WOI\\PDF\\'),
+        # Single-backslash variants (namespace + use statements)
         @('WPO\WC\PDF_Invoices_Pro\',      'WOI\PDF\'),
         @('WPO\WC\PDF_Invoices\',          'WOI\PDF\'),
         @('WPO\WC\PDF_Invoices_Templates\','WOI\PDF\Editor\'),
         @('WPO\IPS\',                        'WOI\PDF\'),
+        # Bare namespace declarations: namespace WPO\IPS; (no trailing backslash)
+        @('namespace WPO\WC\PDF_Invoices_Pro;', 'namespace WOI\PDF;'),
+        @('namespace WPO\WC\PDF_Invoices;',     'namespace WOI\PDF;'),
+        @('namespace WPO\WC\PDF_Invoices_Templates;', 'namespace WOI\PDF\Editor;'),
+        @('namespace WPO\IPS;',                 'namespace WOI\PDF;'),
         @('WPO_WCPDF_Pro()',                'WOI_PDF()'),
         @('WPO_WCPDF()',                    'WOI_PDF()'),
         @('WPO_WCPDF_VERSION',             'WOI_PDF_VERSION'),
