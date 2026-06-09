@@ -114,7 +114,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 		return apply_filters( 'woi_pdf_document_shipping_address_title', __( 'Ship To:', 'woocommerce-orders-invoice-pdf' ), $this );
 	}
 
-	public function init() {
+	public function init( $order = null ): void {
 		// save settings
 		$this->save_settings();
 		$this->initiate_date();

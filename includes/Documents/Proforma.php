@@ -66,7 +66,7 @@ class Proforma extends OrderDocumentMethods implements NumberedDocumentInterface
 		return apply_filters( 'woi_pdf_document_store_settings', true, $this );
 	}
 
-	public function init(): void {
+	public function init( $order = null ): void {
 		// init settings
 		$this->init_settings_data();
 		$this->save_settings();
