@@ -160,8 +160,8 @@ class Proforma extends OrderDocumentMethods implements NumberedDocumentInterface
 		return ( $number instanceof DocumentNumber ) ? $number : null;
 	}
 
-	public function set_number( int $number ): void {
-		parent::set_number( $number );
+	public function set_number( int $number, $order = null ): void {
+		parent::set_number( $number, $order );
 	}
 
 	public function get_date( $document_type = '', $order = null, $context = 'view', $formatted = false ): ?\WC_DateTime {
