@@ -1546,7 +1546,7 @@ class Settings {
 
 		add_action( 'admin_init', function() use ( $document ): void {
 			$option = $document->get_settings_option_name();
-			register_setting( $option, $option );
+			register_setting( $option, $option, array( $this->callbacks, 'validate' ) ); // phpcs:ignore PluginCheck.CodeAnalysis.SettingSanitization.register_settingDynamic
 
 			foreach ( $document->get_settings_fields() as $field ) {
 				if ( isset( $field['section'], $field['id'], $field['title'] ) ) {

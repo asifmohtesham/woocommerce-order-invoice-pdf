@@ -241,6 +241,7 @@ class Main {
 		$reuse_attachment = apply_filters( 'woi_pdf_reuse_document_attachment', true, $document );
 		$max_reuse_age    = apply_filters( 'woi_pdf_reuse_attachment_age', 60 );
 		$lock_acquired    = false;
+		$file_written     = false;
 
 		try {
 			// Check if the file can be reused
