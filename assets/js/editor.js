@@ -255,6 +255,7 @@ jQuery(function($) {
 	});
 
 	function initTabScroll() {
+		$( window ).off( 'resize.tabScroll' );
 		var $wrapper = $( '#documents .tab-scroll-wrapper' );
 		if ( ! $wrapper.length ) return;
 
@@ -273,17 +274,17 @@ jQuery(function($) {
 			$track.toggleClass( 'at-end',   atEnd );
 		}
 
-		$prev.on( 'click', function() {
+		$prev.off( 'click.tabScroll' ).on( 'click.tabScroll', function() {
 			ul.scrollLeft -= Math.round( ul.clientWidth * 0.5 );
 			update();
 		} );
 
-		$next.on( 'click', function() {
+		$next.off( 'click.tabScroll' ).on( 'click.tabScroll', function() {
 			ul.scrollLeft += Math.round( ul.clientWidth * 0.5 );
 			update();
 		} );
 
-		$ul.on( 'scroll', debounce( update, 50 ) );
+		$ul.off( 'scroll.tabScroll' ).on( 'scroll.tabScroll', debounce( update, 50 ) );
 		$( window ).on( 'resize.tabScroll', debounce( update, 150 ) );
 
 		update();
