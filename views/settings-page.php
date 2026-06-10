@@ -8,8 +8,8 @@ if ( ! array_key_exists( $current_tab, $settings_tabs ) ) {
 }
 
 // Map tab key to WP Settings API page/option_group.
-// Document tabs have key 'woi_pdf_{type}' → page 'woi_pdf_settings_{type}'.
-// Static tabs (general, debug, edi…) → page 'woi_pdf_settings_{tab}'.
+// The Documents tab fires woi_pdf_settings_output_documents and handles its own option page internally.
+// All other tabs map to 'woi_pdf_settings_{tab}' (or an override in $tab_option_page_map).
 $is_upgrade = ( 'upgrade' === $current_tab );
 
 // Static tab → option-page mapping overrides (where the class uses a non-standard name).

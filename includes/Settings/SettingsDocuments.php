@@ -20,7 +20,7 @@ class SettingsDocuments {
 		add_action( 'woi_pdf_settings_output_documents', array( $this, 'output' ), 10, 2 );
 	}
 
-	public function output( string $section, string $nonce ): void {
+	public function output( string $section, string $_nonce ): void {
 		$section   = ! empty( $section ) ? sanitize_key( $section ) : 'invoice';
 		$documents = \WOI_PDF()->documents->get_documents( 'all' );
 
