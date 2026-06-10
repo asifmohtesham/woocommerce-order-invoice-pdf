@@ -300,6 +300,10 @@ class Settings {
 					do_action( 'woi_pdf_preview_after_reload_settings' );
 				}
 
+				// In preview mode, always reflect the live form settings — historical settings stored
+				// on the order would otherwise shadow unsaved (and even saved) setting changes.
+				add_filter( 'woi_pdf_document_use_historical_settings', '__return_false', 99 );
+
 				// In preview mode, treat the document as enabled even if the user hasn't saved settings yet.
 				add_filter( 'woi_pdf_document_is_enabled', '__return_true', 99 );
 				$document = woi_pdf_get_document( $document_type, $order );
