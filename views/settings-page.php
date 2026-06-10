@@ -20,11 +20,7 @@ $tab_option_page_map = array(
 if ( ! $is_upgrade ) {
 	if ( isset( $tab_option_page_map[ $current_tab ] ) ) {
 		$option_page = $tab_option_page_map[ $current_tab ];
-	} elseif ( 0 === strpos( $current_tab, 'woi_pdf_' ) ) {
-		// Document tabs: 'woi_pdf_{type}' → 'woi_pdf_documents_settings_{type}'.
-		$option_page = 'woi_pdf_documents_settings_' . substr( $current_tab, strlen( 'woi_pdf_' ) );
 	} else {
-		// Static tabs: 'general', 'debug', 'edi', … → 'woi_pdf_settings_{tab}'.
 		$option_page = 'woi_pdf_settings_' . $current_tab;
 	}
 }
@@ -32,9 +28,11 @@ if ( ! $is_upgrade ) {
 <?php
 $preview_states      = isset( $settings_tabs[ $current_tab ]['preview_states'] ) ? $settings_tabs[ $current_tab ]['preview_states'] : 1;
 $preview_states_lock = ( 3 === (int) $preview_states ) ? false : true;
-$preview_document_type = isset( $_GET['tab'] ) && 0 === strpos( $current_tab, 'woi_pdf_' )
-	? substr( $current_tab, strlen( 'woi_pdf_' ) )
-	: 'invoice';
+if ( 'documents' === $current_tab && ! empty( $_GET['section'] ) ) {
+	$preview_document_type = sanitize_key( wp_unslash( $_GET['section'] ) );
+} else {
+	$preview_document_type = 'invoice';
+}
 ?>
 <div class="wrap woi-pdf-settings-page">
 	<h1><?php esc_html_e( 'PDF Invoices & Packing Slips', 'woocommerce-orders-invoice-pdf' ); ?></h1>
@@ -67,10 +65,17 @@ $preview_document_type = isset( $_GET['tab'] ) && 0 === strpos( $current_tab, 'w
 			<?php else : ?>
 				<form method="post" action="options.php" id="woi-pdf-settings" class="<?php echo esc_attr( $current_tab ); ?>">
 					<input type="hidden" name="tab" value="<?php echo esc_attr( $current_tab ); ?>">
-					<?php do_action( 'woi_pdf_before_settings', $current_tab, $nonce ); ?>
-					<?php settings_fields( $option_page ); ?>
-					<?php do_settings_sections( $option_page ); ?>
-					<?php submit_button(); ?>
+					<?php
+					do_action( 'woi_pdf_before_settings', $current_tab, $nonce );
+					$current_section = isset( $_GET['section'] ) ? sanitize_key( wp_unslash( $_GET['section'] ) ) : '';
+					if ( has_action( "woi_pdf_settings_output_{$current_tab}" ) ) {
+						do_action( "woi_pdf_settings_output_{$current_tab}", $current_section, $nonce );
+					} else {
+						settings_fields( $option_page );
+						do_settings_sections( $option_page );
+						submit_button();
+					}
+					?>
 				</form>
 			<?php endif; ?>
 		</div>
@@ -97,18 +102,15 @@ $preview_document_type = isset( $_GET['tab'] ) && 0 === strpos( $current_tab, 'w
 					</ul>
 					<div id="preview-order-search-results"></div>
 				</div>
-				<?php if ( 'documents' !== $current_tab ) :
-					$documents = WOI_PDF()->documents->get_documents( 'enabled', 'any' );
-				?>
+				<?php $picker_documents = WOI_PDF()->documents->get_documents( 'enabled', 'any' ); ?>
 				<div class="preview-data preview-document-type">
 					<p class="current"><span class="current-label"><?php esc_html_e( 'Invoice', 'woocommerce-orders-invoice-pdf' ); ?></span><span class="arrow-down">&#9660;</span></p>
 					<ul class="preview-data-option-list" data-input-name="document_type">
-						<?php foreach ( $documents as $doc ) : ?>
+						<?php foreach ( $picker_documents as $doc ) : ?>
 							<li data-value="<?php echo esc_attr( $doc->get_type() ); ?>"><?php echo esc_html( $doc->get_title() ); ?></li>
 						<?php endforeach; ?>
 					</ul>
 				</div>
-				<?php endif; ?>
 			</div>
 			<input type="hidden" name="document_type" data-default="<?php echo esc_attr( $preview_document_type ); ?>" value="<?php echo esc_attr( $preview_document_type ); ?>">
 			<input type="hidden" name="output_format" value="pdf">
