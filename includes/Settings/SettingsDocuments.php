@@ -17,53 +17,59 @@ class SettingsDocuments {
 	}
 
 	public function __construct() {
-		add_action( 'admin_init', array( $this, 'init_settings' ) );
+		add_action( 'woi_pdf_settings_output_documents', array( $this, 'output' ), 10, 2 );
 	}
 
-	public function init_settings(): void {
-		$page = $option_group = $option_name = 'woi_pdf_settings_documents';
-
-		ob_start();
-		?>
-		<p><?php esc_html_e( 'Select a document type below to configure its settings.', 'woocommerce-orders-invoice-pdf' ); ?></p>
-		<ul style="list-style:disc;margin-left:1.5em;">
-		<?php
+	public function output( string $section, string $nonce ): void {
+		$section   = ! empty( $section ) ? sanitize_text_field( $section ) : 'invoice';
 		$documents = \WOI_PDF()->documents->get_documents( 'all' );
-		foreach ( $documents as $document ) :
-			$url = admin_url( 'admin.php?page=woi_pdf_options_page&tab=woi_pdf_' . rawurlencode( $document->get_type() ) );
-			?>
-			<li>
-				<a href="<?php echo esc_url( $url ); ?>">
-					<?php echo esc_html( $document->get_title() ); ?>
-				</a>
-			</li>
-		<?php endforeach; ?>
-		</ul>
+
+		$active = null;
+		foreach ( $documents as $doc ) {
+			if ( $doc->get_type() === $section ) {
+				$active = $doc;
+				break;
+			}
+		}
+		if ( empty( $active ) ) {
+			$active  = reset( $documents );
+			$section = $active ? $active->get_type() : 'invoice';
+		}
+
+		$option_name  = 'woi_pdf_documents_settings_' . $section;
+		$active_title = wp_strip_all_tags( $active->get_title() );
+		if ( '' === trim( $active_title ) ) {
+			$active_title = '[' . __( 'untitled', 'woocommerce-orders-invoice-pdf' ) . ']';
+		}
+		?>
+		<div class="wcpdf_document_settings_sections">
+			<span><?php esc_html_e( 'Choose document', 'woocommerce-orders-invoice-pdf' ); ?></span>
+			<h2><?php echo esc_html( $active_title ); ?><span class="arrow-down">&#9660;</span></h2>
+			<ul>
+				<?php foreach ( $documents as $doc ) :
+					if ( $doc->get_type() === $section ) {
+						continue;
+					}
+					$title = wp_strip_all_tags( $doc->get_title() );
+					if ( '' === trim( $title ) ) {
+						$title = '[' . __( 'untitled', 'woocommerce-orders-invoice-pdf' ) . ']';
+					}
+				?>
+				<li>
+					<a href="<?php echo esc_url( add_query_arg(
+						array( 'tab' => 'documents', 'section' => $doc->get_type() ),
+						admin_url( 'admin.php?page=woi_pdf_options_page' )
+					) ); ?>">
+						<?php echo esc_html( $title ); ?>
+					</a>
+				</li>
+				<?php endforeach; ?>
+			</ul>
+		</div>
 		<?php
-		$html = ob_get_clean();
-
-		$settings_fields = array(
-			array(
-				'type'     => 'section',
-				'id'       => 'documents_overview',
-				'title'    => __( 'Document types', 'woocommerce-orders-invoice-pdf' ),
-				'callback' => 'section',
-			),
-			array(
-				'type'     => 'setting',
-				'id'       => 'documents_links',
-				'title'    => '',
-				'callback' => 'html_section',
-				'section'  => 'documents_overview',
-				'args'     => array(
-					'option_name' => $option_name,
-					'id'          => 'documents_links',
-					'html'        => $html,
-				),
-			),
-		);
-
-		\WOI_PDF()->settings->add_settings_fields( $settings_fields, $page, $option_group, $option_name );
+		settings_fields( $option_name );
+		do_settings_sections( $option_name );
+		submit_button();
 	}
 }
 
