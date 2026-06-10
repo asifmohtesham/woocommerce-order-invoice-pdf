@@ -335,8 +335,8 @@ class EditorSettings {
 
 		?>
 		<style>
-		#woi-pdf-settings .form-table td,
-		#woi-pdf-settings .form-table th {
+		#wpo-wcpdf-settings .form-table td,
+		#wpo-wcpdf-settings .form-table th {
 			display: block !important;
 			padding: 0 !important;
 		}

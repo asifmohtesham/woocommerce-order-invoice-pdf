@@ -1548,7 +1548,10 @@ class Settings {
 		$tab_key = 'woi_pdf_' . $document->get_type();
 
 		add_filter( 'woi_pdf_settings_tabs', function( array $tabs ) use ( $document, $tab_key ): array {
-			$tabs[ $tab_key ] = $document->get_title();
+			$tabs[ $tab_key ] = array(
+				'title'          => $document->get_title(),
+				'preview_states' => 3,
+			);
 			return $tabs;
 		} );
 

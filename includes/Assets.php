@@ -124,10 +124,10 @@ class Assets {
 				background-repeat: no-repeat !important;
 				background-position: right 10px center !important;
 			}" );
-			wp_add_inline_style( 'woi-pdf-settings-styles', "#woi-pdf-preview-wrapper .slider.slide-left:after {
+			wp_add_inline_style( 'woi-pdf-settings-styles', "#wpo-wcpdf-preview-wrapper .slider.slide-left:after {
 					content: '".__( 'Preview', 'woocommerce-orders-invoice-pdf' )."';
 				}
-				#woi-pdf-preview-wrapper .slider.slide-right:after {
+				#wpo-wcpdf-preview-wrapper .slider.slide-right:after {
 					content: '".__( 'Settings', 'woocommerce-orders-invoice-pdf' )."';
 			}" );
 			wp_add_inline_style( 'woi-pdf-settings-styles', "#upgrade-table td span.feature-available {

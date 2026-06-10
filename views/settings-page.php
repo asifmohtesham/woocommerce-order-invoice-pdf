@@ -65,7 +65,7 @@ $preview_document_type = isset( $_GET['tab'] ) && 0 === strpos( $current_tab, 'w
 					<p><?php esc_html_e( 'Upgrade to the Professional extension for additional features.', 'woocommerce-orders-invoice-pdf' ); ?></p>
 				</div>
 			<?php else : ?>
-				<form method="post" action="options.php" id="woi-pdf-settings" class="<?php echo esc_attr( $current_tab ); ?>">
+				<form method="post" action="options.php" id="wpo-wcpdf-settings" class="<?php echo esc_attr( $current_tab ); ?>">
 					<input type="hidden" name="tab" value="<?php echo esc_attr( $current_tab ); ?>">
 					<?php do_action( 'woi_pdf_before_settings', $current_tab, $nonce ); ?>
 					<?php settings_fields( $option_page ); ?>
