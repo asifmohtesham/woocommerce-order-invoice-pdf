@@ -21,7 +21,7 @@ class SettingsDocuments {
 	}
 
 	public function output( string $section, string $nonce ): void {
-		$section   = ! empty( $section ) ? sanitize_text_field( $section ) : 'invoice';
+		$section   = ! empty( $section ) ? sanitize_key( $section ) : 'invoice';
 		$documents = \WOI_PDF()->documents->get_documents( 'all' );
 
 		$active = null;
@@ -32,8 +32,11 @@ class SettingsDocuments {
 			}
 		}
 		if ( empty( $active ) ) {
-			$active  = reset( $documents );
-			$section = $active ? $active->get_type() : 'invoice';
+			$active = reset( $documents );
+			if ( ! $active ) {
+				return;
+			}
+			$section = $active->get_type();
 		}
 
 		$option_name  = 'woi_pdf_documents_settings_' . $section;
