@@ -63,6 +63,8 @@
 #woi-pdf-settings .button.load-defaults {
 	display:                inline-block;
 	margin-left:            auto;
+	text-transform:         none;
+	white-space:            nowrap;
 }
 
 #woi-pdf-settings .columns-options {
