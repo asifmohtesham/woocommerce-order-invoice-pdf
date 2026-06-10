@@ -365,12 +365,31 @@ class Settings {
 
 					// TEMPORARY DEBUG — remove after diagnosing missing invoice number in preview
 					add_action( 'woi_pdf_after_order_data', function( $type, $_order ) use ( $document ) {
-						$number = $document->get_data( 'number' );
+						global $wp_filter;
+						$number    = $document->get_data( 'number' );
+						$number2   = $document->get_data( 'number', $document->get_type() );
+						$hook      = "woi_pdf_{$document->slug}_number";
+						$callbacks = array();
+						if ( isset( $wp_filter[ $hook ] ) ) {
+							foreach ( $wp_filter[ $hook ]->callbacks as $priority => $cbs ) {
+								foreach ( $cbs as $cb ) {
+									$fn = $cb['function'];
+									if ( is_string( $fn ) ) {
+										$callbacks[] = "{$priority}:{$fn}";
+									} elseif ( is_array( $fn ) ) {
+										$callbacks[] = "{$priority}:" . ( is_object( $fn[0] ) ? get_class( $fn[0] ) : $fn[0] ) . '::' . $fn[1];
+									} else {
+										$callbacks[] = "{$priority}:closure";
+									}
+								}
+							}
+						}
 						printf(
-							'<tr><th>DBG formatted:</th><td>%s</td></tr><tr><th>DBG get_number(fmt):</th><td>%s</td></tr><tr><th>DBG template file:</th><td>%s</td></tr>',
-							is_object( $number ) ? esc_html( '[' . $number->get_formatted() . ']' ) : '(no object)',
-							esc_html( '[' . $document->get_number( $document->get_type(), null, 'view', true ) . ']' ),
-							esc_html( $document->locate_template_file( $document->get_type() . '.php' ) )
+							'<tr><th>DBG type/slug:</th><td>%s</td></tr><tr><th>DBG data(explicit type):</th><td>%s</td></tr><tr><th>DBG hook callbacks:</th><td>%s</td></tr><tr><th>DBG filtered:</th><td>%s</td></tr>',
+							esc_html( $document->get_type() . ' / ' . $document->slug ),
+							is_object( $number2 ) ? 'object' : gettype( $number2 ),
+							esc_html( $callbacks ? implode( ' | ', $callbacks ) : '(none)' ),
+							esc_html( '[' . apply_filters( $hook, is_object( $number ) ? $number->get_formatted() : 'X', $document->get_type(), null, 'view', true, $document ) . ']' )
 						);
 					}, 10, 2 );
 
