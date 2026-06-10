@@ -164,15 +164,9 @@ class Receipt extends OrderDocumentMethods implements NumberedDocumentInterface,
 	// NumberedDocumentInterface
 	// -------------------------------------------------------------------------
 
-	public function get_number( $document_type = '', $order = null, $context = 'view', $formatted = false ): ?DocumentNumber {
-		$number = parent::get_number( $document_type, $order, $context, $formatted );
-		return ( $number instanceof DocumentNumber ) ? $number : null;
-	}
-
-	public function get_date( $document_type = '', $order = null, $context = 'view', $formatted = false ): ?\WC_DateTime {
-		$date = parent::get_date( $document_type, $order, $context, $formatted );
-		return ( $date instanceof \WC_DateTime ) ? $date : null;
-	}
+	// get_number() and get_date() are inherited from OrderDocument; overriding them
+	// with a DocumentNumber/WC_DateTime return type would discard the formatted
+	// string these methods return when called with $formatted = true.
 
 	public function has_number(): bool {
 		return ! empty( $this->data['number'] );

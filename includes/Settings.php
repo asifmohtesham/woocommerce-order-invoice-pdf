@@ -363,36 +363,6 @@ class Settings {
 						$document_number->apply_formatting( $document, $order );
 					}
 
-					// TEMPORARY DEBUG — remove after diagnosing missing invoice number in preview
-					add_action( 'woi_pdf_after_order_data', function( $type, $_order ) use ( $document ) {
-						global $wp_filter;
-						$number    = $document->get_data( 'number' );
-						$number2   = $document->get_data( 'number', $document->get_type() );
-						$hook      = "woi_pdf_{$document->slug}_number";
-						$callbacks = array();
-						if ( isset( $wp_filter[ $hook ] ) ) {
-							foreach ( $wp_filter[ $hook ]->callbacks as $priority => $cbs ) {
-								foreach ( $cbs as $cb ) {
-									$fn = $cb['function'];
-									if ( is_string( $fn ) ) {
-										$callbacks[] = "{$priority}:{$fn}";
-									} elseif ( is_array( $fn ) ) {
-										$callbacks[] = "{$priority}:" . ( is_object( $fn[0] ) ? get_class( $fn[0] ) : $fn[0] ) . '::' . $fn[1];
-									} else {
-										$callbacks[] = "{$priority}:closure";
-									}
-								}
-							}
-						}
-						printf(
-							'<tr><th>DBG type/slug:</th><td>%s</td></tr><tr><th>DBG data(explicit type):</th><td>%s</td></tr><tr><th>DBG hook callbacks:</th><td>%s</td></tr><tr><th>DBG filtered:</th><td>%s</td></tr>',
-							esc_html( $document->get_type() . ' / ' . $document->slug ),
-							is_object( $number2 ) ? 'object' : gettype( $number2 ),
-							esc_html( $callbacks ? implode( ' | ', $callbacks ) : '(none)' ),
-							esc_html( '[' . apply_filters( $hook, is_object( $number ) ? $number->get_formatted() : 'X', $document->get_type(), null, 'view', true, $document ) . ']' )
-						);
-					}, 10, 2 );
-
 					// preview
 					$output_format = ( ! empty( $_REQUEST['output_format'] ) && $_REQUEST['output_format'] != 'pdf' && in_array( $_REQUEST['output_format'], $document->output_formats ) ) ? sanitize_text_field( wp_unslash( $_REQUEST['output_format'] ) ) : 'pdf';
 					switch ( $output_format ) {
