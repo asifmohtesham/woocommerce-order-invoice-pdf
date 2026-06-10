@@ -173,8 +173,8 @@ class Admin {
 			if ( get_transient( 'woi_pdf_new_install' ) !== false ) {
 				?>
 				<div class="notice notice-info is-dismissible woi-pdf-install-notice">
-					<p><strong><?php esc_html_e( 'New to PDF Invoices & Packing Slips for WooCommerce?', 'woocommerce-orders-invoice-pdf' ); ?></strong> &#8211; <?php esc_html_e( 'Jumpstart the plugin by following our wizard!', 'woocommerce-orders-invoice-pdf' ); ?></p>
-					<p class="submit"><a href="<?php echo esc_url( admin_url( 'admin.php?page=woi-pdf-setup' ) ); ?>" class="button-primary"><?php esc_html_e( 'Run the Setup Wizard', 'woocommerce-orders-invoice-pdf' ); ?></a> <a href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'woi_pdf_dismiss_install', true ), 'dismiss_install_nonce', '_wpdismissnonce' ) ); ?>" class="woi-pdf-dismiss-wizard"><?php esc_html_e( 'I am the wizard', 'woocommerce-orders-invoice-pdf' ); ?></a></p>
+					<p><strong><?php esc_html_e( 'New to PDF Invoices & Packing Slips for WooCommerce?', 'woocommerce-orders-invoice-pdf' ); ?></strong> &#8211; <?php esc_html_e( 'Head to the settings page to configure your documents.', 'woocommerce-orders-invoice-pdf' ); ?></p>
+					<p class="submit"><a href="<?php echo esc_url( admin_url( 'admin.php?page=woi_pdf_options_page' ) ); ?>" class="button-primary"><?php esc_html_e( 'Open Settings', 'woocommerce-orders-invoice-pdf' ); ?></a> <a href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'woi_pdf_dismiss_install', true ), 'dismiss_install_nonce', '_wpdismissnonce' ) ); ?>" class="woi-pdf-dismiss-wizard"><?php esc_html_e( 'Dismiss', 'woocommerce-orders-invoice-pdf' ); ?></a></p>
 				</div>
 				<script type="text/javascript">
 				jQuery( function( $ ) {
@@ -191,10 +191,12 @@ class Admin {
 	}
 
 	public function setup_wizard() {
-		// Setup/welcome
+		// The setup wizard is not included in this build; clear the new-install
+		// transient if the legacy wizard URL is visited so the notice goes away.
 		if ( ! empty( $_GET['page'] ) && 'woi-pdf-setup' === $_GET['page'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			delete_transient( 'woi_pdf_new_install' );
-			SetupWizard::instance();
+			wp_safe_redirect( admin_url( 'admin.php?page=woi_pdf_options_page' ) );
+			exit;
 		}
 	}
 
