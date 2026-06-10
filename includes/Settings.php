@@ -73,7 +73,7 @@ class Settings {
 		add_action( "update_option_woi_pdf_settings_debug", array( $this, 'debug_settings_updated' ), 10, 3 );
 		add_action( 'init', array( $this, 'maybe_delete_flush_rewrite_rules_transient' ) );
 		// migrate old template paths to template IDs before loading settings page
-		add_action( 'woi_pdf_settings_output_general', array( $this, 'maybe_migrate_template_paths' ), 9, 2 );
+		add_action( 'woi_pdf_before_settings', array( $this, 'maybe_migrate_template_paths' ), 9, 2 );
 
 		// AJAX preview
 		add_action( 'wp_ajax_woi_pdf_preview', array( $this, 'ajax_preview' ) );
