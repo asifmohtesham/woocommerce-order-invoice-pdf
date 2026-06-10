@@ -176,24 +176,6 @@ class SettingsDebug {
 					'default'     => 7,
 				),
 			),
-			array(
-				'type'     => 'section',
-				'id'       => 'debug_danger',
-				'title'    => __( 'Danger zone', 'woocommerce-orders-invoice-pdf' ),
-				'callback' => 'section',
-			),
-			array(
-				'type'     => 'setting',
-				'id'       => 'enable_danger_zone_tools',
-				'title'    => __( 'Enable danger zone tools', 'woocommerce-orders-invoice-pdf' ),
-				'callback' => 'checkbox',
-				'section'  => 'debug_danger',
-				'args'     => array(
-					'option_name' => $option_name,
-					'id'          => 'enable_danger_zone_tools',
-					'description' => __( 'Enables bulk delete and other destructive tools. Use with caution.', 'woocommerce-orders-invoice-pdf' ),
-				),
-			),
 		);
 
 		$settings_fields = apply_filters( 'woi_pdf_settings_fields_debug', $settings_fields, $page, $option_group, $option_name );

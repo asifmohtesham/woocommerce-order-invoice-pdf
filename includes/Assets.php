@@ -130,10 +130,6 @@ class Assets {
 				#woi-pdf-preview-wrapper .slider.slide-right:after {
 					content: '".__( 'Settings', 'woocommerce-orders-invoice-pdf' )."';
 			}" );
-			wp_add_inline_style( 'woi-pdf-settings-styles', "#upgrade-table td span.feature-available {
-				background-image: url(".WOI_PDF()->plugin_url().'/assets/images/checkmark.svg'.") !important;
-			}" );
-
 			if ( ! wp_script_is( 'wc-enhanced-select', 'enqueued' ) ) {
 				wp_enqueue_script( 'wc-enhanced-select' );
 			}
@@ -223,7 +219,7 @@ class Assets {
 					) ),
 					'pointers'                  => array(
 						'woi_pdf_document_settings_sections' => array(
-							'target'        => '.woi_pdf_document_settings_sections',
+							'target'        => '.wcpdf_document_settings_sections',
 							'content'       => sprintf(
 								'<h3>%s</h3><p>%s</p>',
 								__( 'Document settings', 'woocommerce-orders-invoice-pdf' ),
@@ -276,55 +272,6 @@ class Assets {
 				WOI_PDF_VERSION,
 				true
 			);
-
-			// status/debug page scripts
-			if ( 'debug' === $tab ) {
-				wp_enqueue_style( 'jquery-ui-style' );
-				wp_enqueue_script( 'jquery-ui-datepicker' );
-
-				wp_enqueue_style(
-					'woi-pdf-debug-tools-styles',
-					WOI_PDF()->plugin_url() . '/assets/css/debug-tools' . $suffix . '.css',
-					array(),
-					WOI_PDF_VERSION
-				);
-
-				wp_enqueue_script(
-					'woi-pdf-debug',
-					WOI_PDF()->plugin_url() . '/assets/js/debug-script' . $suffix . '.js',
-					array(
-						'jquery',
-						'jquery-ui-datepicker',
-						wp_script_is( 'wc-jquery-blockui', 'registered' ) ? 'wc-jquery-blockui' : 'jquery-blockui',
-					),
-					WOI_PDF_VERSION,
-					true
-				);
-
-				wp_localize_script(
-					'woi-pdf-debug',
-					'woi_pdf_debug',
-					array(
-						'ajaxurl'                         => admin_url( 'admin-ajax.php' ),
-						'nonce'                           => wp_create_nonce( 'woi_pdf_debug_nonce' ),
-						'download_label'                  => __( 'Download', 'woocommerce-orders-invoice-pdf' ),
-						'confirm_reset'                   => __( 'Are you sure you want to reset this settings? This cannot be undone.', 'woocommerce-orders-invoice-pdf' ),
-						'select_document_type'            => __( 'Please select a document type', 'woocommerce-orders-invoice-pdf' ),
-						'forbidden'                       => __( 'You are not allowed to perform this action.', 'woocommerce-orders-invoice-pdf' ),
-						'confirm_plugin_report_sensitive' => __( 'The report may contain sensitive data such as license keys and log contents. Are you sure you want to include this information?', 'woocommerce-orders-invoice-pdf' ),
-						'danger_zone'                     => array(
-							'enabled' => isset( WOI_PDF()->settings->debug_settings['enable_danger_zone_tools'] ) ? true : false,
-							'message' => sprintf(
-								/* translators: 1. open anchor tag, 2. close anchor tag */
-								__( '<strong>Enabled</strong>: %1$sclick here%2$s to start using the tools.', 'woocommerce-orders-invoice-pdf' ),
-								'<a href="' . esc_url( add_query_arg( 'section', 'tools' ) ) . '#danger_zone">',
-								'</a>'
-							),
-						),
-					)
-				);
-
-			}
 
 			// edi — only available when the EDI extension is installed
 			if ( 'edi' === $tab && class_exists( 'WOI\\PDF\\EDI\\Standards\\EN16931' ) ) {
