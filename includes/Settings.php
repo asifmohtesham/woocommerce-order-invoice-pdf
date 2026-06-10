@@ -1540,16 +1540,6 @@ class Settings {
 	 * @param \WOI\PDF\Documents\DocumentInterface $document
 	 */
 	public function register_document_tab( \WOI\PDF\Documents\DocumentInterface $document ): void {
-		$tab_key = 'woi_pdf_' . $document->get_type();
-
-		add_filter( 'woi_pdf_settings_tabs', function( array $tabs ) use ( $document, $tab_key ): array {
-			$tabs[ $tab_key ] = array(
-				'title'          => $document->get_title(),
-				'preview_states' => 3,
-			);
-			return $tabs;
-		} );
-
 		add_action( 'admin_init', function() use ( $document ): void {
 			$document->init_settings();
 		} );
