@@ -1534,7 +1534,7 @@ class Settings {
 	}
 
 	/**
-	 * Register a settings tab for a document using its own declared fields.
+	 * Register settings fields for a document type.
 	 * Called from the plugin entry point for each registered document type.
 	 *
 	 * @param \WOI\PDF\Documents\DocumentInterface $document
