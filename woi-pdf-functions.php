@@ -2391,9 +2391,374 @@ if ( ! function_exists( 'woi_pdf_edi_peppol_save_customer_identifiers' ) ) {
 	function woi_pdf_edi_peppol_save_customer_identifiers( $customer_id, $values ): void {}
 }
 
-// Stub: WooCommerce Product Bundles integration — extension not present in this build.
+// Template helper functions (ported from woocommerce-pdf-ips-templates, renamed wpo_ → woi_).
+
 if ( ! function_exists( 'woi_pdf_templates_is_product_bundles_plugin_active' ) ) {
 	function woi_pdf_templates_is_product_bundles_plugin_active(): bool {
 		return class_exists( 'WC_Bundles' );
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_templates_get_table_headers' ) ) {
+	function woi_pdf_templates_get_table_headers( $document ) {
+		$column_settings = \WOI\PDF\Editor\EditorSettings::instance()->get_settings( $document->get_type(), 'columns', $document );
+		$order_discount  = $document->get_order_discount( 'total', 'incl' );
+		$taxes           = $document->get_order_taxes();
+
+		if ( ! empty( $column_settings ) ) {
+			end( $column_settings );
+			$column_settings[ key( $column_settings ) ]['position'] = 'last';
+			reset( $column_settings );
+			$column_settings[ key( $column_settings ) ]['position'] = 'first';
+		}
+
+		$headers = array();
+		foreach ( $column_settings as $column_key => $column_setting ) {
+			if ( ! $order_discount && isset( $column_setting['only_discounted'] ) ) {
+				continue;
+			}
+			if ( 'vat' === $column_setting['type'] && isset( $column_setting['split'] ) && ! empty( $taxes ) ) {
+				foreach ( $taxes as $tax ) {
+					$title      = $tax['label'] . ' (' . $tax['rate'] . ')';
+					$new_column = array(
+						'split' => '1',
+						'title' => apply_filters( 'woi_pdf_vat_split_column_title', $title, $tax ),
+						'class' => 'vat-split',
+						'type'  => 'vat',
+					);
+					$new_column_key             = $column_key . '_' . $tax['rate_id'];
+					$headers[ $new_column_key ] = $column_setting + $new_column + \WOI\PDF\Editor\EditorMain::instance()->get_order_details_header( $new_column, $document );
+				}
+			} else {
+				$headers[ $column_key ] = $column_setting + \WOI\PDF\Editor\EditorMain::instance()->get_order_details_header( $column_setting, $document );
+			}
+		}
+
+		return apply_filters( 'woi_pdf_templates_table_headers', $headers, $document->get_type(), $document );
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_templates_get_table_body' ) ) {
+	function woi_pdf_templates_get_table_body( $document ) {
+		$column_settings = \WOI\PDF\Editor\EditorSettings::instance()->get_settings( $document->get_type(), 'columns', $document );
+		$order_discount  = $document->get_order_discount( 'total', 'incl' );
+		$taxes           = $document->get_order_taxes();
+
+		if ( ! empty( $column_settings ) ) {
+			end( $column_settings );
+			$column_settings[ key( $column_settings ) ]['position'] = 'last';
+			reset( $column_settings );
+			$column_settings[ key( $column_settings ) ]['position'] = 'first';
+		}
+
+		$body  = array();
+		$items = $document->get_order_items();
+
+		if ( sizeof( $items ) > 0 ) {
+			foreach ( $column_settings as $column_key => $column_setting ) {
+				$line_number = 1;
+				foreach ( $items as $item_id => $item ) {
+					if ( ! $order_discount && isset( $column_setting['only_discounted'] ) ) {
+						continue;
+					}
+					$column_setting['line_number'] = $line_number;
+
+					if ( 'vat' === $column_setting['type'] && isset( $column_setting['split'] ) && ! empty( $taxes ) ) {
+						$item_taxes                   = $item['item']->get_taxes();
+						$item_subtotal_taxes          = isset( $item_taxes['subtotal'] ) ? $item_taxes['subtotal'] : array();
+						$filtered_item_subtotal_taxes = array_filter( $item_subtotal_taxes );
+						$multiple                     = ! empty( $filtered_item_subtotal_taxes ) && count( $filtered_item_subtotal_taxes ) > 1;
+
+						foreach ( $taxes as $tax ) {
+							$split = array();
+							foreach ( $item_taxes as $item_tax_type => $item_tax_values ) {
+								$value                   = ! empty( $item_tax_values[ $tax['rate_id'] ] ) ? $item_tax_values[ $tax['rate_id'] ] : 0;
+								$split[ $item_tax_type ] = floatval( $value );
+							}
+							if ( ! isset( $split['subtotal'] ) && isset( $split['total'] ) ) {
+								$split['subtotal'] = $split['total'];
+							}
+							$split['multiple'] = $multiple;
+							$split['tax_rate'] = $tax['rate'];
+							if ( is_callable( array( $item['item'], 'get_subtotal' ) ) && is_callable( array( $item['item'], 'get_total' ) ) ) {
+								$split['discount'] = floatval( $item['item']->get_subtotal() - $item['item']->get_total() );
+							} else {
+								$split['discount'] = 0;
+							}
+							$split['discount_tax'] = floatval( $item['item']['line_subtotal_tax'] - $item['item']['line_tax'] );
+
+							$new_column = array(
+								'type'          => $column_setting['type'],
+								'split'         => $split,
+								'dash_for_zero' => isset( $column_setting['dash_for_zero'] ),
+								'label'         => $column_setting['label'],
+								'price_type'    => $column_setting['price_type'],
+								'discount'      => $column_setting['discount'],
+							);
+							$new_column_key                      = $column_key . '_' . $tax['rate_id'];
+							$body[ $item_id ][ $new_column_key ] = $new_column + \WOI\PDF\Editor\EditorMain::instance()->get_order_details_data( $new_column, $item, $document );
+						}
+					} else {
+						$body[ $item_id ][ $column_key ] = $column_setting + \WOI\PDF\Editor\EditorMain::instance()->get_order_details_data( $column_setting, $item, $document );
+					}
+					$line_number++;
+				}
+			}
+		}
+
+		return apply_filters( 'woi_pdf_templates_table_body', $body, $document->get_type(), $document );
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_templates_get_totals' ) ) {
+	function woi_pdf_templates_get_totals( $document ) {
+		$total_settings = \WOI\PDF\Editor\EditorSettings::instance()->get_settings( $document->get_type(), 'totals', $document );
+		$totals_data    = \WOI\PDF\Editor\EditorMain::instance()->get_totals_table_data( $total_settings, $document );
+		return apply_filters( 'woi_pdf_templates_totals', $totals_data, $document->get_type(), $document );
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_templates_get_footer_settings' ) ) {
+	function woi_pdf_templates_get_footer_settings( $document, $default_height = '5cm' ) {
+		$footer_height = str_replace( ' ', '', \WOI\PDF\Editor\EditorSettings::instance()->get_footer_height() );
+		if ( empty( $footer_height ) ) {
+			$footer_height = $default_height;
+		}
+		$page_bottom = floatval( $footer_height );
+		if ( strpos( $footer_height, 'in' ) !== false ) {
+			$page_bottom = $page_bottom * 2.54;
+		} elseif ( strpos( $footer_height, 'mm' ) !== false ) {
+			$page_bottom = $page_bottom / 10;
+		}
+		$limit_cap   = apply_filters( 'woi_pdf_templates_footer_height_limit', 10 );
+		$page_bottom = min( $page_bottom, $limit_cap );
+		$footer_height = $page_bottom . 'cm';
+		$page_bottom   = ( $page_bottom + 1 ) . 'cm';
+		return compact( 'footer_height', 'page_bottom' );
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_templates_sanitize_column_style' ) ) {
+	function woi_pdf_templates_sanitize_column_style( string $css ): string {
+		$css = preg_replace( '/\/\*.*?\*\//s', '', $css );
+		$css = str_replace( array( "\r", "\n", "\t" ), '', $css );
+		$css = trim( $css );
+		if ( '' === $css ) {
+			return '';
+		}
+		$allowed_styles = array(
+			'color'               => '/^(?:#[0-9a-f]{3,8}|(?:rgb|hsl)a?\([0-9%\s,.]+\)|[a-z]+)$/i',
+			'background-color'    => '/^(?:#[0-9a-f]{3,8}|(?:rgb|hsl)a?\([0-9%\s,.]+\)|[a-z]+)$/i',
+			'font-size'           => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'font-weight'         => '/^(?:normal|bold|bolder|lighter|\d{3})$/i',
+			'font-style'          => '/^(?:normal|italic|oblique)$/i',
+			'font-family'         => '/^[a-z0-9,"\-\s]+$/i',
+			'line-height'         => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'letter-spacing'      => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'text-align'          => '/^(?:left|right|center|justify)$/i',
+			'vertical-align'      => '/^(?:baseline|sub|super|top|middle|bottom|text-bottom)$/i',
+			'white-space'         => '/^(?:normal|nowrap|pre|pre-wrap|pre-line)$/i',
+			'text-overflow'       => '/^(?:clip|ellipsis)$/i',
+			'padding'             => '/^[0-9.\s]+(?:px|pt|em|rem|%)$/i',
+			'padding-top'         => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'padding-right'       => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'padding-bottom'      => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'padding-left'        => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'margin'              => '/^[0-9.\s]+(?:px|pt|em|rem|%)$/i',
+			'margin-top'          => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'margin-right'        => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'margin-bottom'       => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'margin-left'         => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'border'              => '/^[0-9.]+(?:px|pt|em|rem)?\s+(?:solid|dashed|dotted|double)\s+(?:#[0-9a-f]{3,8}|[a-z]+)$/i',
+			'border-radius'       => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'width'               => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'min-width'           => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'max-width'           => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'height'              => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'min-height'          => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'max-height'          => '/^[0-9.]+(?:px|pt|em|rem|%)$/i',
+			'background'          => '/^(?!.*\burl\s*\([^\)]*\)).+$/i',
+			'background-repeat'   => '/^(?:repeat|repeat-x|repeat-y|no-repeat)$/i',
+			'background-position' => '/^(?:left|center|right|top|bottom|[0-9.]+(?:px|%)?\s+[0-9.]+(?:px|%)?)$/i',
+			'background-size'     => '/^(?:auto|cover|contain|[0-9.]+(?:px|%)?)$/i',
+			'overflow'            => '/^(?:visible|hidden|scroll|auto)$/i',
+		);
+		$safe_parts = array();
+		foreach ( explode( ';', $css ) as $declaration ) {
+			if ( false === strpos( $declaration, ':' ) ) {
+				continue;
+			}
+			list( $prop, $val ) = array_map( 'trim', explode( ':', $declaration, 2 ) );
+			$prop = strtolower( $prop );
+			if ( ! isset( $allowed_styles[ $prop ] ) ) {
+				continue;
+			}
+			$val = preg_replace( '/\bexpression\s*\([^\)]*\)/i', '', $val );
+			$val = preg_replace( '/\burl\s*\([^\)]*\)/i', '', $val );
+			if ( preg_match( $allowed_styles[ $prop ], $val ) ) {
+				$safe_parts[] = $prop . ': ' . $val;
+			}
+		}
+		return $safe_parts ? implode( '; ', $safe_parts ) . ';' : '';
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_templates_maybe_apply_column_styles' ) ) {
+	function woi_pdf_templates_maybe_apply_column_styles( array $column_data, string $target ): string {
+		if ( empty( $column_data['style'] ) ) {
+			return '';
+		}
+		$apply_style = ! isset( $column_data['style_target'] )
+			|| 'both'  === $column_data['style_target']
+			|| $target === $column_data['style_target'];
+		$style_value = $apply_style
+			? esc_attr( woi_pdf_templates_sanitize_column_style( $column_data['style'] ) )
+			: '';
+		return ! empty( $apply_style ) ? ' style="' . $style_value . '"' : '';
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_templates_get_shipping_zones' ) ) {
+	function woi_pdf_templates_get_shipping_zones(): array {
+		$zones         = \WC_Shipping_Zones::get_zones();
+		$zones[0]      = \WC_Shipping_Zones::get_zone( 0 );
+		return $zones;
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_templates_get_shipping_method_title' ) ) {
+	function woi_pdf_templates_get_shipping_method_title( \WC_Shipping_Method $shipping_method ): string {
+		$title = '';
+		if ( is_callable( array( $shipping_method, 'get_title' ) ) ) {
+			$title = $shipping_method->get_title();
+		}
+		if ( empty( $title ) && is_callable( array( $shipping_method, 'get_method_title' ) ) ) {
+			$title = $shipping_method->get_method_title();
+		}
+		return apply_filters( 'woi_pdf_templates_get_shipping_method_title', $title, $shipping_method );
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_templates_generate_shipping_method_label' ) ) {
+	function woi_pdf_templates_generate_shipping_method_label( string $suffix, string $title, string $id = '' ): string {
+		$label = sprintf( '%s - %s', $title, $suffix );
+		return '' === $id ? $label : sprintf( '%s (#%s)', $label, $id );
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_templates_get_checkout_block_pickup_locations' ) ) {
+	function woi_pdf_templates_get_checkout_block_pickup_locations(): array {
+		$pickup_locations          = array();
+		$pickup_locations_settings = class_exists( '\\Automattic\\WooCommerce\\StoreApi\\Utilities\\LocalPickupUtils' )
+			? \Automattic\WooCommerce\StoreApi\Utilities\LocalPickupUtils::get_local_pickup_settings()
+			: array();
+		$pickup_locations_enabled  = isset( $pickup_locations_settings['enabled'] ) ? $pickup_locations_settings['enabled'] : false;
+		$pickup_locations_title    = isset( $pickup_locations_settings['title'] ) ? $pickup_locations_settings['title'] : __( 'Pickup Locations', 'woocommerce-orders-invoice-pdf' );
+
+		if ( $pickup_locations_enabled && class_exists( '\\Automattic\\WooCommerce\\Blocks\\Shipping\\PickupLocation' ) ) {
+			foreach ( get_option( 'pickup_location_pickup_locations', array() ) as $index => $location ) {
+				if ( wc_string_to_bool( $location['enabled'] ) ) {
+					$pl               = new \Automattic\WooCommerce\Blocks\Shipping\PickupLocation();
+					$pl->id           = 'pickup_location';
+					$pl->instance_id  = $index;
+					$pl->title        = sprintf( '%s (%s)', $pickup_locations_title, $location['name'] );
+					$pickup_locations[ 'pickup_location:' . $index ] = $pl;
+				}
+			}
+		}
+
+		return apply_filters( 'woi_pdf_templates_get_checkout_block_pickup_locations', $pickup_locations, $pickup_locations_settings );
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_convert_shipping_methods_to_options' ) ) {
+	function woi_pdf_convert_shipping_methods_to_options( array $shipping_methods ): array {
+		if ( empty( $shipping_methods ) ) {
+			return array();
+		}
+		$shipping_options = array();
+		foreach ( $shipping_methods as $key => $shipping_method ) {
+			if ( ! isset( $shipping_method->id ) || ! isset( $shipping_method->instance_id ) || ! isset( $shipping_method->title ) ) {
+				continue;
+			}
+			if ( ! preg_match( '/:\d+$/', $key ) ) {
+				$key = $shipping_method->id . ':' . $shipping_method->instance_id;
+			}
+			if ( $shipping_method instanceof \WC_Shipping_Method && is_callable( array( $shipping_method, 'get_instance_id' ) ) ) {
+				$instance_id           = absint( $shipping_method->get_instance_id() );
+				$zone                  = \WC_Shipping_Zones::get_zone_by( 'instance_id', $instance_id );
+				$zone_id               = $zone && is_callable( array( $zone, 'get_id' ) ) ? $zone->get_id() : 0;
+				$zone_name             = $zone && is_callable( array( $zone, 'get_zone_name' ) ) ? $zone->get_zone_name() : '';
+				$method_title          = woi_pdf_templates_get_shipping_method_title( $shipping_method );
+				$suffix                = ( 0 === $zone_id && empty( $zone_name ) ) ? __( 'Other locations', 'woocommerce-orders-invoice-pdf' ) : $zone_name;
+				$shipping_options[$key] = woi_pdf_templates_generate_shipping_method_label( $suffix, $method_title, $instance_id );
+			}
+		}
+		return $shipping_options;
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_get_all_shipping_zone_methods' ) ) {
+	function woi_pdf_get_all_shipping_zone_methods(): array {
+		$methods = array();
+		foreach ( woi_pdf_templates_get_shipping_zones() as $zone_data ) {
+			if ( is_array( $zone_data ) && isset( $zone_data['id'] ) ) {
+				$zone = new \WC_Shipping_Zone( $zone_data['id'] );
+			} else {
+				$zone = $zone_data;
+			}
+			$methods += $zone->get_shipping_methods();
+		}
+		return apply_filters( 'woi_pdf_get_all_shipping_zone_methods', $methods );
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_templates_get_all_shipping_methods_as_options' ) ) {
+	function woi_pdf_templates_get_all_shipping_methods_as_options(): array {
+		$options  = woi_pdf_convert_shipping_methods_to_options( woi_pdf_get_all_shipping_zone_methods() );
+		$options += woi_pdf_convert_shipping_methods_to_options( woi_pdf_templates_get_checkout_block_pickup_locations() );
+		return apply_filters( 'woi_pdf_templates_get_all_shipping_methods_as_options', $options );
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_templates_get_order_shipping_methods' ) ) {
+	function woi_pdf_templates_get_order_shipping_methods( \WC_Abstract_Order $order ): array {
+		$shipping_methods = array();
+		foreach ( $order->get_shipping_methods() as $shipping_item ) {
+			$method_id   = is_callable( array( $shipping_item, 'get_method_id' ) ) ? $shipping_item->get_method_id() : '';
+			$instance_id = is_callable( array( $shipping_item, 'get_instance_id' ) ) ? $shipping_item->get_instance_id() : '';
+			$found       = false;
+			foreach ( woi_pdf_templates_get_all_shipping_methods_as_options() as $key => $title ) {
+				if ( preg_match( '/:\d+$/', $key ) ) {
+					$key_arr = explode( ':', $key );
+					if ( $key_arr[0] === $method_id && is_numeric( $instance_id ) && absint( $key_arr[1] ) === absint( $instance_id ) ) {
+						$shipping_methods[] = $key;
+						$found = true;
+						break;
+					}
+				}
+			}
+			if ( ! $found ) {
+				$shipping_methods[] = $method_id . ':' . $instance_id;
+			}
+		}
+		return apply_filters( 'woi_pdf_templates_get_order_shipping_methods', $shipping_methods, $order );
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_templates_get_country_groups' ) ) {
+	function woi_pdf_templates_get_country_groups(): array {
+		$all_countries    = WC()->countries->get_countries();
+		$eu_countries     = WC()->countries->get_european_union_countries();
+		$eu_vat_countries = WC()->countries->get_european_union_countries( 'eu_vat' );
+		return apply_filters( 'woi_pdf_templates_country_groups', array(
+			'ASEAN'      => array( 'label' => __( 'ASEAN countries', 'woocommerce-orders-invoice-pdf' ), 'countries' => array( 'BN', 'ID', 'KH', 'LA', 'MM', 'MY', 'PH', 'SG', 'TH', 'VN' ) ),
+			'BRICS'      => array( 'label' => __( 'BRICS countries', 'woocommerce-orders-invoice-pdf' ), 'countries' => array( 'BR', 'RU', 'IN', 'CN', 'ZA', 'SA', 'EG', 'AE', 'ET', 'ID', 'IR' ) ),
+			'EAC'        => array( 'label' => __( 'EAC countries', 'woocommerce-orders-invoice-pdf' ), 'countries' => array( 'CD', 'BI', 'KE', 'RW', 'SO', 'SS', 'UG', 'TZ' ) ),
+			'EFTA'       => array( 'label' => __( 'EFTA countries', 'woocommerce-orders-invoice-pdf' ), 'countries' => array( 'CH', 'IS', 'LI', 'NO' ) ),
+			'EU'         => array( 'label' => __( 'EU countries', 'woocommerce-orders-invoice-pdf' ), 'countries' => $eu_countries ),
+			'NON_EU'     => array( 'label' => __( 'Non-EU countries', 'woocommerce-orders-invoice-pdf' ), 'countries' => array_diff( array_keys( $all_countries ), $eu_countries ) ),
+			'NON_EU_VAT' => array( 'label' => __( 'Non-EU VAT countries', 'woocommerce-orders-invoice-pdf' ), 'countries' => array_diff( array_keys( $all_countries ), $eu_vat_countries ) ),
+		) );
 	}
 }
