@@ -86,13 +86,17 @@
 #woi-pdf-settings .tab-scroll-btn.hidden { visibility: hidden; }
 
 #woi-pdf-settings .document-tabs {
-	display:    flex;
-	flex-wrap:  nowrap;
-	overflow:   hidden;
-	list-style: none;
-	margin:     0;
-	padding:    0;
+	display:         flex;
+	flex-wrap:       nowrap;
+	overflow-x:      auto;
+	overflow-y:      hidden;
+	scrollbar-width: none;
+	list-style:      none;
+	margin:          0;
+	padding:         0;
 }
+
+#woi-pdf-settings .document-tabs::-webkit-scrollbar { display: none; }
 /* ─────────────────────────────────────────────────────────────── */
 
 #woi-pdf-settings .document-tabs li.ui-tabs-active {
