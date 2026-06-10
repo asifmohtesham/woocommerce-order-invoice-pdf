@@ -62,7 +62,7 @@
 
 #woi-pdf-settings .button.load-defaults {
 	display:                inline-block;
-	float:                  right;
+	margin-left:            auto;
 }
 
 #woi-pdf-settings .columns-options {
@@ -99,7 +99,9 @@
 	border-width: 			1px 0;
 	border-style: 			solid;
 	border-color: 			#ccc;
-	display:                block;
+	display:                flex;
+	align-items:            center;
+	gap:                    0.5em;
 	margin:                 10px -14px 10px -20px;
 }
 

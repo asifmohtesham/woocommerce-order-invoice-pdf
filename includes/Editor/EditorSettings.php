@@ -1383,16 +1383,16 @@ class EditorSettings {
 					'totals'	=> __( 'Total Rows', 'woi_pdf_templates'),
 				);
 				printf('<div id="%1$s" class="document-content fields %2$s" data-document-type="%2$s">', $document_id, $document);
-					if ( has_filter('woi_pdf_template_editor_defaults') ) {
-						printf( '<a class="button load-defaults" href="%s">%s</a>', esc_url( add_query_arg( 'load-defaults', 'true' ) ), __( 'Load defaults (all documents!)', 'woi_pdf_templates') );
-					}
 					foreach ($sections as $section_key => $section_title) {
 						$document_section = $document_id.'_'.$section_key
 						?>
 						<h4 class="columns-header">
-							<?php echo $section_title; 
+							<?php echo $section_title;
 							if ( $section_key == 'columns' ) { ?>
 								<span><?php _e( 'Need help?', 'woi_pdf_templates'); ?> <a href="https://docs.wpovernight.com/woocommerce-pdf-invoices-packing-slips/using-the-customizer/" target="_blank"><?php _e( 'Using the Customiser', 'woi_pdf_templates'); ?></a></span>
+								<?php if ( has_filter('woi_pdf_template_editor_defaults') ) {
+									printf( '<a class="button load-defaults" href="%s">%s</a>', esc_url( add_query_arg( 'load-defaults', 'true' ) ), __( 'Load defaults (all documents!)', 'woi_pdf_templates') );
+								} ?>
 							<?php } ?>
 						</h4>
 						<?php
