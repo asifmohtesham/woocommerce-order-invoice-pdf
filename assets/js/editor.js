@@ -1,4 +1,12 @@
 jQuery(function($) {
+	function debounce( fn, wait ) {
+		var timer;
+		return function() {
+			clearTimeout( timer );
+			timer = setTimeout( fn, wait );
+		};
+	}
+
 	$( "#documents .field-list" ).sortable({
 		items: '.field',
 		cursor: 'move',
@@ -175,6 +183,7 @@ jQuery(function($) {
 
 	$( '#documents' ).tabs().show();
 	$(document.body).trigger( 'wc-enhanced-select-init' );
+	initTabScroll();
 
 
 	// Change template path on description in General settings
@@ -244,6 +253,41 @@ jQuery(function($) {
 	$('.custom-block').each(function( index ) {
 		setup_requirements( $(this) );
 	});
+
+	function initTabScroll() {
+		var $wrapper = $( '#documents .tab-scroll-wrapper' );
+		if ( ! $wrapper.length ) return;
+
+		var $track = $wrapper.find( '.tab-scroll-track' );
+		var $ul    = $wrapper.find( '.document-tabs' );
+		var $prev  = $wrapper.find( '.tab-scroll-prev' );
+		var $next  = $wrapper.find( '.tab-scroll-next' );
+		var ul     = $ul[0];
+
+		function update() {
+			var atStart = ul.scrollLeft <= 0;
+			var atEnd   = ul.scrollLeft + ul.clientWidth >= ul.scrollWidth - 1;
+			$prev.toggleClass( 'hidden', atStart );
+			$next.toggleClass( 'hidden', atEnd );
+			$track.toggleClass( 'at-start', atStart );
+			$track.toggleClass( 'at-end',   atEnd );
+		}
+
+		$prev.on( 'click', function() {
+			ul.scrollLeft -= Math.round( ul.clientWidth * 0.5 );
+			update();
+		} );
+
+		$next.on( 'click', function() {
+			ul.scrollLeft += Math.round( ul.clientWidth * 0.5 );
+			update();
+		} );
+
+		$ul.on( 'scroll', debounce( update, 50 ) );
+		$( window ).on( 'resize.tabScroll', debounce( update, 150 ) );
+
+		update();
+	}
 
 	// Show custom block requirement field
 	$('.custom-blocks').on('change', '.select-requirements', function() { 
