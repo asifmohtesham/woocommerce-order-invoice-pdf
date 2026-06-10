@@ -32,8 +32,6 @@ class Assets {
 		$suffix        = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 		$pdfjs_version = '4.3.136';
 
-		global $wp_version;
-
 		if ( WOI_PDF()->admin->is_order_page() ) {
 
 			// STYLES
@@ -48,29 +46,17 @@ class Assets {
 				WOI_PDF_VERSION
 			);
 
-			if ( version_compare( $wp_version, '5.3', '<' ) ) {
-				// WC2.1 - WC3.2 (MP6) is used: bigger buttons
-				// also applied to WC3.3+ but without affect due to .column-order_actions class being deprecated in 3.3+
-				wp_enqueue_style(
-					'woi-pdf-order-styles-buttons',
-					WOI_PDF()->plugin_url() . '/assets/css/order-styles-buttons-wc38' . $suffix . '.css',
-					array(),
-					WOI_PDF_VERSION
-				);
-			} elseif ( version_compare( $wp_version, '5.3', '>=' ) ) {
-				// WP5.3 or newer is used: realign img inside buttons
-				wp_enqueue_style(
-					'woi-pdf-order-styles-buttons',
-					WOI_PDF()->plugin_url() . '/assets/css/order-styles-buttons-wc39' . $suffix . '.css',
-					array(),
-					WOI_PDF_VERSION
-				);
-			}
+			wp_enqueue_style(
+				'woi-pdf-order-styles-buttons',
+				WOI_PDF()->plugin_url() . '/assets/css/order-styles-buttons-wc39.css',
+				array(),
+				WOI_PDF_VERSION
+			);
 
 			// SCRIPTS
 			wp_enqueue_script(
 				'woi-pdf',
-				WOI_PDF()->plugin_url() . '/assets/js/order-script' . $suffix . '.js',
+				WOI_PDF()->plugin_url() . '/assets/js/order-script.js',
 				array(
 					'jquery',
 					wp_script_is( 'wc-jquery-blockui', 'registered' ) ? 'wc-jquery-blockui' : 'jquery-blockui',
@@ -94,9 +80,10 @@ class Assets {
 					'error_fetching_refund_ids'    => __( 'Error fetching refund order IDs', 'woocommerce-orders-invoice-pdf' ),
 					'error_no_refunds_found'       => __( 'No refunds found for this order', 'woocommerce-orders-invoice-pdf' ),
 					'edi_metabox'                  => array(
-						'show' => __( 'Show', 'woocommerce-orders-invoice-pdf' ),
-						'hide' => __( 'Hide', 'woocommerce-orders-invoice-pdf' ),
-						'fail' => __( 'Could not save identifiers. Please try again.', 'woocommerce-orders-invoice-pdf' ),
+						'show'  => __( 'Show', 'woocommerce-orders-invoice-pdf' ),
+						'hide'  => __( 'Hide', 'woocommerce-orders-invoice-pdf' ),
+						'saved' => __( 'Identifiers saved.', 'woocommerce-orders-invoice-pdf' ),
+						'fail'  => __( 'Could not save identifiers. Please try again.', 'woocommerce-orders-invoice-pdf' ),
 					),
 				)
 			);
@@ -110,7 +97,7 @@ class Assets {
 
 			wp_enqueue_style(
 				'woi-pdf-settings-styles',
-				WOI_PDF()->plugin_url() . '/assets/css/settings-styles' . $suffix . '.css',
+				WOI_PDF()->plugin_url() . '/assets/css/settings-styles.min.css',
 				array('woocommerce_admin_styles'),
 				WOI_PDF_VERSION
 			);
@@ -267,7 +254,7 @@ class Assets {
 
 			wp_enqueue_script(
 				'woi-pdf-media-upload',
-				WOI_PDF()->plugin_url() . '/assets/js/media-upload' . $suffix . '.js',
+				WOI_PDF()->plugin_url() . '/assets/js/media-upload.min.js',
 				array( 'jquery' ),
 				WOI_PDF_VERSION,
 				true
@@ -312,7 +299,7 @@ class Assets {
 		) {
 			wp_enqueue_script(
 				'woi-pdf-analytics-order',
-				WOI_PDF()->plugin_url() . '/assets/js/analytics-order' . $suffix . '.js',
+				WOI_PDF()->plugin_url() . '/assets/js/analytics-order.js',
 				array( 'wp-hooks' ),
 				WOI_PDF_VERSION,
 				true

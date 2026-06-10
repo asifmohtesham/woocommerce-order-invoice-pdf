@@ -1,0 +1,10 @@
+.type-shop_order .column-order_actions a.button.woi_pdf {
+	float: left;
+	width: 26px;
+	height: 26px;
+	padding: 3px 2px;
+}
+
+.type-shop_order .column-wc_actions a.button.woi_pdf img {
+	margin-top: 3px;
+}

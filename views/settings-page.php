@@ -53,6 +53,11 @@ if ( 'documents' === $current_tab && ! empty( $_GET['section'] ) ) {
 		data-preview-states-lock="<?php echo esc_attr( $preview_states_lock ); ?>">
 
 		<div class="sidebar">
+			<?php if ( in_array( $current_tab, apply_filters( 'woi_pdf_searchable_tabs', array( 'general', 'documents', 'debug' ) ), true ) ) : ?>
+				<div class="settings-search">
+					<input type="text" name="settings-search" id="wpo-settings-search" placeholder="<?php esc_attr_e( 'Search settings', 'woocommerce-orders-invoice-pdf' ); ?>">
+				</div>
+			<?php endif; ?>
 			<form method="post" action="options.php" id="woi-pdf-settings" class="<?php echo esc_attr( $current_tab ); ?>">
 				<input type="hidden" name="tab" value="<?php echo esc_attr( $current_tab ); ?>">
 				<?php

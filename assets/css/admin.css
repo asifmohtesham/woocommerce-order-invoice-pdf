@@ -65,7 +65,7 @@ ul.wpo-ips-edi-actions > li {
 }
 
 .woi_pdf-actions .printed-data,
-.wcpdf-data-fields .printed-data {
+.woi-pdf-data-fields .printed-data {
 	font-size: 8pt;
 	color: #999;
 	margin-left: 5px;
@@ -74,7 +74,7 @@ ul.wpo-ips-edi-actions > li {
 }
 
 .woi_pdf-actions .printed-data > svg,
-.wcpdf-data-fields .printed-data > svg {
+.woi-pdf-data-fields .printed-data > svg {
 	width: 14px;
 	height: 14px;
 	background: #fff;
@@ -84,7 +84,7 @@ ul.wpo-ips-edi-actions > li {
 }
 
 .woi_pdf-actions a.unmark_printed,
-.wcpdf-data-fields a.unmark_printed {
+.woi-pdf-data-fields a.unmark_printed {
 	margin-left: 4px;
 	color: #a00;;
 }
@@ -232,7 +232,7 @@ ul.wpo-ips-edi-actions > li {
 	display: table-row-group;
 }
 
-.wcpdf-data-fields {
+.woi-pdf-data-fields {
 	margin-left: 10px;
 	margin-right: 10px;
 	margin-bottom: 10px;
@@ -241,39 +241,39 @@ ul.wpo-ips-edi-actions > li {
 	box-shadow: 0 1px 1px rgba(0,0,0,.04);
 }
 
-.wcpdf-data-fields:last-child {
+.woi-pdf-data-fields:last-child {
 	margin-bottom: 0;
 }
 
-.wcpdf-data-fields .read-only {
+.woi-pdf-data-fields .read-only {
 	height: auto;
 	display: block;
 	padding: 10px;
 }
 
-.wcpdf-data-fields .editable,
-.wcpdf-data-fields .editable-notes {
+.woi-pdf-data-fields .editable,
+.woi-pdf-data-fields .editable-notes {
 	height: auto;
 	display: none;
 	padding: 10px;
 }
 
-.wcpdf-data-fields .editable-number-date {
+.woi-pdf-data-fields .editable-number-date {
 	border-bottom: 1px solid #dfdfdf;
 }
 
-.wcpdf-data-fields .data-fields-grid {
+.woi-pdf-data-fields .data-fields-grid {
 	display: flex;
 	flex-direction: column;
 	gap: 1rem;
 	max-width: 50%;
 }
 
-.wcpdf-data-fields .data-fields-grid:first-of-type {
+.woi-pdf-data-fields .data-fields-grid:first-of-type {
 	margin-bottom: 1rem;
 }
 
-.wcpdf-data-fields .data-fields-row {
+.woi-pdf-data-fields .data-fields-row {
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
 	gap: 1rem;
@@ -281,88 +281,88 @@ ul.wpo-ips-edi-actions > li {
 	position: relative;
 }
 
-.wcpdf-data-fields .data-fields-row .field-group {
+.woi-pdf-data-fields .data-fields-row .field-group {
 	display: flex;
 	flex-direction: column;
 }
 
-.wcpdf-data-fields .data-fields-row .field-group label {
+.woi-pdf-data-fields .data-fields-row .field-group label {
 	margin-bottom: .4rem;
 }
 
-.wcpdf-data-fields .data-fields-row .field-group input.formatted-number.changed {
+.woi-pdf-data-fields .data-fields-row .field-group input.formatted-number.changed {
 	background-color: #fff3cd;
 }
 
-.wcpdf-data-fields .data-fields-row .placeholder {
+.woi-pdf-data-fields .data-fields-row .placeholder {
 	visibility: hidden;
 }
 
-.wcpdf-data-fields .data-fields-row .row-note {
+.woi-pdf-data-fields .data-fields-row .row-note {
 	grid-column: 1 / -1; /* makes the note span across all columns */
 	font-size: 0.8em;
 	color: #999;
 }
 
-.wcpdf-data-fields h4 {
+.woi-pdf-data-fields h4 {
 	padding: 10px;
 	border-bottom: 1px solid #dfdfdf;
 }
 
 /* Edit buttons Invoice, Proforma and Credit */
-.wcpdf-data-fields h4 .dashicons:first-of-type {
+.woi-pdf-data-fields h4 .dashicons:first-of-type {
 	margin-left:20px !important;
 }
 
-.wcpdf-data-fields .woi-pdf-edit-date-number,
-.wcpdf-data-fields .woi-pdf-delete-document,
-.wcpdf-data-fields .woi-pdf-regenerate-document,
-.wcpdf-data-fields .woi-pdf-edit-document-notes {
+.woi-pdf-data-fields .woi-pdf-edit-date-number,
+.woi-pdf-data-fields .woi-pdf-delete-document,
+.woi-pdf-data-fields .woi-pdf-regenerate-document,
+.woi-pdf-data-fields .woi-pdf-edit-document-notes {
 	opacity:0.5;
 }
 
-.wcpdf-data-fields .woi-pdf-edit-date-number:hover,
-.wcpdf-data-fields .woi-pdf-delete-document:hover,
-.wcpdf-data-fields .woi-pdf-regenerate-document:hover,
-.wcpdf-data-fields .woi-pdf-edit-document-notes:hover {
+.woi-pdf-data-fields .woi-pdf-edit-date-number:hover,
+.woi-pdf-data-fields .woi-pdf-delete-document:hover,
+.woi-pdf-data-fields .woi-pdf-regenerate-document:hover,
+.woi-pdf-data-fields .woi-pdf-edit-document-notes:hover {
 	opacity:1;
 	cursor:pointer;
 }
 
-.wcpdf-data-fields .woi-pdf-document-buttons {
+.woi-pdf-data-fields .woi-pdf-document-buttons {
 	display: none;
 	padding: 10px;
 	border-top: 1px solid #dfdfdf;
 }
 
-.wcpdf-data-fields h4 .wcpdf-regenerate-spin {
+.woi-pdf-data-fields h4 .woi-pdf-regenerate-spin {
 	opacity: 1;
 	-webkit-animation: spin 1.6s linear infinite; /* Safari */
 	animation: spin 1.6s linear infinite;
 	pointer-events: none;
 }
 
-.wcpdf-data-fields table {
+.woi-pdf-data-fields table {
 	width: 40%;
 	margin-bottom: 8px;
 }
 
-.wcpdf-data-fields table th,
-.wcpdf-data-fields table td {
+.woi-pdf-data-fields table th,
+.woi-pdf-data-fields table td {
 	padding-right: 10px;
 }
 
-.wcpdf-data-fields table > thead th {
+.woi-pdf-data-fields table > thead th {
 	font-weight: normal;
 	text-align: left;
 }
 
-.wcpdf-data-fields table > tbody input,
-.wcpdf-data-fields table > tbody textarea {
+.woi-pdf-data-fields table > tbody input,
+.woi-pdf-data-fields table > tbody textarea {
 	width: 100%;
 }
 
-.wcpdf-data-fields table > tfoot td {
+.woi-pdf-data-fields table > tfoot td {
 	font-size: 8pt;
 	color: #999;
 	padding-top: 4px;
@@ -400,8 +400,8 @@ ul.wpo-ips-edi-actions > li {
 
 @media screen and (max-width: 1200px) {
 
-	.wcpdf-data-fields .editable > table,
-	.wcpdf-data-fields .editable-notes > table {
+	.woi-pdf-data-fields .editable > table,
+	.woi-pdf-data-fields .editable-notes > table {
 		width: 100% !important;
 		max-width: 100% !important;
 	}
@@ -409,12 +409,12 @@ ul.wpo-ips-edi-actions > li {
 }
 
 /* Safari */
-@-webkit-keyframes wcpdf-regenerate-spin {
+@-webkit-keyframes woi-pdf-regenerate-spin {
 	0% { -webkit-transform: rotate(0deg); }
 	100% { -webkit-transform: rotate(-360deg); }
 }
 
-@keyframes wcpdf-regenerate-spin {
+@keyframes woi-pdf-regenerate-spin {
 	0% { transform: rotate(0deg); }
 	100% { transform: rotate(-360deg); }
 }
