@@ -367,13 +367,10 @@ class Settings {
 					add_action( 'woi_pdf_after_order_data', function( $type, $_order ) use ( $document ) {
 						$number = $document->get_data( 'number' );
 						printf(
-							'<tr><th>DBG exists:</th><td>%s</td></tr><tr><th>DBG display_number:</th><td>%s</td></tr><tr><th>DBG number type:</th><td>%s</td></tr><tr><th>DBG plain:</th><td>%s</td></tr><tr><th>DBG formatted:</th><td>%s</td></tr><tr><th>DBG number_format:</th><td>%s</td></tr>',
-							$document->exists() ? 'yes' : 'no',
-							esc_html( $document->settings['display_number'] ?? '(unset)' ),
-							is_object( $number ) ? esc_html( get_class( $number ) ) : gettype( $number ),
-							is_object( $number ) ? esc_html( var_export( $number->get_plain(), true ) ) : '-',
-							is_object( $number ) ? esc_html( '[' . $number->get_formatted() . ']' ) : '-',
-							esc_html( (string) wp_json_encode( $document->settings['number_format'] ?? null ) )
+							'<tr><th>DBG formatted:</th><td>%s</td></tr><tr><th>DBG get_number(fmt):</th><td>%s</td></tr><tr><th>DBG template file:</th><td>%s</td></tr>',
+							is_object( $number ) ? esc_html( '[' . $number->get_formatted() . ']' ) : '(no object)',
+							esc_html( '[' . $document->get_number( $document->get_type(), null, 'view', true ) . ']' ),
+							esc_html( $document->locate_template_file( $document->get_type() . '.php' ) )
 						);
 					}, 10, 2 );
 
