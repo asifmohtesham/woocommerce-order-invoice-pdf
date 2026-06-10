@@ -284,7 +284,7 @@ jQuery(function($) {
 			update();
 		} );
 
-		$ul.off( 'scroll.tabScroll' ).on( 'scroll.tabScroll', debounce( update, 50 ) );
+		$ul.off( 'scroll.tabScroll' ).on( 'scroll.tabScroll', debounce( update, 16 ) );
 		$( window ).on( 'resize.tabScroll', debounce( update, 150 ) );
 
 		update();
