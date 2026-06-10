@@ -363,6 +363,20 @@ class Settings {
 						$document_number->apply_formatting( $document, $order );
 					}
 
+					// TEMPORARY DEBUG — remove after diagnosing missing invoice number in preview
+					add_action( 'woi_pdf_after_order_data', function( $type, $_order ) use ( $document ) {
+						$number = $document->get_data( 'number' );
+						printf(
+							'<tr><th>DBG exists:</th><td>%s</td></tr><tr><th>DBG display_number:</th><td>%s</td></tr><tr><th>DBG number type:</th><td>%s</td></tr><tr><th>DBG plain:</th><td>%s</td></tr><tr><th>DBG formatted:</th><td>%s</td></tr><tr><th>DBG number_format:</th><td>%s</td></tr>',
+							$document->exists() ? 'yes' : 'no',
+							esc_html( $document->settings['display_number'] ?? '(unset)' ),
+							is_object( $number ) ? esc_html( get_class( $number ) ) : gettype( $number ),
+							is_object( $number ) ? esc_html( var_export( $number->get_plain(), true ) ) : '-',
+							is_object( $number ) ? esc_html( '[' . $number->get_formatted() . ']' ) : '-',
+							esc_html( (string) wp_json_encode( $document->settings['number_format'] ?? null ) )
+						);
+					}, 10, 2 );
+
 					// preview
 					$output_format = ( ! empty( $_REQUEST['output_format'] ) && $_REQUEST['output_format'] != 'pdf' && in_array( $_REQUEST['output_format'], $document->output_formats ) ) ? sanitize_text_field( wp_unslash( $_REQUEST['output_format'] ) ) : 'pdf';
 					switch ( $output_format ) {
