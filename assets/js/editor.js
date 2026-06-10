@@ -6,7 +6,7 @@ jQuery(function($) {
 
 	$( document ).on( "click", ".delete-field", function() { 
 		$(this).parent().remove();
-		$( document ).trigger( 'wpo-wcpdf-settings-changed' );
+		$( document ).trigger( 'woi-pdf-settings-changed' );
 	});
 
 	// hide & disable input fields based on type selection
@@ -43,14 +43,14 @@ jQuery(function($) {
 		var $current_doc = $( this ).closest('.document-content');
 		var document_type = $current_doc.data('document-type');
 		var data = {
-			security:      wpo_wcpdf_templates.nonce,
+			security:      woi_pdf_templates.nonce,
 			action:        'wcpdf_templates_add_custom_block',
 			document_type: document_type,
 		};
 
 		xhr = $.ajax({
 			type:		'POST',
-			url:		wpo_wcpdf_templates.ajaxurl,
+			url:		woi_pdf_templates.ajaxurl,
 			data:		data,
 			success:	function( data ) {
 				var $block = $( data );
@@ -86,7 +86,7 @@ jQuery(function($) {
 		let document_type = $current_doc.data( 'document-type' );
 		let $field_value  = $( this ).val();
 		let data          = {
-			security:      wpo_wcpdf_templates.nonce,
+			security:      woi_pdf_templates.nonce,
 			action:        'wcpdf_templates_add_totals_columns_field',
 			section:       $section.data( 'section_key' ),
 			document_type: document_type,
@@ -96,7 +96,7 @@ jQuery(function($) {
 		xhr = $.ajax( {
 			context: $section,
 			type:    'POST',
-			url:     wpo_wcpdf_templates.ajaxurl,
+			url:     woi_pdf_templates.ajaxurl,
 			data:    data,
 			success: function( html ) {
 				let $html = $( html ).insertBefore( $( this ).find( '.document.add-field' ) );
@@ -176,7 +176,7 @@ jQuery(function($) {
 
 
 	// Change template path on description in General settings
-	let template_selector     = $( '#wpo-wcpdf-settings #template_path' );
+	let template_selector     = $( '#woi-pdf-settings #template_path' );
 	let description_path      = template_selector.next().find( 'code:first' );
 
 	// make replacement on select change
@@ -203,9 +203,9 @@ jQuery(function($) {
 
 	function get_template_path_by_id( template_id ) {
 		let template_path = template_id;
-		if ( typeof wpo_wcpdf_admin !== 'undefined' && typeof wpo_wcpdf_admin.template_paths === 'object' ) {
-			for ( let path in wpo_wcpdf_admin.template_paths ) {
-				if ( wpo_wcpdf_admin.template_paths[path] == template_id ) {
+		if ( typeof woi_pdf_admin !== 'undefined' && typeof woi_pdf_admin.template_paths === 'object' ) {
+			for ( let path in woi_pdf_admin.template_paths ) {
+				if ( woi_pdf_admin.template_paths[path] == template_id ) {
 					template_path = path.substring(path.indexOf("wp-content"));
 				} 
 			}
@@ -271,13 +271,13 @@ jQuery(function($) {
 
 	// Refresh preview and show secondary save button on customizer sortable changes
 	$( '#documents .field-list' ).on( 'sortstop', function( event, ui ) {
-		$( this ).trigger( 'wpo-wcpdf-settings-changed' );
+		$( this ).trigger( 'woi-pdf-settings-changed' );
 	} );
 
 	// Update Preview document type on editor document change
 	$( document ).on( 'click', 'ul.document-tabs > li > a', function( event ) {
 		let document_type = $( this ).data( 'document_type' );
-		$( '#wpo-wcpdf-preview-wrapper :input[name="document_type"]' ).val( document_type ).trigger( 'change' );
+		$( '#woi-pdf-preview-wrapper :input[name="document_type"]' ).val( document_type ).trigger( 'change' );
 	} );
 
 	// Detect if the editor active tab is different from Invoice, and if yes change the preview document type input
@@ -286,7 +286,7 @@ jQuery(function($) {
 			let $active_tab_link = $( '#documents ul.document-tabs > li.ui-state-active > a' );
 			let document_type    = $active_tab_link.data( 'document_type' );
 			if ( document_type.length && document_type != 'invoice' ) {
-				$( '#wpo-wcpdf-preview-wrapper :input[name="document_type"]' ).val( document_type ).trigger( 'change' );
+				$( '#woi-pdf-preview-wrapper :input[name="document_type"]' ).val( document_type ).trigger( 'change' );
 			}
 		}
 	} );
@@ -294,7 +294,7 @@ jQuery(function($) {
 	$( '.load-defaults' ).on( 'click', function( event ) {
 		event.preventDefault();
 		
-		if ( ! confirm( wpo_wcpdf_templates.load_defaults_confirm ) ) {
+		if ( ! confirm( woi_pdf_templates.load_defaults_confirm ) ) {
 			return false;
 		}
 

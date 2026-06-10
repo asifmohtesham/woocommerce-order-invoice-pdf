@@ -23,7 +23,7 @@ class SettingsGeneral {
 
 	public function ajax_get_shop_country_states(): void {
 		$valid = check_ajax_referer( 'woi_pdf_admin_nonce', 'security', false )
-			|| check_ajax_referer( 'wpo_wcpdf_admin_nonce', 'security', false );
+			|| check_ajax_referer( 'woi_pdf_admin_nonce', 'security', false );
 
 		if ( ! $valid ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid nonce.', 'woocommerce-orders-invoice-pdf' ) ), 403 );

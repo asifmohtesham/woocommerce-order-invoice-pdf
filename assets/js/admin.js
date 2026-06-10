@@ -20,7 +20,7 @@ jQuery( function( $ ) {
 		let number = $input.val();
 
 		if ( number.length > 0 && number > 2147483647 ) {
-			alert( wpo_wcpdf_admin.mysql_int_size_limit );
+			alert( woi_pdf_admin.mysql_int_size_limit );
 			$input.removeClass( 'ajax-waiting' );
 			return;
 		}
@@ -28,14 +28,14 @@ jQuery( function( $ ) {
 
 		let data = {
 			security: $input.data( 'nonce' ),
-			action:   'wpo_wcpdf_set_next_number',
+			action:   'woi_pdf_set_next_number',
 			store:    $input.data( 'store' ),
 			number:   number,
 		};
 
 		xhr = $.ajax( {
 			type: 'POST',
-			url:  wpo_wcpdf_admin.ajaxurl,
+			url:  woi_pdf_admin.ajaxurl,
 			data: data,
 			success: function( response ) {
 				$input.removeClass( 'ajax-waiting' );
@@ -46,7 +46,7 @@ jQuery( function( $ ) {
 		} );
 	} );
 
-	$( "[name='wpo_wcpdf_documents_settings_invoice[display_number]']" ).on( 'change', function( event ) {
+	$( "[name='woi_pdf_documents_settings_invoice[display_number]']" ).on( 'change', function( event ) {
 		if ( $( this ).val() == 'order_number' ) {
 			$( this ).closest( 'td' ).find( '.description' ).slideDown();
 			$( this ).closest( 'tr' ).nextAll( 'tr' ).has( 'input#next_invoice_number' ).first().hide();
@@ -62,7 +62,7 @@ jQuery( function( $ ) {
 	} );
 
 	// Add admin pointers
-	$.each( wpo_wcpdf_admin.pointers, function( key, pointer ) {
+	$.each( woi_pdf_admin.pointers, function( key, pointer ) {
 
 		$( pointer.target ).pointer(
 			{
@@ -80,7 +80,7 @@ jQuery( function( $ ) {
 
 				close: function() {
 					jQuery.post(
-						wpo_wcpdf_admin.ajaxurl,
+						woi_pdf_admin.ajaxurl,
 						{
 							pointer: key,
 							action:  'dismiss-wp-pointer',
@@ -91,7 +91,7 @@ jQuery( function( $ ) {
 		);
 
 		// Check if pointer was dismissed
-		if ( $.inArray( key, wpo_wcpdf_admin.dismissed_pointers.split(',') ) === -1 ) {
+		if ( $.inArray( key, woi_pdf_admin.dismissed_pointers.split(',') ) === -1 ) {
 			$( pointer.target ).pointer('open');
 		}
 
@@ -105,9 +105,9 @@ jQuery( function( $ ) {
 		'delay':     200
 	} );
 
-	$( '#wpo-wcpdf-preview-wrapper #due_date' ).on( 'change', function() {
-		const $due_date_checkbox   = $( '#wpo-wcpdf-preview-wrapper #due_date' );
-		const $due_date_days_input = $( '#wpo-wcpdf-preview-wrapper #due_date_days' );
+	$( '#woi-pdf-preview-wrapper #due_date' ).on( 'change', function() {
+		const $due_date_checkbox   = $( '#woi-pdf-preview-wrapper #due_date' );
+		const $due_date_days_input = $( '#woi-pdf-preview-wrapper #due_date_days' );
 
 		if ( $due_date_checkbox.is( ':checked' ) ) {
 			$due_date_days_input.prop( 'disabled', false );
@@ -118,13 +118,13 @@ jQuery( function( $ ) {
 
 	//----------> Preview <----------//
 	// objects
-	let $previewWrapper           = $( '#wpo-wcpdf-preview-wrapper' );
-	let $preview                  = $( '#wpo-wcpdf-preview-wrapper .preview' );
-	let $previewOrderIdInput      = $( '#wpo-wcpdf-preview-wrapper input[name="order_id"]' );
-	let $previewDocumentTypeInput = $( '#wpo-wcpdf-preview-wrapper input[name="document_type"]' );
-	let $previewOutputFormatInput = $( '#wpo-wcpdf-preview-wrapper input[name="output_format"]' );
-	let $previewNonceInput        = $( '#wpo-wcpdf-preview-wrapper input[name="nonce"]' );
-	let $previewSettingsForm      = $( '#wpo-wcpdf-settings' );
+	let $previewWrapper           = $( '#woi-pdf-preview-wrapper' );
+	let $preview                  = $( '#woi-pdf-preview-wrapper .preview' );
+	let $previewOrderIdInput      = $( '#woi-pdf-preview-wrapper input[name="order_id"]' );
+	let $previewDocumentTypeInput = $( '#woi-pdf-preview-wrapper input[name="document_type"]' );
+	let $previewOutputFormatInput = $( '#woi-pdf-preview-wrapper input[name="output_format"]' );
+	let $previewNonceInput        = $( '#woi-pdf-preview-wrapper input[name="nonce"]' );
+	let $previewSettingsForm      = $( '#woi-pdf-settings' );
 	let previewXhr                = null;
 	let previewSearchXhr          = null;
 
@@ -345,13 +345,13 @@ jQuery( function( $ ) {
 	triggerPreview();
 
 	// Custom trigger to signify settings have changed (will show save button and refresh preview)
-	$( document ).on( 'wpo-wcpdf-settings-changed', function( event, delay ) {
+	$( document ).on( 'woi-pdf-settings-changed', function( event, delay ) {
 		showSaveBtn();
 		triggerPreview( delay );
 	} );
 
 	// Custom trigger to refresh preview
-	$( document ).on( 'wpo-wcpdf-refresh-preview wpo_wcpdf_refresh_preview', function( event, delay ) {
+	$( document ).on( 'woi-pdf-refresh-preview woi_pdf_refresh_preview', function( event, delay ) {
 		triggerPreview( delay );
 	} );
 
@@ -368,19 +368,19 @@ jQuery( function( $ ) {
 	} );
 
 	// Check for settings change
-	$( document ).on( 'keyup paste', '#wpo-wcpdf-settings input, #wpo-wcpdf-settings textarea', settingsChanged );
-	$( document ).on( 'change', '#wpo-wcpdf-settings input[type="checkbox"], #wpo-wcpdf-settings input[type="radio"], #wpo-wcpdf-settings select', function( event ) {
+	$( document ).on( 'keyup paste', '#woi-pdf-settings input, #woi-pdf-settings textarea', settingsChanged );
+	$( document ).on( 'change', '#woi-pdf-settings input[type="checkbox"], #woi-pdf-settings input[type="radio"], #woi-pdf-settings select', function( event ) {
 		if ( 'shop_address_country' === event.target.id || ! event.isTrigger ) { // exclude programmatic triggers that aren't actually changing anything
 			settingsChanged( event );
 		}
 	} );
-	$( document ).on( 'select2:select select2:unselect', '#wpo-wcpdf-settings select.wc-enhanced-select', settingsChanged );
-	$( document.body ).on( 'wpo-wcpdf-media-upload-setting-updated', settingsChanged );
-	$( document ).on( 'click', '.wpo_remove_image_button, #wpo-wcpdf-settings .remove-requirement', settingsChanged );
+	$( document ).on( 'select2:select select2:unselect', '#woi-pdf-settings select.wc-enhanced-select', settingsChanged );
+	$( document.body ).on( 'woi-pdf-media-upload-setting-updated', settingsChanged );
+	$( document ).on( 'click', '.wpo_remove_image_button, #woi-pdf-settings .remove-requirement', settingsChanged );
 
 	// On Multilingual
-	if ( $( '#wpo_wcpdf_settings_general-shop_address_country-translations' ).length > 0 ) {
-		$( '#wpo-wcpdf-settings select[name^="wpo_wcpdf_settings_general[shop_address_country]"]' ).each( function() {
+	if ( $( '#woi_pdf_settings_general-shop_address_country-translations' ).length > 0 ) {
+		$( '#woi-pdf-settings select[name^="woi_pdf_settings_general[shop_address_country]"]' ).each( function() {
 			const $select = $( this );
 			if ( $select.val() ) {
 				shopCountryChanged( $select );
@@ -427,11 +427,11 @@ jQuery( function( $ ) {
 		const lang      = nameMatch ? nameMatch[1] : 'default';
 
 		// Find the matching state field for that language
-		const $state = $form.find( `select[name="wpo_wcpdf_settings_general[shop_address_state][${lang}]"]` );
+		const $state = $form.find( `select[name="woi_pdf_settings_general[shop_address_state][${lang}]"]` );
 
 		// Keep the original button lookup, but relative to $state
 		const $state_sync_button = $state
-			.closest( '.wpo-wcpdf-input-wrapper' )
+			.closest( '.woi-pdf-input-wrapper' )
 			.find( '#shop_address_state_action' );
 
 		// Clear previous states
@@ -442,18 +442,18 @@ jQuery( function( $ ) {
 		$state.append(
 			$( '<option>', {
 				value: '',
-				text: wpo_wcpdf_admin.shop_country_changed_messages.loading
+				text: woi_pdf_admin.shop_country_changed_messages.loading
 			} )
 		);
 
 		return $.ajax( {
-			url:      wpo_wcpdf_admin.ajaxurl,
+			url:      woi_pdf_admin.ajaxurl,
 			type:     'POST',
 			dataType: 'json',
 			data: {
 				action: 'wcpdf_get_country_states',
 				country: selectedCountry,
-				security: wpo_wcpdf_admin.nonce,
+				security: woi_pdf_admin.nonce,
 			},
 			success: function( response ) {
 				$state.empty();
@@ -477,7 +477,7 @@ jQuery( function( $ ) {
 					$state.append(
 						$( '<option>', {
 							value: '',
-							text: wpo_wcpdf_admin.shop_country_changed_messages.empty
+							text: woi_pdf_admin.shop_country_changed_messages.empty
 						} )
 					);
 				}
@@ -488,7 +488,7 @@ jQuery( function( $ ) {
 				$state.empty().append(
 					$( '<option>', {
 						value: '',
-						text: wpo_wcpdf_admin.shop_country_changed_messages.error
+						text: woi_pdf_admin.shop_country_changed_messages.error
 					} )
 				);
 
@@ -503,12 +503,12 @@ jQuery( function( $ ) {
 
 	// Submit settings form when clicking on secondary save button
 	$( document.body ).on( 'click', '.preview-data-wrapper .save-settings p input', function( event ) {
-		$( '#wpo-wcpdf-settings input#submit' ).trigger( 'click' );
+		$( '#woi-pdf-settings input#submit' ).trigger( 'click' );
 	} );
 
 	// Trigger the Preview
 	function triggerPreview( timeoutDuration = 0 ) {
-		$previewStates = $( '#wpo-wcpdf-preview-wrapper' ).data( 'preview-states' );
+		$previewStates = $( '#woi-pdf-preview-wrapper' ).data( 'preview-states' );
 
 		// Check if preview is disabled and return
 		if ( 'undefined' === $previewStates || 1 === $previewStates ) {
@@ -529,7 +529,7 @@ jQuery( function( $ ) {
 			return excluded;
 		}
 		let nameKey = settingName.includes( '[' ) ? settingName.match(/\[(.*?)\]/)[1] : settingName;
-		if ( $.inArray( nameKey, wpo_wcpdf_admin.preview_excluded_settings ) !== -1 ) {
+		if ( $.inArray( nameKey, woi_pdf_admin.preview_excluded_settings ) !== -1 ) {
 			excluded = true;
 		}
 		return excluded;
@@ -546,9 +546,9 @@ jQuery( function( $ ) {
 	} );
 
 	// Trigger preview on document selection and change the document type input with the new value
-	$( '#wpo-wcpdf-preview-wrapper ul.preview-data-option-list li' ).on( 'click', function() {
+	$( '#woi-pdf-preview-wrapper ul.preview-data-option-list li' ).on( 'click', function() {
 		let inputName = $( this ).closest( 'ul' ).data( 'input-name' );
-		let $input    = $( '#wpo-wcpdf-preview-wrapper :input[name='+inputName+']');
+		let $input    = $( '#woi-pdf-preview-wrapper :input[name='+inputName+']');
 		$input.val( $( this ).data( 'value' ) ).trigger( 'change' );
 	} );
 
@@ -557,9 +557,9 @@ jQuery( function( $ ) {
 		let inputValue = $( this ).val();
 		if ( inputValue.length ) {
 			let inputName   = $( this ).attr( 'name' );
-			let $ul         = $( '#wpo-wcpdf-preview-wrapper ul.preview-data-option-list[data-input-name='+inputName+']' );
+			let $ul         = $( '#woi-pdf-preview-wrapper ul.preview-data-option-list[data-input-name='+inputName+']' );
 			let $li         = $ul.find( 'li[data-value='+inputValue+']' );
-			let xmlDocTypes = wpo_wcpdf_admin.xml_document_types || [];
+			let xmlDocTypes = woi_pdf_admin.xml_document_types || [];
 			let supportsXml = xmlDocTypes.indexOf( inputValue ) !== -1;
 			let $xmlToggle  = $( '.doc-output-toggle-group .doc-output-toggle' ).filter( function() {
 				return $( this ).text().trim().toLowerCase() === 'xml';
@@ -597,10 +597,10 @@ jQuery( function( $ ) {
 	// Load the Preview with AJAX
 	function ajaxLoadPreview() {
 		console.log( 'Loading preview...' );
-		let worker   = wpo_wcpdf_admin.pdfjs_worker;
+		let worker   = woi_pdf_admin.pdfjs_worker;
 		let canvasId = 'preview-canvas';
 		let data     = {
-			action:        'wpo_wcpdf_preview',
+			action:        'woi_pdf_preview',
 			security:      previewNonce,
 			order_id:      previewOrderId,
 			document_type: previewDocumentType,
@@ -622,7 +622,7 @@ jQuery( function( $ ) {
 
 		previewXhr = $.ajax( {
 			type:    'POST',
-			url:     wpo_wcpdf_admin.ajaxurl,
+			url:     woi_pdf_admin.ajaxurl,
 			data:    data,
 			beforeSend: function( jqXHR, settings ) {
 				if ( previewXhr != null ) {
@@ -728,7 +728,7 @@ jQuery( function( $ ) {
 		let $div   = $elem.closest( '.preview-data' ).find( '#preview-order-search-results' );
 		let value  = $elem.val();
 		let nonce  = $elem.data( 'nonce' );
-		let action = 'wpo_wcpdf_preview_order_search';
+		let action = 'woi_pdf_preview_order_search';
 
 		let data = {
 			security:      nonce,
@@ -744,7 +744,7 @@ jQuery( function( $ ) {
 
 		previewSearchXhr = $.ajax( {
 			type: 'POST',
-			url:  wpo_wcpdf_admin.ajaxurl,
+			url:  woi_pdf_admin.ajaxurl,
 			data: data,
 			beforeSend: function( jqXHR, settings ) {
 				if ( previewSearchXhr != null ) {
@@ -914,7 +914,7 @@ jQuery( function( $ ) {
 		}
 
 		// Check if search index is available.
-		if ( ! wpo_wcpdf_admin.search_index.length ) {
+		if ( ! woi_pdf_admin.search_index.length ) {
 			return;
 		}
 
@@ -948,7 +948,7 @@ jQuery( function( $ ) {
 				return;
 			}
 
-			matches = wpo_wcpdf_admin.search_index.filter( function ( item ) {
+			matches = woi_pdf_admin.search_index.filter( function ( item ) {
 				return item.label.toLowerCase().indexOf( query.toLowerCase().trim() ) !== -1;
 			} );
 
@@ -1188,17 +1188,17 @@ jQuery( function( $ ) {
 
 	//----------> Sync Address <----------//
 
-	$( '#wpo-wcpdf-settings .sync-address' ).on( 'click', function( event ) {
+	$( '#woi-pdf-settings .sync-address' ).on( 'click', function( event ) {
 		event.preventDefault();
 
 		const $button  = $( this );
 		const $form    = $( this ).closest('form');
 		const $icon    = $button.find( 'span.dashicons' );
-		const $tooltip = $button.closest( '.wpo-wcpdf-input-wrapper' ).find( '.sync-tooltip' );
-		let $field     = $button.closest( '.wpo-wcpdf-input-wrapper' ).find( 'input' );
+		const $tooltip = $button.closest( '.woi-pdf-input-wrapper' ).find( '.sync-tooltip' );
+		let $field     = $button.closest( '.woi-pdf-input-wrapper' ).find( 'input' );
 
 		if ( $field.length === 0 ) {
-			$field = $button.closest( '.wpo-wcpdf-input-wrapper' ).find( 'select' );
+			$field = $button.closest( '.woi-pdf-input-wrapper' ).find( 'select' );
 		}
 
 		// Rotate the icon to indicate processing.
@@ -1206,10 +1206,10 @@ jQuery( function( $ ) {
 
 		$.ajax( {
 			type: 'POST',
-			url:  wpo_wcpdf_admin.ajaxurl,
+			url:  woi_pdf_admin.ajaxurl,
 			data: {
-				action:        'wpo_wcpdf_sync_address',
-				security:      wpo_wcpdf_admin.nonce,
+				action:        'woi_pdf_sync_address',
+				security:      woi_pdf_admin.nonce,
 				address_field: $field.attr( 'id' ),
 			},
 			success: function( response ) {
@@ -1222,7 +1222,7 @@ jQuery( function( $ ) {
 						shopCountryChanged( $field ).done( function() {
 							const matches     = $field.attr( 'name' ).match( /\[([^\]]+)\]/g ); // matches all bracket parts
 							const lang        = matches ? matches[ matches.length - 1 ].replace( /[\[\]]/g, '' ) : 'default';
-							const $stateField = $form.find( `select[name="wpo_wcpdf_settings_general[shop_address_state][${lang}]"]` );
+							const $stateField = $form.find( `select[name="woi_pdf_settings_general[shop_address_state][${lang}]"]` );
 
 							// Update the selected state.
 							if ( $stateField.length !== 0 ) {

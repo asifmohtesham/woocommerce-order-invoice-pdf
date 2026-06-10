@@ -124,10 +124,10 @@ class Assets {
 				background-repeat: no-repeat !important;
 				background-position: right 10px center !important;
 			}" );
-			wp_add_inline_style( 'woi-pdf-settings-styles', "#wpo-wcpdf-preview-wrapper .slider.slide-left:after {
+			wp_add_inline_style( 'woi-pdf-settings-styles', "#woi-pdf-preview-wrapper .slider.slide-left:after {
 					content: '".__( 'Preview', 'woocommerce-orders-invoice-pdf' )."';
 				}
-				#wpo-wcpdf-preview-wrapper .slider.slide-right:after {
+				#woi-pdf-preview-wrapper .slider.slide-right:after {
 					content: '".__( 'Settings', 'woocommerce-orders-invoice-pdf' )."';
 			}" );
 			wp_add_inline_style( 'woi-pdf-settings-styles', "#upgrade-table td span.feature-available {
@@ -189,7 +189,7 @@ class Assets {
 
 			wp_localize_script(
 				'woi-pdf-admin',
-				'wpo_wcpdf_admin',
+				'woi_pdf_admin',
 				array(
 					'ajaxurl'                   => admin_url( 'admin-ajax.php' ),
 					'search_index'              => $search_index,

@@ -120,7 +120,7 @@ td.header img {
 
 /* .mpdf td.header img { */
 	/* img width & heights can only be set with inline styles (mpdf 8.0) https://github.com/mpdf/mpdf/issues/366 */
-	/* using wpo_wcpdf_header_logo_img_element filter instead in wcpdf-mpdf.php */
+	/* using woi_pdf_header_logo_img_element filter instead in wcpdf-mpdf.php */
 /* } */
 
 td.header {
@@ -236,7 +236,7 @@ table.notes-totals {
 	overflow-wrap: anywhere;
 }
 
-/* In Dompdf, '.wc-item-meta' is applied to a 'ul' element, whereas with the mPDF extension, it's a 'div' instead. For more details, refer to 'wpo_wcpdf_mpdf_modify_html()'. */
+/* In Dompdf, '.wc-item-meta' is applied to a 'ul' element, whereas with the mPDF extension, it's a 'div' instead. For more details, refer to 'woi_pdf_mpdf_modify_html()'. */
 .wc-item-meta {
 	margin: 0;
 }
@@ -306,7 +306,7 @@ table.totals tr.payment_method {
 }
 
 /* Footer Imprint */
-/* mPDF footer styles are hooked via wpo_wcpdf_mpdf_premium_style_overrides() */
+/* mPDF footer styles are hooked via woi_pdf_mpdf_premium_style_overrides() */
 #footer {
 	position: absolute;
 	bottom: -2cm;

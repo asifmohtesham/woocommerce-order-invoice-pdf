@@ -1,22 +1,22 @@
 
-#wpo-wcpdf-settings .ui-widget {
+#woi-pdf-settings .ui-widget {
 	font-family:            inherit;
 }
 
-#wpo-wcpdf-settings .ui-widget-content {
+#woi-pdf-settings .ui-widget-content {
 	background:             none;
 	border:                 none;
 }
 
-#wpo-wcpdf-settings .ui-widget-header {
+#woi-pdf-settings .ui-widget-header {
 	background:             none;
 	border:                 none;
 }
 
-#wpo-wcpdf-settings .ui-tabs-nav > .ui-state-default {
+#woi-pdf-settings .ui-tabs-nav > .ui-state-default {
 	border:                 2px solid #ccc;
 }
-#wpo-wcpdf-settings .ui-state-default {
+#woi-pdf-settings .ui-state-default {
 	width:                  auto;
 	border-radius:			0;
 	margin-right:			5px;
@@ -24,7 +24,7 @@
 	border:                 none;
 }
 
-#wpo-wcpdf-settings .document-tabs {
+#woi-pdf-settings .document-tabs {
 	display:                block;
 	position:               relative;
 	z-index:                999;
@@ -33,13 +33,13 @@
 	overflow:               hidden;
 }
 
-#wpo-wcpdf-settings .document-tabs li.ui-tabs-active {
+#woi-pdf-settings .document-tabs li.ui-tabs-active {
 	background: 			white;
 	border-bottom-width: 	2px;
 	border-bottom-color: 	white;
 }
 
-#wpo-wcpdf-settings .document-tabs li a {
+#woi-pdf-settings .document-tabs li a {
 	display:                inline-block;
 	padding:                10px;
 	text-decoration: 		none;
@@ -48,11 +48,11 @@
 	color:                  #555;
 }
 
-#wpo-wcpdf-settings .document-tabs li.ui-tabs-active a {
+#woi-pdf-settings .document-tabs li.ui-tabs-active a {
 	color:                  black;
 }
 
-#wpo-wcpdf-settings .document-content {
+#woi-pdf-settings .document-content {
 	background:             #fff;
 	border:                 2px solid #ccc;
 	border-radius:			0;
@@ -60,12 +60,12 @@
 	height:                 auto !important;
 }
 
-#wpo-wcpdf-settings .button.load-defaults {
+#woi-pdf-settings .button.load-defaults {
 	display:                inline-block;
 	float:                  right;
 }
 
-#wpo-wcpdf-settings .columns-options {
+#woi-pdf-settings .columns-options {
 	font-size:              0.9em;
 	background-color:       #fafafa;
 	padding:                14px 20px 10px 20px;
@@ -74,22 +74,22 @@
 	margin:                 -10px -14px 10px -20px;
 }
 
-#wpo-wcpdf-settings .columns-options > * {
+#woi-pdf-settings .columns-options > * {
 	display: 				inline-block;
 	margin-right: 			1.5em;
 	padding-right: 			2em;
 }
 
-#wpo-wcpdf-settings .columns-options > *:not(:last-child) {
+#woi-pdf-settings .columns-options > *:not(:last-child) {
 	border-right: 			1px solid #c3c3c3;
 }
 
-#wpo-wcpdf-settings .columns-options > * > select {
+#woi-pdf-settings .columns-options > * > select {
 	margin-top:             -2px;
 	font-size:              0.95em!important;
 }
 
-#wpo-wcpdf-settings .columns-header {
+#woi-pdf-settings .columns-header {
 	color:                  #b6a380;
 	text-transform:         uppercase;
 	font-size:              15px;
@@ -103,7 +103,7 @@
 	margin:                 10px -14px 10px -20px;
 }
 
-#wpo-wcpdf-settings .columns-header span {
+#woi-pdf-settings .columns-header span {
 	font-size:              12px;
 	text-transform:         none;
 	font-weight:            lighter;
@@ -111,25 +111,25 @@
 	color:                  #999;
 }
 
-#wpo-wcpdf-settings .columns-header span a {
+#woi-pdf-settings .columns-header span a {
 	color:                  #999;
 }
 
-#wpo-wcpdf-settings .document.columns,
-#wpo-wcpdf-settings .document.totals {
+#woi-pdf-settings .document.columns,
+#woi-pdf-settings .document.totals {
 	float:                  none;
 }
 
-#wpo-wcpdf-settings .field-list {
+#woi-pdf-settings .field-list {
 	min-height:             50px;
 }
 
-#wpo-wcpdf-settings .document.totals, #wpo-wcpdf-settings .document.columns, #wpo-wcpdf-settings .document.custom-blocks {
+#woi-pdf-settings .document.totals, #woi-pdf-settings .document.columns, #woi-pdf-settings .document.custom-blocks {
 	overflow:               hidden;
 }
 
-#wpo-wcpdf-settings .field,
-#wpo-wcpdf-settings .custom-block {
+#woi-pdf-settings .field,
+#woi-pdf-settings .custom-block {
 	vertical-align:         top;
 	border:                 1px solid #ccc;
 	background-color:       #e4e4e4;
@@ -142,29 +142,29 @@
 	overflow:               visible;
 }
 
-#wpo-wcpdf-settings .field.description,
-#wpo-wcpdf-settings .field.static_text,
-#wpo-wcpdf-settings .field.text {
+#woi-pdf-settings .field.description,
+#woi-pdf-settings .field.static_text,
+#woi-pdf-settings .field.text {
 	max-width:              500px;
 }
 
-#wpo-wcpdf-settings .custom-block {
+#woi-pdf-settings .custom-block {
 	max-width:              88%;
 }
 
-#wpo-wcpdf-settings .custom-block .ui-accordion-content {
+#woi-pdf-settings .custom-block .ui-accordion-content {
 	padding:                0;
 }
 
-#wpo-wcpdf-settings .custom-block input[type="text"],
-#wpo-wcpdf-settings .custom-block select,
-#wpo-wcpdf-settings .custom-block table,
-#wpo-wcpdf-settings .custom-block textarea {
+#woi-pdf-settings .custom-block input[type="text"],
+#woi-pdf-settings .custom-block select,
+#woi-pdf-settings .custom-block table,
+#woi-pdf-settings .custom-block textarea {
 	width:                  100%;
 	max-width:				545px;
 }
 
-#wpo-wcpdf-settings .custom-block hr {
+#woi-pdf-settings .custom-block hr {
 	margin-top:             10px;
 	margin-bottom:          0;
 	margin-left:            10px;
@@ -174,30 +174,30 @@
 	border-bottom:          1px solid #ddd;
 }
 
-#wpo-wcpdf-settings .custom-block-advanced label,
-#wpo-wcpdf-settings .custom-block-advanced input[type="checkbox"] {
+#woi-pdf-settings .custom-block-advanced label,
+#woi-pdf-settings .custom-block-advanced input[type="checkbox"] {
 	display:                inline-block;
 	vertical-align:         middle;
 }
 
-#wpo-wcpdf-settings .custom-block-advanced p {
+#woi-pdf-settings .custom-block-advanced p {
 	margin:                 0 0 5px 0;
 }
 
-#wpo-wcpdf-settings .custom-block-advanced table.custom-block-requirements {
+#woi-pdf-settings .custom-block-advanced table.custom-block-requirements {
 	margin-top:				0.5em;
 }
 
-#wpo-wcpdf-settings .custom-block-advanced table.custom-block-requirements td {
+#woi-pdf-settings .custom-block-advanced table.custom-block-requirements td {
 	padding-bottom:			0.3em;
 	vertical-align:			middle;
 }
 
-#wpo-wcpdf-settings .custom-block-advanced table.custom-block-requirements td label {
+#woi-pdf-settings .custom-block-advanced table.custom-block-requirements td label {
 	padding:				0.3em;
 }
 
-#wpo-wcpdf-settings .custom-block-advanced table.custom-block-requirements span.remove-requirement {
+#woi-pdf-settings .custom-block-advanced table.custom-block-requirements span.remove-requirement {
 	width: 					9%;
 	text-align: 			center;
 	line-height:			1.8em;
@@ -206,33 +206,33 @@
 	float: 					right;
 }
 
-#wpo-wcpdf-settings .custom-block-advanced table.custom-block-requirements td:has(> input[type="checkbox"]) > span.remove-requirement {
+#woi-pdf-settings .custom-block-advanced table.custom-block-requirements td:has(> input[type="checkbox"]) > span.remove-requirement {
 	line-height: normal;
 }
 
-#wpo-wcpdf-settings .custom-block-advanced table.custom-block-requirements span.remove-requirement:hover {
+#woi-pdf-settings .custom-block-advanced table.custom-block-requirements span.remove-requirement:hover {
 	color:					#222;
 	cursor: 				pointer;
 }
 
-#wpo-wcpdf-settings .ui-accordion .ui-accordion-header {
+#woi-pdf-settings .ui-accordion .ui-accordion-header {
 	margin:                 0;
 }
 
 
-#wpo-wcpdf-settings .custom-block {
+#woi-pdf-settings .custom-block {
 	padding:                7px 10px;
 }
 
-#wpo-wcpdf-settings .document.totals .field, #wpo-wcpdf-settings .custom-block {
+#woi-pdf-settings .document.totals .field, #woi-pdf-settings .custom-block {
 	float:                  left;
 	clear:                  left;
 	display:                block;
 }
 
-#wpo-wcpdf-settings .custom-block tr.meta_key td { position: relative; }
+#woi-pdf-settings .custom-block tr.meta_key td { position: relative; }
 
-#wpo-wcpdf-settings .custom-block tr.meta_key td.tooltip[data-tip]:after {
+#woi-pdf-settings .custom-block tr.meta_key td.tooltip[data-tip]:after {
 	content:attr(data-tip);
 	position:absolute;
 	bottom:35px;
@@ -251,7 +251,7 @@
 	word-wrap:normal;
 }
 
-#wpo-wcpdf-settings .custom-block tr.meta_key td.tooltip[data-tip]:before {
+#woi-pdf-settings .custom-block tr.meta_key td.tooltip[data-tip]:before {
 	content:'';
 	border-left: 5px solid transparent;
 	border-right: 5px solid transparent;
@@ -262,14 +262,14 @@
 	z-index:10;
 }
 
-#wpo-wcpdf-settings .field-title {
+#woi-pdf-settings .field-title {
 	border:                 none;
 	padding:                0 0 0 25px;
 	font-weight:            bold;
 	height:                 18px;
 }
 
-#wpo-wcpdf-settings .add-field {
+#woi-pdf-settings .add-field {
 	min-height:             28px;
 	max-width:              100%;
 	width:                  auto;
@@ -277,7 +277,7 @@
 	background-color:       #3e859b;
 }
 
-#wpo-wcpdf-settings .add-field-plus {
+#woi-pdf-settings .add-field-plus {
 	color:                  #d6e9ef;
 	font-size:              20px;
 	display:                block;
@@ -287,7 +287,7 @@
 	text-align:             center;
 }
 
-#wpo-wcpdf-settings .dropdown-add-field {
+#woi-pdf-settings .dropdown-add-field {
 	float:                  left;
 	display:                block;
 	height:                 26px;
@@ -299,40 +299,40 @@
 	margin:                 0;
 }
 
-#wpo-wcpdf-settings .field-options {
+#woi-pdf-settings .field-options {
 	padding:                0 0 0 15px;
 	margin:                 5px 0 0 0;
 	height:                 auto;
 	overflow:               hidden;
 }
 
-#wpo-wcpdf-settings .field-options:last-of-type {
+#woi-pdf-settings .field-options:last-of-type {
 	margin-bottom:          10px;
 }
 
-#wpo-wcpdf-settings .ui-accordion-content-active {
+#woi-pdf-settings .ui-accordion-content-active {
 	height:                 auto!important;
 }
 
-#wpo-wcpdf-settings .field-option {
+#woi-pdf-settings .field-option {
 	margin:                 7px 0 0 0;
 }
 
-#wpo-wcpdf-settings .field-option textarea {
+#woi-pdf-settings .field-option textarea {
 	width:                  350px;
 }
 
-#wpo-wcpdf-settings .field-option .option-documentation {
+#woi-pdf-settings .field-option .option-documentation {
 	font-size:              0.9em;
 }
 
-#wpo-wcpdf-settings .field-option.separator {
+#woi-pdf-settings .field-option.separator {
 	border-top:             1px solid #ccc;
 	padding:                0;
 	margin:                 1em 0;
 }
 
-#wpo-wcpdf-settings .delete-field {
+#woi-pdf-settings .delete-field {
 	position:               absolute;
 	right:                  -9px;
 	top:                    -5px;
@@ -344,32 +344,32 @@
 	cursor:                 pointer;
 }
 
-#wpo-wcpdf-preview-wrapper .sidebar > form.editor tr:has( #custom_styles ) {
+#woi-pdf-preview-wrapper .sidebar > form.editor tr:has( #custom_styles ) {
 	display: block;
 }
 
 /* Phone */
 
 @media screen and (max-width: 767px) {
-	#wpo-wcpdf-settings .ui-tabs .ui-tabs-panel {
+	#woi-pdf-settings .ui-tabs .ui-tabs-panel {
 		padding:                1em 1em 1em 1.4em;
 	}
 
-	#wpo-wcpdf-settings .document-tabs {
+	#woi-pdf-settings .document-tabs {
 		padding:                0;
 		margin:                 0 0 10px 0;
 	}
 
-	#wpo-wcpdf-settings .document-tabs li {
+	#woi-pdf-settings .document-tabs li {
 		margin:                 0 8px 8px 0;
 	}
 
-	#wpo-wcpdf-settings .document-tabs li.ui-tabs-active {
+	#woi-pdf-settings .document-tabs li.ui-tabs-active {
 		border-bottom-color:    #ccc;
 		padding:                0;
 	}
 
-	#wpo-wcpdf-settings .add-field-plus {
+	#woi-pdf-settings .add-field-plus {
 		margin:                 5px 0 0 0;
 	}
 }

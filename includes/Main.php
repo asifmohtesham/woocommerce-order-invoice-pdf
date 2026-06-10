@@ -644,7 +644,7 @@ class Main {
 	private function load_template_functions() {
 		$template_path = '';
 
-		if ( isset( $_POST['action'] ) && in_array( sanitize_text_field( wp_unslash( $_POST['action'] ) ), array( 'woi_pdf_preview', 'wpo_wcpdf_preview' ), true ) && ! empty( $_POST['data'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( isset( $_POST['action'] ) && in_array( sanitize_text_field( wp_unslash( $_POST['action'] ) ), array( 'woi_pdf_preview', 'woi_pdf_preview' ), true ) && ! empty( $_POST['data'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			// parse form data
 			parse_str( wp_unslash( $_POST['data'] ), $form_data ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
@@ -1161,7 +1161,7 @@ class Main {
 
 	public function html_currency_filters( $filters ) {
 		// Maybe apply currency font when previewing in admin
-		if ( isset( $_POST['action'] ) && in_array( sanitize_text_field( wp_unslash( $_POST['action'] ) ), array( 'woi_pdf_preview', 'wpo_wcpdf_preview' ), true ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( isset( $_POST['action'] ) && in_array( sanitize_text_field( wp_unslash( $_POST['action'] ) ), array( 'woi_pdf_preview', 'woi_pdf_preview' ), true ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$filters = $this->pdf_currency_filters( $filters );
 		}
 

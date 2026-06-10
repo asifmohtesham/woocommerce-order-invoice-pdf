@@ -1,16 +1,16 @@
 /* wc orders list */
-.type-shop_order .column-wc_actions a.button.wpo_wcpdf,
-.type-shop_order .column-wc_actions a.button.wpo_wcpdf:hover,
-.woocommerce_page_wc-orders .column-wc_actions a.button.wpo_wcpdf,
-.woocommerce_page_wc-orders .column-wc_actions a.button.wpo_wcpdf:hover {
+.type-shop_order .column-wc_actions a.button.woi_pdf,
+.type-shop_order .column-wc_actions a.button.woi_pdf:hover,
+.woocommerce_page_wc-orders .column-wc_actions a.button.woi_pdf,
+.woocommerce_page_wc-orders .column-wc_actions a.button.woi_pdf:hover {
 	background-repeat: no-repeat;
 	background-position: center;
 	text-align: center;
 	background-size: 16px 16px;
 }
 
-.type-shop_order .column-wc_actions a.button.wpo_wcpdf > svg,
-.woocommerce_page_wc-orders .column-wc_actions a.button.wpo_wcpdf > svg {
+.type-shop_order .column-wc_actions a.button.woi_pdf > svg,
+.woocommerce_page_wc-orders .column-wc_actions a.button.woi_pdf > svg {
 	display: block;
 	position: absolute;
 	width: 10px;
@@ -19,22 +19,22 @@
 	background: #f6f7f7;
 }
 
-.type-shop_order .column-wc_actions a.button.wpo_wcpdf.exists > svg.icon-exists,
-.woocommerce_page_wc-orders .column-wc_actions a.button.wpo_wcpdf.exists > svg.icon-exists {
+.type-shop_order .column-wc_actions a.button.woi_pdf.exists > svg.icon-exists,
+.woocommerce_page_wc-orders .column-wc_actions a.button.woi_pdf.exists > svg.icon-exists {
 	left: auto;
 	right: 2px;
 	fill: #2aad2a;
 }
 
-.type-shop_order .column-wc_actions a.button.wpo_wcpdf.xml > svg.icon-edi,
-.woocommerce_page_wc-orders .column-wc_actions a.button.wpo_wcpdf.xml > svg.icon-edi {
+.type-shop_order .column-wc_actions a.button.woi_pdf.xml > svg.icon-edi,
+.woocommerce_page_wc-orders .column-wc_actions a.button.woi_pdf.xml > svg.icon-edi {
 	left: auto;
 	right: 2px;
 	fill: black;
 }
 
-.type-shop_order .column-wc_actions a.button.wpo_wcpdf.printed > svg.icon-printed,
-.woocommerce_page_wc-orders .column-wc_actions a.button.wpo_wcpdf.printed > svg.icon-printed {
+.type-shop_order .column-wc_actions a.button.woi_pdf.printed > svg.icon-printed,
+.woocommerce_page_wc-orders .column-wc_actions a.button.woi_pdf.printed > svg.icon-printed {
 	left: 2px;
 	right: auto;
 	fill: #51266b;
@@ -48,7 +48,7 @@ ul.wpo-ips-edi-actions > li {
 	margin: 12px 0 0 0;
 }
 
-.wpo_wcpdf-actions a.button.exists > svg,
+.woi_pdf-actions a.button.exists > svg,
 .wpo-ips-edi-actions a.button.exists > svg {
 	width: 14px;
 	height: 14px;
@@ -64,7 +64,7 @@ ul.wpo-ips-edi-actions > li {
 	cursor: not-allowed;
 }
 
-.wpo_wcpdf-actions .printed-data,
+.woi_pdf-actions .printed-data,
 .wcpdf-data-fields .printed-data {
 	font-size: 8pt;
 	color: #999;
@@ -73,7 +73,7 @@ ul.wpo-ips-edi-actions > li {
 	margin-top: 3px !important;
 }
 
-.wpo_wcpdf-actions .printed-data > svg,
+.woi_pdf-actions .printed-data > svg,
 .wcpdf-data-fields .printed-data > svg {
 	width: 14px;
 	height: 14px;
@@ -83,7 +83,7 @@ ul.wpo-ips-edi-actions > li {
 	margin-right: 3px;
 }
 
-.wpo_wcpdf-actions a.unmark_printed,
+.woi_pdf-actions a.unmark_printed,
 .wcpdf-data-fields a.unmark_printed {
 	margin-left: 4px;
 	color: #a00;;
@@ -93,23 +93,23 @@ ul.wpo-ips-edi-actions > li {
 	width: 110px;
 }
 
-#wpo_wcpdf-data-input-box > .inside {
+#woi_pdf-data-input-box > .inside {
 	margin: 0;
 	padding: 10px 0;
 	background-color: #f8f8f8;
 }
 
-#wpo_wcpdf-data-input-box h4 {
+#woi_pdf-data-input-box h4 {
 	font-size: 14px;
 	line-height: 1.4;
 	margin: 0;
 }
 
-#wpo_wcpdf-data-input-box p {
+#woi_pdf-data-input-box p {
 	margin: 0.5em 0;
 }
 
-#wpo_wcpdf-data-input-box .form-field input {
+#woi_pdf-data-input-box .form-field input {
 	width: auto;
 }
 
@@ -314,22 +314,22 @@ ul.wpo-ips-edi-actions > li {
 	margin-left:20px !important;
 }
 
-.wcpdf-data-fields .wpo-wcpdf-edit-date-number,
-.wcpdf-data-fields .wpo-wcpdf-delete-document,
-.wcpdf-data-fields .wpo-wcpdf-regenerate-document,
-.wcpdf-data-fields .wpo-wcpdf-edit-document-notes {
+.wcpdf-data-fields .woi-pdf-edit-date-number,
+.wcpdf-data-fields .woi-pdf-delete-document,
+.wcpdf-data-fields .woi-pdf-regenerate-document,
+.wcpdf-data-fields .woi-pdf-edit-document-notes {
 	opacity:0.5;
 }
 
-.wcpdf-data-fields .wpo-wcpdf-edit-date-number:hover,
-.wcpdf-data-fields .wpo-wcpdf-delete-document:hover,
-.wcpdf-data-fields .wpo-wcpdf-regenerate-document:hover,
-.wcpdf-data-fields .wpo-wcpdf-edit-document-notes:hover {
+.wcpdf-data-fields .woi-pdf-edit-date-number:hover,
+.wcpdf-data-fields .woi-pdf-delete-document:hover,
+.wcpdf-data-fields .woi-pdf-regenerate-document:hover,
+.wcpdf-data-fields .woi-pdf-edit-document-notes:hover {
 	opacity:1;
 	cursor:pointer;
 }
 
-.wcpdf-data-fields .wpo-wcpdf-document-buttons {
+.wcpdf-data-fields .woi-pdf-document-buttons {
 	display: none;
 	padding: 10px;
 	border-top: 1px solid #dfdfdf;

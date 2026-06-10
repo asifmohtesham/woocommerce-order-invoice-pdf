@@ -142,7 +142,7 @@ class EditorSettings {
 
 		wp_localize_script(
 			'woi-pdf-templates-editor',
-			'wpo_wcpdf_templates',
+			'woi_pdf_templates',
 			array(
 				'ajaxurl'               => admin_url( 'admin-ajax.php' ),
 				'nonce'                 => wp_create_nonce( 'woi_pdf_templates' ),
@@ -304,7 +304,7 @@ class EditorSettings {
 	public function settings_tab( $tabs ) {
 		$tabs['editor'] = array(
 			'title'          => __( 'Customiser', 'woi_pdf_templates' ),
-			'preview_states' => 2,
+			'preview_states' => 3,
 		);
 		return $tabs;
 	}
@@ -335,8 +335,8 @@ class EditorSettings {
 
 		?>
 		<style>
-		#wpo-wcpdf-settings .form-table td,
-		#wpo-wcpdf-settings .form-table th {
+		#woi-pdf-settings .form-table td,
+		#woi-pdf-settings .form-table th {
 			display: block !important;
 			padding: 0 !important;
 		}

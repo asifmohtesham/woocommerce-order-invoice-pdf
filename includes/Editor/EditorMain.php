@@ -106,7 +106,7 @@ class EditorMain {
 	}
 
 	public function get_totals_table_data( $total_settings, $document ) {
-		$customizer_total_blocks = WOI_PDF()->settings->get_totals_field_options();
+		$customizer_total_blocks = \WOI\PDF\Editor\EditorSettings::instance()->get_totals_field_options();
 		$totals_table_data = array();
 		foreach ($total_settings as $total_key => $total_setting) {
 			// reset possibly absent vars
@@ -1208,7 +1208,7 @@ class EditorMain {
 	 * Output custom blocks (if set for template)
 	 */
 	public function custom_blocks_data( $template_type, $order = null ) {
-		$custom_blocks = WOI_PDF()->settings->get_settings( $template_type, 'custom', null );
+		$custom_blocks = \WOI\PDF\Editor\EditorSettings::instance()->get_settings( $template_type, 'custom', null );
 
 		if ( ! empty($custom_blocks) ) {
 			foreach ($custom_blocks as $key => $custom_block) {

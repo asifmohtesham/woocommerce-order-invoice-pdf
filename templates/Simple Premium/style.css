@@ -1,4 +1,4 @@
-<?php extract( wpo_wcpdf_templates_get_footer_settings( $this, '2cm' ) ); // $footer_height & $page_bottom ?>
+<?php extract( woi_pdf_templates_get_footer_settings( $this, '2cm' ) ); // $footer_height & $page_bottom ?>
 @page {
 	margin-top: 1cm;
 	margin-bottom: <?php echo $page_bottom; ?>;
