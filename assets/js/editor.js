@@ -44,7 +44,7 @@ jQuery(function($) {
 		var document_type = $current_doc.data('document-type');
 		var data = {
 			security:      woi_pdf_templates.nonce,
-			action:        'wcpdf_templates_add_custom_block',
+			action:        'woi_pdf_templates_add_custom_block',
 			document_type: document_type,
 		};
 
@@ -87,7 +87,7 @@ jQuery(function($) {
 		let $field_value  = $( this ).val();
 		let data          = {
 			security:      woi_pdf_templates.nonce,
-			action:        'wcpdf_templates_add_totals_columns_field',
+			action:        'woi_pdf_templates_add_totals_columns_field',
 			section:       $section.data( 'section_key' ),
 			document_type: document_type,
 			field_value:   $field_value,
