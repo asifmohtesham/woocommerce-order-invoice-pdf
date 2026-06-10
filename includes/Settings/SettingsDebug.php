@@ -103,10 +103,10 @@ class SettingsDebug {
 				'args'     => array(
 					'option_name' => $option_name,
 					'id'          => 'document_link_access_type',
+					'default'     => 'logged_in',
 					'options'     => array(
-						''            => __( 'Logged in users only', 'woocommerce-orders-invoice-pdf' ),
-						'guest'       => __( 'Logged in users + guests', 'woocommerce-orders-invoice-pdf' ),
-						'logged_in'   => __( 'Logged in users only', 'woocommerce-orders-invoice-pdf' ),
+						'logged_in' => __( 'Logged in (recommended)', 'woocommerce-orders-invoice-pdf' ),
+						'full'      => __( 'Full — anyone with the order key in the link', 'woocommerce-orders-invoice-pdf' ),
 					),
 				),
 			),

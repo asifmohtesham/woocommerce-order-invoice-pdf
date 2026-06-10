@@ -10,19 +10,14 @@ if ( ! array_key_exists( $current_tab, $settings_tabs ) ) {
 // Map tab key to WP Settings API page/option_group.
 // The Documents tab fires woi_pdf_settings_output_documents and handles its own option page internally.
 // All other tabs map to 'woi_pdf_settings_{tab}' (or an override in $tab_option_page_map).
-$is_upgrade = ( 'upgrade' === $current_tab );
-
-// Static tab → option-page mapping overrides (where the class uses a non-standard name).
 $tab_option_page_map = array(
 	'editor' => 'woi_pdf_editor_settings',
 );
 
-if ( ! $is_upgrade ) {
-	if ( isset( $tab_option_page_map[ $current_tab ] ) ) {
-		$option_page = $tab_option_page_map[ $current_tab ];
-	} else {
-		$option_page = 'woi_pdf_settings_' . $current_tab;
-	}
+if ( isset( $tab_option_page_map[ $current_tab ] ) ) {
+	$option_page = $tab_option_page_map[ $current_tab ];
+} else {
+	$option_page = 'woi_pdf_settings_' . $current_tab;
 }
 ?>
 <?php
@@ -58,26 +53,20 @@ if ( 'documents' === $current_tab && ! empty( $_GET['section'] ) ) {
 		data-preview-states-lock="<?php echo esc_attr( $preview_states_lock ); ?>">
 
 		<div class="sidebar">
-			<?php if ( $is_upgrade ) : ?>
-				<div class="woi-pdf-upgrade-notice" style="margin-top:1em;">
-					<p><?php esc_html_e( 'Upgrade to the Professional extension for additional features.', 'woocommerce-orders-invoice-pdf' ); ?></p>
-				</div>
-			<?php else : ?>
-				<form method="post" action="options.php" id="woi-pdf-settings" class="<?php echo esc_attr( $current_tab ); ?>">
-					<input type="hidden" name="tab" value="<?php echo esc_attr( $current_tab ); ?>">
-					<?php
-					do_action( 'woi_pdf_before_settings', $current_tab, $nonce );
-					$current_section = isset( $_GET['section'] ) ? sanitize_key( wp_unslash( $_GET['section'] ) ) : '';
-					if ( has_action( "woi_pdf_settings_output_{$current_tab}" ) ) {
-						do_action( "woi_pdf_settings_output_{$current_tab}", $current_section, $nonce );
-					} else {
-						settings_fields( $option_page );
-						do_settings_sections( $option_page );
-						submit_button();
-					}
-					?>
-				</form>
-			<?php endif; ?>
+			<form method="post" action="options.php" id="woi-pdf-settings" class="<?php echo esc_attr( $current_tab ); ?>">
+				<input type="hidden" name="tab" value="<?php echo esc_attr( $current_tab ); ?>">
+				<?php
+				do_action( 'woi_pdf_before_settings', $current_tab, $nonce );
+				$current_section = isset( $_GET['section'] ) ? sanitize_key( wp_unslash( $_GET['section'] ) ) : '';
+				if ( has_action( "woi_pdf_settings_output_{$current_tab}" ) ) {
+					do_action( "woi_pdf_settings_output_{$current_tab}", $current_section, $nonce );
+				} else {
+					settings_fields( $option_page );
+					do_settings_sections( $option_page );
+					submit_button();
+				}
+				?>
+			</form>
 		</div>
 
 		<div class="gutter">

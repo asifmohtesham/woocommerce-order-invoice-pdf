@@ -87,6 +87,62 @@ class SettingsGeneral {
 			),
 			array(
 				'type'     => 'setting',
+				'id'       => 'template_ink_saving',
+				'title'    => __( 'Ink saving mode', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'checkbox',
+				'section'  => 'general',
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'template_ink_saving',
+					'description' => __( 'Apply ink-saving styles, replacing dark backgrounds and colors with lighter alternatives. Only available for supported templates (Simple).', 'woocommerce-orders-invoice-pdf' ),
+				),
+			),
+			array(
+				'type'     => 'setting',
+				'id'       => 'paper_size',
+				'title'    => __( 'Paper size', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'select',
+				'section'  => 'general',
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'paper_size',
+					'default'     => 'a4',
+					'options'     => apply_filters( 'woi_pdf_template_settings_paper_size', array(
+						'a4'     => __( 'A4', 'woocommerce-orders-invoice-pdf' ),
+						'letter' => __( 'Letter', 'woocommerce-orders-invoice-pdf' ),
+					) ),
+				),
+			),
+			array(
+				'type'     => 'setting',
+				'id'       => 'test_mode',
+				'title'    => __( 'Test mode', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'checkbox',
+				'section'  => 'general',
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'test_mode',
+					'description' => sprintf(
+						'%1$s<br><strong>%2$s</strong>',
+						__( 'With test mode enabled, any document generated will always use the latest settings, rather than the settings as configured when the document was first created.', 'woocommerce-orders-invoice-pdf' ),
+						__( 'Note: Invoice numbers and dates are not affected by this setting and will still be generated.', 'woocommerce-orders-invoice-pdf' )
+					),
+				),
+			),
+			array(
+				'type'     => 'setting',
+				'id'       => 'currency_font',
+				'title'    => __( 'Extended currency symbol support', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'checkbox',
+				'section'  => 'general',
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'currency_font',
+					'description' => __( 'Enable this if your currency symbol is not displaying properly.', 'woocommerce-orders-invoice-pdf' ),
+				),
+			),
+			array(
+				'type'     => 'setting',
 				'id'       => 'font_subsetting',
 				'title'    => __( 'Use font subsetting', 'woocommerce-orders-invoice-pdf' ),
 				'callback' => 'checkbox',
@@ -298,6 +354,61 @@ class SettingsGeneral {
 				'args'     => array(
 					'option_name' => $option_name,
 					'id'          => 'extra_3',
+				),
+			),
+			array(
+				'type'     => 'section',
+				'id'       => 'general_checkout_field',
+				'title'    => __( 'Checkout field', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'section',
+			),
+			array(
+				'type'     => 'setting',
+				'id'       => 'checkout_field_enable',
+				'title'    => __( 'Enable', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'checkbox',
+				'section'  => 'general_checkout_field',
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'checkout_field_enable',
+					'description' => __( 'Enable an optional custom field at checkout to collect customer identification data, such as tax IDs, company registration numbers, purchase order numbers, or internal customer references.', 'woocommerce-orders-invoice-pdf' ),
+				),
+			),
+			array(
+				'type'     => 'setting',
+				'id'       => 'checkout_field_label',
+				'title'    => __( 'Label', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'text_element',
+				'section'  => 'general_checkout_field',
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'checkout_field_label',
+					'default'     => __( 'Customer identification', 'woocommerce-orders-invoice-pdf' ),
+					'description' => __( 'The label for the optional custom field displayed at checkout.', 'woocommerce-orders-invoice-pdf' ),
+				),
+			),
+			array(
+				'type'     => 'setting',
+				'id'       => 'checkout_field_as_vat_number',
+				'title'    => __( 'Treat as VAT number', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'checkbox',
+				'section'  => 'general_checkout_field',
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'checkout_field_as_vat_number',
+					'description' => __( 'When enabled, the checkout field is treated as a VAT number and may be used for basic VAT-related logic. Avoid enabling this option if you are already using a third-party VAT plugin, as it may result in duplicate or conflicting VAT fields.', 'woocommerce-orders-invoice-pdf' ),
+				),
+			),
+			array(
+				'type'     => 'setting',
+				'id'       => 'checkout_field_enable_my_account',
+				'title'    => __( 'Editable in My Account', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'checkbox',
+				'section'  => 'general_checkout_field',
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'checkout_field_enable_my_account',
+					'description' => __( 'Allow customers to edit the custom checkout field on their account details page. The value is saved to the customer profile and used for future checkouts only.', 'woocommerce-orders-invoice-pdf' ),
 				),
 			),
 		);

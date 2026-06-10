@@ -184,20 +184,11 @@ class Settings {
 				'title'          => __( 'Documents', 'woocommerce-orders-invoice-pdf' ),
 				'preview_states' => 3,
 			),
-			'edi'       => array(
-				'title'          => __( 'E-Documents', 'woocommerce-orders-invoice-pdf' ),
-				'preview_states' => 1,
-			),
 		) );
 
-		// add status and upgrade tabs last in row
+		// add status tab last in row
 		$settings_tabs['debug'] = array(
 			'title'          => __( 'Advanced', 'woocommerce-orders-invoice-pdf' ),
-			'preview_states' => 1,
-		);
-
-		$settings_tabs['upgrade'] = array(
-			'title'          => __( 'Upgrade', 'woocommerce-orders-invoice-pdf' ),
 			'preview_states' => 1,
 		);
 
