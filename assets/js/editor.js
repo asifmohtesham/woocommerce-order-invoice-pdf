@@ -113,7 +113,7 @@ jQuery(function($) {
 				} );
 				
 				$( '.dropdown-add-field' ).val( 'default' );
-				
+
 				// enable WooCommerce help tips
 				$( '.woocommerce-help-tip' ).tipTip( {
 					'attribute': 'data-tip',
@@ -121,6 +121,8 @@ jQuery(function($) {
 					'fadeOut':   50,
 					'delay':     200
 				} );
+
+				$( document ).trigger( 'woi-pdf-settings-changed' );
 			}
 		} );
 	} );
