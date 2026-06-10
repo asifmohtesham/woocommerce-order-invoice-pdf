@@ -1367,13 +1367,19 @@ class EditorSettings {
 	
 		?>
 		<div id="documents" style="display:none;">
-			<ul class="document-tabs">
-				<?php foreach ($args['documents'] as $document => $title) {
-					$document_id = $id.'_'.$document;
-					printf( '<li><a href="#%1$s" data-document_type="%2$s">%3$s</a></li>', $document_id, $document, $title );
-				}
-				?>
-			</ul>
+			<div class="tab-scroll-wrapper">
+				<button class="tab-scroll-btn tab-scroll-prev" aria-label="<?php esc_attr_e( 'Previous tabs', 'woi_pdf_templates' ); ?>">&#8249;</button>
+				<div class="tab-scroll-track">
+					<ul class="document-tabs">
+						<?php foreach ($args['documents'] as $document => $title) {
+							$document_id = $id.'_'.$document;
+							printf( '<li><a href="#%1$s" data-document_type="%2$s">%3$s</a></li>', $document_id, $document, $title );
+						}
+						?>
+					</ul>
+				</div>
+				<button class="tab-scroll-btn tab-scroll-next" aria-label="<?php esc_attr_e( 'Next tabs', 'woi_pdf_templates' ); ?>">&#8250;</button>
+			</div>
 
 			<?php foreach ($args['documents'] as $document => $title): ?>
 				<?php
