@@ -14,6 +14,9 @@
         "brianhenryie/strauss": "^0.19"
     },
     "autoload": {
+        "files": [
+            "woi-pdf-functions.php"
+        ],
         "psr-4": {
             "WOI\\PDF\\": "includes/"
         }
