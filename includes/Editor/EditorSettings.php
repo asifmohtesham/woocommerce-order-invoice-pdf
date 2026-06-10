@@ -1368,7 +1368,7 @@ class EditorSettings {
 		?>
 		<div id="documents" style="display:none;">
 			<div class="tab-scroll-wrapper">
-				<button class="tab-scroll-btn tab-scroll-prev" aria-label="<?php esc_attr_e( 'Previous tabs', 'woi_pdf_templates' ); ?>">&#8249;</button>
+				<button type="button" class="tab-scroll-btn tab-scroll-prev" aria-label="<?php esc_attr_e( 'Previous tabs', 'woi_pdf_templates' ); ?>">&#8249;</button>
 				<div class="tab-scroll-track">
 					<ul class="document-tabs">
 						<?php foreach ($args['documents'] as $document => $title) {
@@ -1378,7 +1378,7 @@ class EditorSettings {
 						?>
 					</ul>
 				</div>
-				<button class="tab-scroll-btn tab-scroll-next" aria-label="<?php esc_attr_e( 'Next tabs', 'woi_pdf_templates' ); ?>">&#8250;</button>
+				<button type="button" class="tab-scroll-btn tab-scroll-next" aria-label="<?php esc_attr_e( 'Next tabs', 'woi_pdf_templates' ); ?>">&#8250;</button>
 			</div>
 
 			<?php foreach ($args['documents'] as $document => $title): ?>
