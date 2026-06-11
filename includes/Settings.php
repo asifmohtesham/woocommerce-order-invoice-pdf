@@ -496,6 +496,25 @@ class Settings {
 		wp_die();
 	}
 
+	/**
+	 * Build the <tr> marker classes for a conditionally displayed field.
+	 * admin-shell.js parses these to show/hide the row live.
+	 *
+	 * @param array $show_if array( 'field' => string, 'value' => scalar ) — value defaults to 1
+	 *
+	 * @return string
+	 */
+	public static function show_if_class( array $show_if ): string {
+		if ( empty( $show_if['field'] ) ) {
+			return '';
+		}
+
+		$field = sanitize_key( $show_if['field'] );
+		$value = sanitize_key( (string) ( $show_if['value'] ?? 1 ) );
+
+		return "woi-show-if woi-show-if--{$field}--{$value}";
+	}
+
 	public function add_settings_fields( $settings_fields, $page, $option_group, $option_name ) {
 		foreach ( $settings_fields as $settings_field ) {
 			if ( ! isset( $settings_field['callback'] ) ) {
@@ -517,6 +536,13 @@ class Settings {
 					$settings_field['args'] ?? array()
 				);
 			} else {
+				if ( ! empty( $settings_field['show_if'] ) && is_array( $settings_field['show_if'] ) ) {
+					$show_if_class = self::show_if_class( $settings_field['show_if'] );
+					if ( '' !== $show_if_class ) {
+						$existing_class                  = $settings_field['args']['class'] ?? '';
+						$settings_field['args']['class'] = trim( $existing_class . ' ' . $show_if_class );
+					}
+				}
 				add_settings_field(
 					$settings_field['id'],
 					$settings_field['title'],

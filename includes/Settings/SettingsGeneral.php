@@ -380,6 +380,7 @@ class SettingsGeneral {
 				'title'    => __( 'Label', 'woocommerce-orders-invoice-pdf' ),
 				'callback' => 'text_element',
 				'section'  => 'general_checkout_field',
+				'show_if'  => array( 'field' => 'checkout_field_enable', 'value' => 1 ),
 				'args'     => array(
 					'option_name' => $option_name,
 					'id'          => 'checkout_field_label',
@@ -393,6 +394,7 @@ class SettingsGeneral {
 				'title'    => __( 'Treat as VAT number', 'woocommerce-orders-invoice-pdf' ),
 				'callback' => 'checkbox',
 				'section'  => 'general_checkout_field',
+				'show_if'  => array( 'field' => 'checkout_field_enable', 'value' => 1 ),
 				'args'     => array(
 					'option_name' => $option_name,
 					'id'          => 'checkout_field_as_vat_number',
@@ -405,6 +407,7 @@ class SettingsGeneral {
 				'title'    => __( 'Editable in My Account', 'woocommerce-orders-invoice-pdf' ),
 				'callback' => 'checkbox',
 				'section'  => 'general_checkout_field',
+				'show_if'  => array( 'field' => 'checkout_field_enable', 'value' => 1 ),
 				'args'     => array(
 					'option_name' => $option_name,
 					'id'          => 'checkout_field_enable_my_account',
