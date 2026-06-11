@@ -8,6 +8,7 @@ use WOI\PDF\Settings\SettingsDocuments;
 use WOI\PDF\Settings\SettingsDebug;
 use WOI\PDF\Settings\SettingsEDI;
 use WOI\PDF\Settings\SettingsUpgrade;
+use WOI\PDF\Settings\SettingsHome;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -25,6 +26,7 @@ class Settings {
 	public SettingsDebug $debug;
 	public SettingsUpgrade $upgrade;
 	public SettingsEDI $edi;
+	public SettingsHome $home;
 	public array $general_settings;
 	public array $debug_settings;
 	public array $edi_settings;
@@ -49,6 +51,7 @@ class Settings {
 		$this->debug     = SettingsDebug::instance();
 		$this->edi       = SettingsEDI::instance();
 		$this->upgrade   = SettingsUpgrade::instance();
+		$this->home      = SettingsHome::instance();
 
 		$this->load_settings();
 
