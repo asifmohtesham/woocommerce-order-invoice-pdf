@@ -74,18 +74,22 @@ function DocumentCard( { doc, data } ) {
 	const enable = async () => {
 		setBusy( true );
 
-		const body = new FormData();
-		body.set( 'action', 'woi_pdf_enable_document' );
-		body.set( 'security', data.nonce );
-		body.set( 'document_type', doc.type );
+		try {
+			const body = new FormData();
+			body.set( 'action', 'woi_pdf_enable_document' );
+			body.set( 'security', data.nonce );
+			body.set( 'document_type', doc.type );
 
-		const response = await window.fetch( data.ajaxUrl, { method: 'POST', body } );
-		const json = await response.json();
+			const response = await window.fetch( data.ajaxUrl, { method: 'POST', body } );
+			const json = await response.json();
 
-		setBusy( false );
-
-		if ( json.success ) {
-			setEnabled( true );
+			if ( json.success ) {
+				setEnabled( true );
+			}
+		} catch ( e ) {
+			// network failure — button un-busies below so the user can retry
+		} finally {
+			setBusy( false );
 		}
 	};
 
@@ -141,16 +145,21 @@ function QuickActions( { data } ) {
 			'shop_address_postcode',
 		];
 
-		await Promise.all( fields.map( ( field ) => {
-			const body = new FormData();
-			body.set( 'action', 'woi_pdf_sync_address' );
-			body.set( 'security', data.nonce );
-			body.set( 'address_field', field );
-			return window.fetch( data.ajaxUrl, { method: 'POST', body } );
-		} ) );
+		try {
+			await Promise.all( fields.map( ( field ) => {
+				const body = new FormData();
+				body.set( 'action', 'woi_pdf_sync_address' );
+				body.set( 'security', data.nonce );
+				body.set( 'address_field', field );
+				return window.fetch( data.ajaxUrl, { method: 'POST', body } );
+			} ) );
 
-		setSyncing( false );
-		setSyncDone( true );
+			setSyncDone( true );
+		} catch ( e ) {
+			// partial/failed sync — leave the button retryable
+		} finally {
+			setSyncing( false );
+		}
 	};
 
 	return (
