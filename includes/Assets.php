@@ -101,6 +101,12 @@ class Assets {
 				array('woocommerce_admin_styles'),
 				WOI_PDF_VERSION
 			);
+			wp_enqueue_style(
+				'woi-pdf-admin-shell',
+				WOI_PDF()->plugin_url() . '/assets/css/admin-shell.css',
+				array( 'woi-pdf-settings-styles' ),
+				WOI_PDF_VERSION
+			);
 			wp_add_inline_style( 'woi-pdf-settings-styles', ".next-number-input.ajax-waiting {
 				background-image: url(".WOI_PDF()->plugin_url().'/assets/images/spinner.gif'.") !important;
 				background-position: 95% 50% !important;

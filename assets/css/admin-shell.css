@@ -1,0 +1,183 @@
+/* ===== PDF Invoices settings shell ===== */
+
+.woi-pdf-shell { margin: 0 20px 0 0; }
+
+/* --- Sticky header --- */
+.woi-shell-header {
+	position: sticky;
+	top: 32px; /* WP admin bar */
+	z-index: 100;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-left: -20px;
+	padding: 10px 16px 10px 36px;
+	background: #1d2327;
+	color: #fff;
+}
+.woi-shell-title { font-size: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.woi-shell-crumb { color: #a7aaad; }
+.woi-shell-dirty {
+	background: #996800;
+	color: #fff;
+	border-radius: 10px;
+	padding: 1px 10px;
+	font-size: 11px;
+}
+.woi-shell-actions { display: flex; align-items: center; gap: 8px; }
+.woi-shell-actions .settings-search input {
+	background: #2c3338;
+	border: 1px solid #50575e;
+	border-radius: 4px;
+	color: #f0f0f1;
+	min-width: 180px;
+}
+.woi-shell-actions .settings-search input::placeholder { color: #a7aaad; }
+
+/* Override nested-sticky weirdness: search moved from sidebar to sticky header */
+.woi-shell-actions .settings-search {
+	position: static;
+	margin: 0;
+	padding: 0;
+}
+
+/* --- Body: nav + content --- */
+.woi-shell-body { display: flex; align-items: stretch; min-height: 70vh; }
+
+.woi-shell-nav {
+	flex: 0 0 190px;
+	background: #fff;
+	border-right: 1px solid #dcdcde;
+}
+.woi-shell-nav ul { margin: 0; padding: 8px 0; list-style: none; }
+.woi-nav-heading {
+	padding: 12px 16px 4px;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: .5px;
+	color: #787c82;
+}
+.woi-nav-item a {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 16px;
+	text-decoration: none;
+	color: #1d2327;
+	border-left: 3px solid transparent;
+}
+.woi-nav-item a:hover { background: #f6f7f7; color: #135e96; }
+.woi-nav-item.active a {
+	background: #f0f6fc;
+	border-left-color: #2271b1;
+	font-weight: 600;
+	color: #135e96;
+}
+.woi-nav-document a { padding-left: 24px; }
+.woi-nav-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #00a32a;
+	flex: 0 0 8px;
+}
+.woi-nav-disabled-doc a { color: #787c82; }
+.woi-nav-disabled-doc .woi-nav-dot { background: transparent; border: 1px solid #a7aaad; }
+
+.woi-shell-content { flex: 1; min-width: 0; padding: 16px; }
+
+/* --- Toggle switches (CSS-only, over native checkboxes) --- */
+.woi-pdf-shell .form-table input[type="checkbox"] {
+	appearance: none;
+	-webkit-appearance: none;
+	width: 36px;
+	height: 20px;
+	margin: 0 6px 0 0;
+	border: none;
+	border-radius: 10px;
+	background: #c3c4c7;
+	position: relative;
+	cursor: pointer;
+	transition: background .15s ease;
+	vertical-align: middle;
+}
+.woi-pdf-shell .form-table input[type="checkbox"]::before {
+	content: "";
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: #fff;
+	transition: left .15s ease;
+}
+.woi-pdf-shell .form-table input[type="checkbox"]:checked { background: #2271b1; }
+.woi-pdf-shell .form-table input[type="checkbox"]:checked::before { left: 18px; }
+.woi-pdf-shell .form-table input[type="checkbox"]:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+/* --- Accordion restyle (.settings_category markup already exists) --- */
+.woi-pdf-shell .settings_category {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	margin-bottom: 10px;
+	overflow: hidden;
+}
+.woi-pdf-shell .settings_category > h2 {
+	margin: 0;
+	padding: 12px 16px;
+	font-size: 14px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+.woi-pdf-shell .settings_category > h2:hover { background: #f6f7f7; }
+.woi-count {
+	background: #f0f0f1;
+	color: #50575e;
+	border-radius: 10px;
+	padding: 0 8px;
+	font-size: 11px;
+	font-weight: 400;
+}
+
+/* --- Conditional rows --- */
+.woi-pdf-shell tr.woi-show-if.woi-hidden { display: none; }
+.woi-pdf-shell tr.woi-show-if > th { padding-left: 24px; }
+
+/* --- JS-booted fallbacks --- */
+.woi-pdf-shell .woi-js-hidden { display: none; }
+
+/* --- Responsive --- */
+@media screen and (max-width: 1280px) {
+	.woi-shell-nav { flex-basis: 48px; }
+	.woi-shell-nav .woi-nav-label,
+	.woi-shell-nav .woi-nav-heading { display: none; }
+	.woi-nav-document a { padding-left: 16px; }
+}
+
+@media screen and (max-width: 1100px) {
+	/* Preview becomes a toggled overlay (admin-shell.js toggles the class) */
+	.woi-pdf-shell #woi-pdf-preview-wrapper .gutter { display: none; }
+	.woi-pdf-shell #woi-pdf-preview-wrapper .preview-document { display: none; }
+	.woi-pdf-shell.woi-preview-overlay-open #woi-pdf-preview-wrapper .preview-document {
+		display: block;
+		position: fixed;
+		top: 88px;
+		right: 16px;
+		bottom: 16px;
+		width: min(480px, 90vw);
+		background: #fff;
+		border: 1px solid #dcdcde;
+		border-radius: 6px;
+		box-shadow: 0 4px 20px rgba(0,0,0,.18);
+		z-index: 99;
+		overflow: auto;
+	}
+}
