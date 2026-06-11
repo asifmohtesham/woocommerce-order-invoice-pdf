@@ -185,3 +185,7 @@
 @media screen and (max-width: 782px) {
 	.woi-shell-header { top: 46px; }
 }
+
+@media screen and (min-width: 1101px) {
+	.woi-shell-preview-toggle { display: none; }
+}

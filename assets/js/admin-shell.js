@@ -97,7 +97,7 @@ jQuery( function( $ ) {
 
 	//----------> Accordion count badges <----------//
 	$shell.find( '.settings_category' ).each( function() {
-		const count = $( this ).find( 'tbody tr' ).length;
+		const count = $( this ).find( 'tbody tr' ).not( '.woi-show-if.woi-hidden' ).length;
 
 		if ( count > 0 ) {
 			$( this ).children( 'h2' ).append( ' <span class="woi-count">' + count + '</span>' );
