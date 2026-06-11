@@ -28,3 +28,6 @@ composer.phar
 
 # Brainstorming companion sessions
 .superpowers/
+
+# Node
+node_modules/

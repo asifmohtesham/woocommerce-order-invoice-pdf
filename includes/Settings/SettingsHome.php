@@ -23,6 +23,7 @@ class SettingsHome {
 		add_filter( 'woi_pdf_settings_tabs_default', array( $this, 'default_tab' ) );
 		add_action( 'woi_pdf_settings_output_home', array( $this, 'output' ), 10, 2 );
 		add_action( 'wp_ajax_woi_pdf_enable_document', array( $this, 'ajax_enable_document' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), 20 );
 	}
 
 	public function add_home_tab( array $tabs ): array {
@@ -205,6 +206,67 @@ class SettingsHome {
 		update_option( $option_name, $settings );
 
 		wp_send_json_success( array( 'type' => $type, 'enabled' => true ) );
+	}
+
+	/**
+	 * Enqueue the Home app on our settings page when the home tab is active.
+	 *
+	 * @param string $hook
+	 */
+	public function enqueue( $hook ): void {
+		if ( empty( $hook ) || false === strpos( $hook, 'woi_pdf_options_page' ) ) {
+			return;
+		}
+
+		$tab = sanitize_text_field( (string) filter_input( INPUT_GET, 'tab', FILTER_DEFAULT ) );
+		if ( ! in_array( $tab, array( '', 'home' ), true ) ) {
+			return;
+		}
+
+		$asset_file = WOI_PDF()->plugin_path() . '/assets/js/home/index.asset.php';
+		if ( ! file_exists( $asset_file ) ) {
+			return; // bundle not built — the PHP fallback links render instead
+		}
+
+		$asset = include $asset_file;
+
+		wp_enqueue_script(
+			'woi-pdf-home',
+			WOI_PDF()->plugin_url() . '/assets/js/home/index.js',
+			$asset['dependencies'],
+			$asset['version'],
+			true
+		);
+		wp_enqueue_style( 'wp-components' );
+
+		wp_localize_script( 'woi-pdf-home', 'woiPdfHome', $this->get_home_data() );
+	}
+
+	/**
+	 * Everything the React app needs, injected at page load.
+	 */
+	public function get_home_data(): array {
+		return array(
+			'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
+			'adminUrl'  => admin_url(),
+			'nonce'     => wp_create_nonce( 'woi_pdf_admin_nonce' ),
+			'checklist' => $this->get_checklist(),
+			'documents' => $this->get_documents_summary(),
+			'urls'      => array(
+				'previewInvoice' => add_query_arg(
+					array( 'page' => 'woi_pdf_options_page', 'tab' => 'documents', 'section' => 'invoice' ),
+					admin_url( 'admin.php' )
+				),
+				'setNextNumber'  => add_query_arg(
+					array( 'page' => 'woi_pdf_options_page', 'tab' => 'documents', 'section' => 'invoice' ),
+					admin_url( 'admin.php' )
+				) . '#next_invoice_number',
+				'customiser'     => add_query_arg(
+					array( 'page' => 'woi_pdf_options_page', 'tab' => 'editor' ),
+					admin_url( 'admin.php' )
+				),
+			),
+		);
 	}
 
 	/**

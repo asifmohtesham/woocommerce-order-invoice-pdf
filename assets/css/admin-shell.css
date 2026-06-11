@@ -189,3 +189,26 @@
 @media screen and (min-width: 1101px) {
 	.woi-shell-preview-toggle { display: none; }
 }
+
+/* --- Home dashboard --- */
+.woi-home { max-width: 1080px; }
+.woi-home .components-card { margin-bottom: 12px; }
+.woi-home-progress {
+	height: 6px;
+	background: #f0f0f1;
+	border-radius: 3px;
+	margin-bottom: 10px;
+}
+.woi-home-progress-bar { height: 6px; background: #2271b1; border-radius: 3px; }
+.woi-home-checklist ul { margin: 0; }
+.woi-home-checklist li.done { color: #00a32a; }
+.woi-home-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+	gap: 12px;
+	margin-bottom: 12px;
+}
+.woi-home-doc-card.is-off .components-card__header strong { color: #787c82; }
+.woi-pill { border-radius: 10px; padding: 1px 10px; font-size: 11px; }
+.woi-pill.on { background: #c6e1c6; color: #5b841b; }
+.woi-pill.off { background: #f0f0f1; color: #787c82; }
