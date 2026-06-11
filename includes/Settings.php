@@ -199,6 +199,26 @@ class Settings {
 		$default_tab   = apply_filters( 'woi_pdf_settings_tabs_default', ! empty( $settings_tabs['general'] ) ? 'general' : key( $settings_tabs ) );
 		$nonce         = wp_create_nonce( 'wp_woi_pdf_settings_page_nonce' );
 
+		$current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : '';
+		if ( ! array_key_exists( $current_tab, $settings_tabs ) ) {
+			$current_tab = apply_filters( 'woi_pdf_settings_tabs_default', ! empty( $settings_tabs['home'] ) ? 'home' : key( $settings_tabs ) );
+		}
+		$current_section = isset( $_GET['section'] ) ? sanitize_key( wp_unslash( $_GET['section'] ) ) : '';
+		if ( 'documents' === $current_tab && '' === $current_section ) {
+			$current_section = 'invoice';
+		}
+
+		$nav_documents = array_map(
+			fn( $document ) => array(
+				'type'    => $document->get_type(),
+				'title'   => wp_strip_all_tags( $document->get_title() ),
+				'enabled' => $document->is_enabled(),
+			),
+			array_values( WOI_PDF()->documents->get_documents( 'all' ) )
+		);
+
+		$nav_items = \WOI\PDF\Settings\NavModel::build( $settings_tabs, $nav_documents, $current_tab, $current_section );
+
 		include WOI_PDF()->plugin_path() . '/views/settings-page.php';
 	}
 

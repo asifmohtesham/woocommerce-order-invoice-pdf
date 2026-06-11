@@ -204,22 +204,7 @@ class Assets {
 						'include_email_link',
 						'include_email_link_placement',
 					) ),
-					'pointers'                  => array(
-						'woi_pdf_document_settings_sections' => array(
-							'target'        => '.wcpdf_document_settings_sections',
-							'content'       => sprintf(
-								'<h3>%s</h3><p>%s</p>',
-								__( 'Document settings', 'woocommerce-orders-invoice-pdf' ),
-								__( 'Select a document in the dropdown menu above to edit its settings.', 'woocommerce-orders-invoice-pdf' )
-							),
-							'pointer_class' => 'wp-pointer arrow-top woi-pdf-pointer',
-							'pointer_width' => 300,
-							'position'      => array(
-								'edge'  => 'top',
-								'align' => 'left',
-							),
-						),
-					),
+					'pointers'                  => array(),
 					'dismissed_pointers'        => get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ),
 					'mysql_int_size_limit'      => sprintf(
 						/* translators: mysql int size */
