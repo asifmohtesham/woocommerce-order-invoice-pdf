@@ -184,6 +184,12 @@
 	z-index: 99;
 	overflow: auto;
 	padding: 10px;
+	/* neutralize legacy split-view rules (settings-styles.min.css) that still match the
+	   wrapper's inert data-preview-state attributes — notably margin-right:-60% on the
+	   closed state, which pulls this fixed panel off the right edge of the viewport */
+	margin: 0;
+	flex: none;
+	transition: none;
 }
 
 @media screen and (max-width: 782px) {

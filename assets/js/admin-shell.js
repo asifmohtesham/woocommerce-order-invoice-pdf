@@ -13,10 +13,23 @@ jQuery( function( $ ) {
 		$( '.woi-shell-save' ).prop( 'hidden', false );
 		$form.find( 'p.submit' ).addClass( 'woi-js-hidden' );
 
-		$form.on( 'change input', ':input', function() {
+		const markDirty = function() {
 			$( '.woi-shell-dirty' ).prop( 'hidden', false );
 			window.onbeforeunload = function() { return true; };
+		};
+
+		$form.on( 'change input', ':input', function( event ) {
+			// editor.js (and others) fire programmatic .trigger('change') at init to sync
+			// field visibility — only real user interaction counts (same guard as
+			// settingsChanged in admin.js)
+			if ( ! event.isTrigger ) {
+				markDirty();
+			}
 		} );
+
+		// genuine edits that only surface as programmatic events
+		$form.on( 'select2:select select2:unselect', 'select', markDirty );
+		$( document ).on( 'woi-pdf-settings-changed', markDirty );
 
 		$form.on( 'submit', function() {
 			window.onbeforeunload = null;

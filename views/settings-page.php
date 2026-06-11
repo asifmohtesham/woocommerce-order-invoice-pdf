@@ -59,7 +59,7 @@ foreach ( $nav_items as $item ) {
 			<?php if ( 'home' !== $current_tab ) : ?>
 				<button type="button" class="button button-primary woi-shell-save" hidden><?php esc_html_e( 'Save', 'woocommerce-orders-invoice-pdf' ); ?></button>
 				<?php if ( 3 === (int) $preview_states ) : ?>
-				<button type="button" class="button woi-shell-preview-toggle" hidden><?php esc_html_e( 'Preview', 'woocommerce-orders-invoice-pdf' ); ?></button>
+				<button type="button" class="button woi-shell-preview-toggle" hidden title="<?php esc_attr_e( 'Show or hide the PDF preview. A red dot means the preview is out of date and will refresh when opened.', 'woocommerce-orders-invoice-pdf' ); ?>"><?php esc_html_e( 'Preview', 'woocommerce-orders-invoice-pdf' ); ?></button>
 				<?php endif; ?>
 			<?php endif; ?>
 		</div>
