@@ -166,7 +166,7 @@ jQuery( function( $ ) {
 		history.replaceState( null, '', '?' + params.toString() );
 
 		// Update document section links so they carry the param on navigation
-		$( '.wcpdf_document_settings_sections a, .doc-output-toggle-group .doc-output-toggle' ).each( function() {
+		$( '.wcpdf_document_settings_sections a, .doc-output-toggle-group .doc-output-toggle, .woi-nav-document a' ).each( function() {
 			const href       = $( this ).attr( 'href' );
 			const [ path ]   = href.split( '?' );
 			const linkParams = updateParams( new URLSearchParams( href.split( '?' )[1] ) );
@@ -1031,7 +1031,7 @@ jQuery( function( $ ) {
 			}
 
 			// Scroll to and highlight the row.
-			const offset = $row.offset().top - 150;
+			const offset = $row.offset().top - 150 - ( $( '.woi-shell-header' ).outerHeight() || 0 );
 			$( 'html, body' ).animate( { scrollTop: offset }, 300, function () {
 				$row.addClass( 'settings-search-highlight' );
 				setTimeout( function () {

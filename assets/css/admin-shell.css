@@ -181,3 +181,7 @@
 		overflow: auto;
 	}
 }
+
+@media screen and (max-width: 782px) {
+	.woi-shell-header { top: 46px; }
+}

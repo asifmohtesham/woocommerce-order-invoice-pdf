@@ -173,6 +173,13 @@ class Assets {
 				WOI_PDF_VERSION,
 				true
 			);
+			wp_enqueue_script(
+				'woi-pdf-admin-shell',
+				WOI_PDF()->plugin_url() . '/assets/js/admin-shell.js',
+				array( 'woi-pdf-admin' ),
+				WOI_PDF_VERSION,
+				true
+			);
 
 			$search_index = $this->get_settings_search_index( $tab );
 
