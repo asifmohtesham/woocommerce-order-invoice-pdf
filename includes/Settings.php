@@ -512,6 +512,10 @@ class Settings {
 		$field = sanitize_key( $show_if['field'] );
 		$value = sanitize_key( (string) ( $show_if['value'] ?? 1 ) );
 
+		if ( '' === $field || '' === $value ) {
+			return '';
+		}
+
 		return "woi-show-if woi-show-if--{$field}--{$value}";
 	}
 

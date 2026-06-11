@@ -34,4 +34,13 @@ class ShowIfTest extends TestCase {
 		$class = Settings::show_if_class( array( 'field' => 'display_due_date' ) );
 		$this->assertSame( 'woi-show-if woi-show-if--display_due_date--1', $class );
 	}
+
+	public function test_value_zero_supported_for_show_when_unchecked(): void {
+		$class = Settings::show_if_class( array( 'field' => 'display_due_date', 'value' => 0 ) );
+		$this->assertSame( 'woi-show-if woi-show-if--display_due_date--0', $class );
+	}
+
+	public function test_empty_string_value_returns_empty_string(): void {
+		$this->assertSame( '', Settings::show_if_class( array( 'field' => 'display_due_date', 'value' => '' ) ) );
+	}
 }
