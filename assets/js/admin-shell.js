@@ -112,7 +112,17 @@ jQuery( function( $ ) {
 			return;
 		}
 
-		const $row = $form.find( ':input[name$="[' + id + ']"]' ).first().closest( 'tr' );
+		let $target = $form.find( ':input[name$="[' + id + ']"]' ).first();
+
+		if ( ! $target.length ) {
+			$target = $form.find( ':input[name*="[' + id + ']["]' ).first();
+		}
+
+		if ( ! $target.length ) {
+			$target = $form.find( '#' + id.replace( /([^\w-])/g, '\\$1' ) ).first();
+		}
+
+		const $row = $target.closest( 'tr' );
 
 		if ( ! $row.length ) {
 			return;

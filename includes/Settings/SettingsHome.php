@@ -23,6 +23,7 @@ class SettingsHome {
 		add_filter( 'woi_pdf_settings_tabs_default', array( $this, 'default_tab' ) );
 		add_action( 'woi_pdf_settings_output_home', array( $this, 'output' ), 10, 2 );
 		add_action( 'wp_ajax_woi_pdf_enable_document', array( $this, 'ajax_enable_document' ) );
+		add_action( 'wp_ajax_woi_pdf_sync_shop_address', array( $this, 'ajax_sync_shop_address' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), 20 );
 	}
 
@@ -209,6 +210,39 @@ class SettingsHome {
 	}
 
 	/**
+	 * Copy the WooCommerce store address into the plugin's general settings (Home quick action).
+	 * The older woi_pdf_sync_address endpoint is read-only (form population); this one persists.
+	 */
+	public function ajax_sync_shop_address(): void {
+		check_ajax_referer( 'woi_pdf_admin_nonce', 'security' );
+
+		if ( ! WOI_PDF()->settings->user_can_manage_settings() ) {
+			wp_send_json_error( array( 'message' => __( 'You do not have permission to change settings.', 'woocommerce-orders-invoice-pdf' ) ) );
+		}
+
+		$general = get_option( 'woi_pdf_settings_general', array() );
+		$general = is_array( $general ) ? $general : array();
+
+		// Map each plugin field to its WooCommerce option source.
+		// Mirrors the address_map in Settings::sync_shop_address_with_woo().
+		$raw_country = (string) get_option( 'woocommerce_default_country', '' );
+		$parsed      = function_exists( 'wc_format_country_state_string' )
+			? wc_format_country_state_string( $raw_country )
+			: array( 'country' => $raw_country, 'state' => '' );
+
+		$general['shop_address_line_1']   = sanitize_text_field( (string) get_option( 'woocommerce_store_address', '' ) );
+		$general['shop_address_line_2']   = sanitize_text_field( (string) get_option( 'woocommerce_store_address_2', '' ) );
+		$general['shop_address_city']     = sanitize_text_field( (string) get_option( 'woocommerce_store_city', '' ) );
+		$general['shop_address_postcode'] = sanitize_text_field( (string) get_option( 'woocommerce_store_postcode', '' ) );
+		$general['shop_address_country']  = sanitize_text_field( $parsed['country'] ?? '' );
+		$general['shop_address_state']    = sanitize_text_field( $parsed['state'] ?? '' );
+
+		update_option( 'woi_pdf_settings_general', $general );
+
+		wp_send_json_success();
+	}
+
+	/**
 	 * Enqueue the Home app on our settings page when the home tab is active.
 	 *
 	 * @param string $hook
@@ -219,8 +253,15 @@ class SettingsHome {
 		}
 
 		$tab = sanitize_text_field( (string) filter_input( INPUT_GET, 'tab', FILTER_DEFAULT ) );
+
 		if ( ! in_array( $tab, array( '', 'home' ), true ) ) {
-			return;
+			$known_tabs          = apply_filters( 'woi_pdf_settings_tabs', array( 'general' => true, 'documents' => true ) );
+			$known_tabs['debug'] = true;
+
+			if ( array_key_exists( $tab, $known_tabs ) ) {
+				return; // a real non-home tab — no Home bundle needed
+			}
+			// unknown tab falls back to home content in settings_page(), so enqueue
 		}
 
 		$asset_file = WOI_PDF()->plugin_path() . '/assets/js/home/index.asset.php';

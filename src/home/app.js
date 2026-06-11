@@ -136,27 +136,19 @@ function QuickActions( { data } ) {
 	const syncAddress = async () => {
 		setSyncing( true );
 
-		const fields = [
-			'shop_address_line_1',
-			'shop_address_line_2',
-			'shop_address_country',
-			'shop_address_state',
-			'shop_address_city',
-			'shop_address_postcode',
-		];
-
 		try {
-			await Promise.all( fields.map( ( field ) => {
-				const body = new FormData();
-				body.set( 'action', 'woi_pdf_sync_address' );
-				body.set( 'security', data.nonce );
-				body.set( 'address_field', field );
-				return window.fetch( data.ajaxUrl, { method: 'POST', body } );
-			} ) );
+			const body = new FormData();
+			body.set( 'action', 'woi_pdf_sync_shop_address' );
+			body.set( 'security', data.nonce );
 
-			setSyncDone( true );
+			const response = await window.fetch( data.ajaxUrl, { method: 'POST', body } );
+			const json = await response.json();
+
+			if ( json.success ) {
+				setSyncDone( true );
+			}
 		} catch ( e ) {
-			// partial/failed sync — leave the button retryable
+			// leave the button retryable
 		} finally {
 			setSyncing( false );
 		}

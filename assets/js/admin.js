@@ -56,11 +56,6 @@ jQuery( function( $ ) {
 		}
 	} ).trigger( 'change' );
 
-	// enable settings document switch
-	$( '.wcpdf_document_settings_sections > h2' ).on( 'click', function() {
-		$( this ).parent().find( 'ul' ).toggleClass( 'active' );
-	} );
-
 	// Add admin pointers
 	$.each( woi_pdf_admin.pointers, function( key, pointer ) {
 
@@ -166,7 +161,7 @@ jQuery( function( $ ) {
 		history.replaceState( null, '', '?' + params.toString() );
 
 		// Update document section links so they carry the param on navigation
-		$( '.wcpdf_document_settings_sections a, .doc-output-toggle-group .doc-output-toggle, .woi-nav-document a' ).each( function() {
+		$( '.doc-output-toggle-group .doc-output-toggle, .woi-nav-document a' ).each( function() {
 			const href       = $( this ).attr( 'href' );
 			const [ path ]   = href.split( '?' );
 			const linkParams = updateParams( new URLSearchParams( href.split( '?' )[1] ) );
@@ -511,7 +506,7 @@ jQuery( function( $ ) {
 		$previewStates = $( '#woi-pdf-preview-wrapper' ).data( 'preview-states' );
 
 		// Check if preview is disabled and return
-		if ( 'undefined' === $previewStates || 1 === $previewStates ) {
+		if ( ! $previewWrapper.length || 1 === $previewStates ) {
 			return;
 		}
 

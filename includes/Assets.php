@@ -325,8 +325,11 @@ class Assets {
 		$page = '';
 
 		switch ( $tab ) {
-			case 'general':
+			case 'home':
 			case '':
+				$page = '';
+				break;
+			case 'general':
 				$page = 'woi_pdf_settings_general';
 				break;
 			case 'documents':
