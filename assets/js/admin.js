@@ -189,6 +189,12 @@ jQuery( function( $ ) {
 	$( window ).on( 'resize', determinePreviewStates );
 
 	function determinePreviewStates() {
+		// Shell overlay mode: layout is pure CSS; never write inline styles here
+		if ( $previewWrapper.closest( '.woi-pdf-shell' ).length ) {
+			previousWindowWidth = $( window ).width();
+			return;
+		}
+
 		// Check if preview states are allowed to change based on screen size
 		if ( $previewWrapper.attr( 'data-preview-states-lock') == false ) {
 
@@ -246,6 +252,10 @@ jQuery( function( $ ) {
 	}
 
 	$( '.slide-left' ).on( 'click', function() {
+		if ( $previewWrapper.closest( '.woi-pdf-shell' ).length ) {
+			return;
+		}
+
 		let previewStates = $previewWrapper.attr( 'data-preview-states' );
 		let previewState  = $previewWrapper.attr( 'data-preview-state' );
 
@@ -275,6 +285,10 @@ jQuery( function( $ ) {
 	} );
 
 	$( '.slide-right' ).on( 'click', function() {
+		if ( $previewWrapper.closest( '.woi-pdf-shell' ).length ) {
+			return;
+		}
+
 		let previewStates = $previewWrapper.attr( 'data-preview-states' );
 		let previewState  = $previewWrapper.attr( 'data-preview-state' );
 
@@ -509,6 +523,16 @@ jQuery( function( $ ) {
 		if ( ! $previewWrapper.length || 1 === $previewStates ) {
 			return;
 		}
+
+		// Shell overlay mode: skip the AJAX while the overlay is closed; mark stale instead
+		let $shell = $( '.woi-pdf-shell' );
+		if ( $shell.length && ! $shell.hasClass( 'woi-preview-overlay-open' ) ) {
+			$previewWrapper.attr( 'data-preview-stale', '1' );
+			$( '.woi-shell-preview-toggle' ).addClass( 'stale' );
+			return;
+		}
+		$previewWrapper.removeAttr( 'data-preview-stale' );
+		$( '.woi-shell-preview-toggle' ).removeClass( 'stale' );
 
 		timeoutDuration = typeof timeoutDuration == 'number' ? timeoutDuration : 0;
 

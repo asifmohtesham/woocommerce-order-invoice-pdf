@@ -142,10 +142,32 @@ jQuery( function( $ ) {
 	openHashTarget();
 	$( window ).on( 'hashchange', openHashTarget );
 
-	//----------> Small-screen preview overlay <----------//
-	if ( $( '#woi-pdf-preview-wrapper' ).length ) {
-		$( '.woi-shell-preview-toggle' ).prop( 'hidden', false ).on( 'click', function() {
-			$shell.toggleClass( 'woi-preview-overlay-open' );
+	//----------> Preview overlay (all widths) <----------//
+	const $previewWrapper = $( '#woi-pdf-preview-wrapper' );
+	const $previewToggle  = $( '.woi-shell-preview-toggle' );
+	const overlayStateKey = 'woi_pdf_preview_overlay_open';
+	const previewCapable  = $previewWrapper.length && 3 === parseInt( $previewWrapper.attr( 'data-preview-states' ), 10 );
+
+	function refreshPreviewIfStale() {
+		if ( '1' === $previewWrapper.attr( 'data-preview-stale' ) ) {
+			$( document ).trigger( 'woi-pdf-refresh-preview' );
+		}
+	}
+
+	if ( previewCapable ) {
+		$previewToggle.prop( 'hidden', false ).on( 'click', function() {
+			const open = $shell.toggleClass( 'woi-preview-overlay-open' ).hasClass( 'woi-preview-overlay-open' );
+			localStorage.setItem( overlayStateKey, open ? '1' : '0' );
+
+			if ( open ) {
+				refreshPreviewIfStale();
+			}
 		} );
+
+		// Restore persisted state (admin.js ready-handler already ran and may have marked stale)
+		if ( '1' === localStorage.getItem( overlayStateKey ) ) {
+			$shell.addClass( 'woi-preview-overlay-open' );
+			refreshPreviewIfStale();
+		}
 	}
 } );
