@@ -189,12 +189,9 @@ class SettingsHome {
 		}
 
 		$type      = isset( $_POST['document_type'] ) ? sanitize_key( wp_unslash( $_POST['document_type'] ) ) : '';
-		$documents = wp_list_pluck(
-			array_map(
-				fn( $document ) => array( 'type' => $document->get_type() ),
-				WOI_PDF()->documents->get_documents( 'all' )
-			),
-			'type'
+		$documents = array_map(
+			fn( $document ) => $document->get_type(),
+			WOI_PDF()->documents->get_documents( 'all' )
 		);
 
 		if ( empty( $type ) || ! in_array( $type, $documents, true ) ) {
