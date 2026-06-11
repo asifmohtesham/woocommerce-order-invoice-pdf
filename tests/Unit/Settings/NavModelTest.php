@@ -30,8 +30,9 @@ class NavModelTest extends TestCase {
 
 	public function test_active_document_requires_tab_and_section_match(): void {
 		$items   = NavModel::build( $this->tabs(), $this->documents(), 'documents', 'invoice' );
-		$invoice = $items[3];
-		$packing = $items[4];
+		$by_id   = array_combine( array_column( $items, 'id' ), $items );
+		$invoice = $by_id['invoice'];
+		$packing = $by_id['packing-slip'];
 		$this->assertSame( 'invoice', $invoice['id'] );
 		$this->assertTrue( $invoice['active'] );
 		$this->assertFalse( $packing['active'] );
@@ -45,13 +46,20 @@ class NavModelTest extends TestCase {
 
 	public function test_document_enabled_flag_passes_through(): void {
 		$items = NavModel::build( $this->tabs(), $this->documents(), 'home', '' );
-		$this->assertTrue( $items[3]['enabled'] );
-		$this->assertFalse( $items[4]['enabled'] );
+		$by_id = array_combine( array_column( $items, 'id' ), $items );
+		$this->assertTrue( $by_id['invoice']['enabled'] );
+		$this->assertFalse( $by_id['packing-slip']['enabled'] );
 	}
 
 	public function test_string_tab_title_supported(): void {
 		$tabs  = array( 'general' => 'General' );
 		$items = NavModel::build( $tabs, array(), 'general', '' );
 		$this->assertSame( 'General', $items[0]['label'] );
+	}
+
+	public function test_documents_key_absent_yields_only_tab_items(): void {
+		$items = NavModel::build( array( 'general' => 'General' ), $this->documents(), 'general', '' );
+		$this->assertCount( 1, $items );
+		$this->assertSame( 'tab', $items[0]['kind'] );
 	}
 }
