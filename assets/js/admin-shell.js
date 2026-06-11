@@ -167,19 +167,37 @@ jQuery( function( $ ) {
 		}
 	}
 
+	// The panel is position:fixed, but the sticky header's viewport position varies
+	// (admin notices push it down until the page scrolls) — track it so the panel
+	// always starts just below the header instead of slicing through it.
+	function positionPreviewOverlay() {
+		if ( ! $shell.hasClass( 'woi-preview-overlay-open' ) ) {
+			return;
+		}
+
+		const header = $( '.woi-shell-header' )[0];
+		const top    = header ? Math.max( 48, header.getBoundingClientRect().bottom + 8 ) : 88;
+
+		$previewWrapper.find( '.preview-document' ).css( 'top', top + 'px' );
+	}
+
 	if ( previewCapable ) {
 		$previewToggle.prop( 'hidden', false ).on( 'click', function() {
 			const open = $shell.toggleClass( 'woi-preview-overlay-open' ).hasClass( 'woi-preview-overlay-open' );
 			localStorage.setItem( overlayStateKey, open ? '1' : '0' );
 
 			if ( open ) {
+				positionPreviewOverlay();
 				refreshPreviewIfStale();
 			}
 		} );
 
+		$( window ).on( 'scroll resize', positionPreviewOverlay );
+
 		// Restore persisted state (admin.js ready-handler already ran and may have marked stale)
 		if ( '1' === localStorage.getItem( overlayStateKey ) ) {
 			$shell.addClass( 'woi-preview-overlay-open' );
+			positionPreviewOverlay();
 			refreshPreviewIfStale();
 		}
 	}

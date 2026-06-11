@@ -191,6 +191,16 @@
 	flex: none;
 	transition: none;
 }
+/* keep the rendered PDF inside the panel — legacy rule allows the canvas up to
+   800px (width:auto!important), which overflows and clips the page's right edge */
+.woi-pdf-shell.woi-preview-overlay-open #woi-pdf-preview-wrapper .preview > #preview-canvas {
+	max-width: 100% !important;
+	height: auto !important;
+	margin: 1em auto;
+}
+.woi-pdf-shell.woi-preview-overlay-open #woi-pdf-preview-wrapper .preview {
+	padding-right: 0;
+}
 
 @media screen and (max-width: 782px) {
 	.woi-shell-header { top: 46px; }
