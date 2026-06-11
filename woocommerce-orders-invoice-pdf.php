@@ -42,6 +42,9 @@ class WOI_PDF {
 	public \WOI\PDF\Editor\EditorMain        $editor_main;
 	public \WOI\PDF\Editor\PriceStorage      $price_storage;
 	public \WOI\PDF\Compatibility\FileSystem $file_system;
+	public \WOI\PDF\Compatibility\OrderUtil  $order_util;
+	public \WOI\PDF\Compatibility\ThirdPartyPlugins $third_party_plugins;
+	public \WOI\PDF\Compatibility\VatPlugins        $vat_plugins;
 
 	public string $plugin_basename;
 
@@ -67,6 +70,8 @@ class WOI_PDF {
 
 		add_action( 'before_woocommerce_init', array( $this, 'declare_hpos_compatibility' ) );
 		add_action( 'plugins_loaded',          array( $this, 'init' ), 0 );
+		add_action( 'init',                    array( $this, 'translations' ), 8 );
+		add_action( 'init',                    array( '\\WOI\\PDF\\Semaphore', 'init_cleanup' ), 999 ); // wait for Action Scheduler to initialize
 	}
 
 	public function declare_hpos_compatibility(): void {
@@ -79,7 +84,10 @@ class WOI_PDF {
 	}
 
 	public function init(): void {
-		$this->file_system     = \WOI\PDF\Compatibility\FileSystem::instance();
+		$this->file_system         = \WOI\PDF\Compatibility\FileSystem::instance();
+		$this->order_util          = \WOI\PDF\Compatibility\OrderUtil::instance();
+		$this->third_party_plugins = \WOI\PDF\Compatibility\ThirdPartyPlugins::instance();
+		$this->vat_plugins         = \WOI\PDF\Compatibility\VatPlugins::instance();
 		$this->renderer        = new \WOI\PDF\DocumentRenderer();
 		$this->template_loader = new \WOI\PDF\TemplateLoader( WOI_PDF_PLUGIN_PATH );
 		$this->settings        = \WOI\PDF\Settings::instance();
@@ -121,6 +129,92 @@ class WOI_PDF {
 
 	public function is_woocommerce_activated(): bool {
 		return class_exists( 'WooCommerce' );
+	}
+
+	/**
+	 * Check if a dependency meets the minimum required version.
+	 */
+	public function is_dependency_version_supported( string $dependency ): bool {
+		switch ( $dependency ) {
+			case 'php':
+				return defined( 'PHP_VERSION' ) && version_compare( PHP_VERSION, $this->version_php, '>=' );
+			case 'woo':
+				return defined( 'WC_VERSION' ) && version_compare( WC_VERSION, $this->version_woo, '>=' );
+			case 'wp':
+				global $wp_version;
+				return version_compare( $wp_version, $this->version_wp, '>=' );
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if WooCommerce and PHP dependencies are met.
+	 * If not, show the appropriate admin notices.
+	 */
+	public function dependencies_are_ready(): bool {
+		if ( ! $this->is_woocommerce_activated() || ! $this->is_dependency_version_supported( 'woo' ) ) {
+			add_action( 'admin_notices', array( $this, 'need_woocommerce' ) );
+			return false;
+		}
+
+		if ( ! has_filter( 'woi_pdf_pdf_maker' ) && ! $this->is_dependency_version_supported( 'php' ) ) {
+			add_filter( 'woi_pdf_document_is_allowed', '__return_false', 99999 );
+			add_action( 'admin_notices', array( $this, 'required_php_version' ) );
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * WooCommerce requirement notice.
+	 */
+	public function need_woocommerce(): void {
+		$error_message = sprintf(
+			/* translators: 1. open anchor tag, 2. close anchor tag, 3. Woo version */
+			esc_html__( 'WooCommerce Orders Invoice PDF requires %1$sWooCommerce%2$s version %3$s or higher to be installed & activated!', 'woocommerce-orders-invoice-pdf' ),
+			'<a href="http://wordpress.org/extend/plugins/woocommerce/">',
+			'</a>',
+			esc_attr( $this->version_woo )
+		);
+
+		echo wp_kses_post( '<div class="error"><p>' . $error_message . '</p></div>' );
+	}
+
+	/**
+	 * PHP version requirement notice.
+	 */
+	public function required_php_version(): void {
+		$error_message = sprintf(
+			/* translators: PHP version */
+			esc_html__( 'WooCommerce Orders Invoice PDF requires PHP %s or higher.', 'woocommerce-orders-invoice-pdf' ),
+			esc_attr( $this->version_php )
+		);
+
+		echo wp_kses_post( '<div class="error"><p>' . $error_message . '</p></div>' );
+	}
+
+	/**
+	 * Load the translation / textdomain files
+	 *
+	 * Note: the first-loaded translation file overrides any following ones if the same translation is present
+	 */
+	public function translations(): void {
+		$locale     = $this->determine_locale();
+		$dir        = trailingslashit( WP_LANG_DIR );
+		$textdomain = 'woocommerce-orders-invoice-pdf';
+
+		unload_textdomain( $textdomain );
+		load_textdomain( $textdomain, $dir . $textdomain . '/' . $textdomain . '-' . $locale . '.mo' );
+		load_textdomain( $textdomain, $dir . 'plugins/' . $textdomain . '-' . $locale . '.mo' );
+		load_plugin_textdomain( $textdomain, false, dirname( $this->plugin_basename ) . '/languages' );
+	}
+
+	public function determine_locale(): string {
+		$locale = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
+
+		return apply_filters( 'plugin_locale', $locale, 'woocommerce-orders-invoice-pdf' );
 	}
 }
 

@@ -61,7 +61,7 @@ class Summary extends BulkDocument {
 	}
 
 	public function get_export_date_type() {
-		$date_types = WOI_PDF()->functions->get_export_bulk_date_types();
+		$date_types = woi_pdf_get_export_bulk_date_types();
 		if ( ! empty( $date_type = $this->export_settings['date_type'] ) ) {
 			return $date_types[ $date_type ];
 		} else {

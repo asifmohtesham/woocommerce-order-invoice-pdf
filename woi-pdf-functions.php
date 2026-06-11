@@ -2291,6 +2291,18 @@ function woi_pdf_register_additional_checkout_field( array $options ): void {
 }
 
 /**
+ * Get the date types available for bulk document export (e.g. Summary).
+ *
+ * @return array
+ */
+function woi_pdf_get_export_bulk_date_types(): array {
+	return apply_filters( 'woi_pdf_export_bulk_date_type_options', array(
+		'order_date'    => __( 'Order date', 'woocommerce-orders-invoice-pdf' ),
+		'document_date' => __( 'Document date', 'woocommerce-orders-invoice-pdf' ),
+	) );
+}
+
+/**
  * Get WooCommerce payment method options.
  *
  * @return array
