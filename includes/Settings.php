@@ -196,7 +196,6 @@ class Settings {
 		);
 
 		$settings_tabs = $this->maybe_disable_preview_on_settings_tabs( $settings_tabs ); // disable preview on debug setting
-		$default_tab   = apply_filters( 'woi_pdf_settings_tabs_default', ! empty( $settings_tabs['general'] ) ? 'general' : key( $settings_tabs ) );
 		$nonce         = wp_create_nonce( 'wp_woi_pdf_settings_page_nonce' );
 
 		$current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : '';

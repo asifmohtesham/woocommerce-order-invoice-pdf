@@ -1,7 +1,7 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-// $settings_tabs, $default_tab, $nonce, $current_tab, $current_section, $nav_items are set by Settings::settings_page()
+// $settings_tabs, $nonce, $current_tab, $current_section, $nav_items are set by Settings::settings_page()
 
 // Map tab key to WP Settings API page/option_group.
 // The Documents tab fires woi_pdf_settings_output_documents and handles its own option page internally.
