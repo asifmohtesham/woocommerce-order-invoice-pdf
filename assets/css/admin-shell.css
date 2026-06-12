@@ -209,6 +209,31 @@
 }
 
 @media screen and (max-width: 782px) {
+	/* icon rail leaves documents as anonymous dots on touch screens —
+	   switch to a horizontal scrollable nav with labels visible */
+	.woi-shell-body { display: block; }
+	.woi-shell-nav {
+		flex-basis: auto;
+		border-right: none;
+		border-bottom: 1px solid #dcdcde;
+		overflow-x: auto;
+	}
+	.woi-shell-nav ul { display: flex; align-items: center; padding: 0 8px; }
+	.woi-shell-nav .woi-nav-label { display: inline; }
+	.woi-shell-nav .woi-nav-heading { display: none; }
+	.woi-nav-item a {
+		border-left: none;
+		border-bottom: 3px solid transparent;
+		padding: 10px 12px;
+		white-space: nowrap;
+	}
+	.woi-nav-item.active a {
+		border-left: none;
+		border-bottom-color: #2271b1;
+		background: none;
+	}
+	.woi-nav-document a { padding-left: 12px; }
+
 	.woi-shell-header { top: 46px; flex-wrap: wrap; }
 	.woi-shell-title { flex: 1 1 100%; }
 	.woi-shell-actions { flex: 1 1 100%; justify-content: flex-end; }
