@@ -152,7 +152,9 @@
 }
 
 /* --- Conditional rows --- */
-.woi-pdf-shell tr.woi-show-if.woi-hidden { display: none; }
+/* !important: legacy settings-styles rule `#woi-pdf-preview-wrapper[...states][...state=closed]
+   .sidebar .form-table>tbody>tr { display:grid }` outranks any class-only selector */
+.woi-pdf-shell tr.woi-show-if.woi-hidden { display: none !important; }
 .woi-pdf-shell tr.woi-show-if > th { padding-left: 24px; }
 
 /* --- JS-booted fallbacks --- */
