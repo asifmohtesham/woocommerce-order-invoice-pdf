@@ -209,7 +209,23 @@
 }
 
 @media screen and (max-width: 782px) {
-	.woi-shell-header { top: 46px; }
+	.woi-shell-header { top: 46px; flex-wrap: wrap; }
+	.woi-shell-title { flex: 1 1 100%; }
+	.woi-shell-actions { flex: 1 1 100%; justify-content: flex-end; }
+	.woi-shell-actions .settings-search input { min-width: 0; width: 140px; }
+
+	/* the legacy ID+attr grid rule (1fr 2fr, gap 4em) wrecks narrow layouts and
+	   needs !important to outrank; :not(.woi-hidden) keeps the show_if hide working */
+	.woi-pdf-shell #woi-pdf-preview-wrapper .sidebar .form-table > tbody > tr:not(.woi-hidden) {
+		display: block !important;
+		padding: 0 0 12px;
+	}
+	.woi-pdf-shell #woi-pdf-preview-wrapper .sidebar .form-table th,
+	.woi-pdf-shell #woi-pdf-preview-wrapper .sidebar .form-table td {
+		display: block;
+		width: auto;
+		padding: 4px 0;
+	}
 }
 
 .woi-shell-preview-toggle.stale::after {
