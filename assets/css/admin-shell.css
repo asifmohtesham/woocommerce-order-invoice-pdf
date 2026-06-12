@@ -160,13 +160,10 @@
 /* --- JS-booted fallbacks --- */
 .woi-pdf-shell .woi-js-hidden { display: none; }
 
-/* --- Responsive --- */
-@media screen and (max-width: 1280px) {
-	.woi-shell-nav { flex-basis: 48px; }
-	.woi-shell-nav .woi-nav-label,
-	.woi-shell-nav .woi-nav-heading { display: none; }
-	.woi-nav-document a { padding-left: 16px; }
-}
+/* --- Responsive ---
+   No icon-only tier: with the preview as an overlay the layout is just nav + form,
+   so the labeled 190px sidebar stays down to 783px; below that the nav goes
+   horizontal with labels (see the 782px block). */
 
 /* --- Preview overlay (all widths) --- */
 .woi-pdf-shell #woi-pdf-preview-wrapper .gutter { display: none; }
