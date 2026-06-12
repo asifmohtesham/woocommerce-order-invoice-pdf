@@ -112,6 +112,10 @@
 	border-radius: 50%;
 	background: #fff;
 	transition: left .15s ease;
+	/* WP core forms.css sets margin -0.1875rem 0 0 -0.25rem (+ float) on
+	   :checked::before for its checkmark glyph — reset or the knob drifts */
+	margin: 0;
+	float: none;
 }
 .woi-pdf-shell .form-table input[type="checkbox"]:checked { background: #2271b1; }
 .woi-pdf-shell .form-table input[type="checkbox"]:checked::before { left: 18px; }
