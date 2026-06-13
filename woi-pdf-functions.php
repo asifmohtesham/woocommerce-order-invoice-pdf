@@ -2658,7 +2658,7 @@ if ( ! function_exists( 'woi_pdf_templates_maybe_apply_column_styles' ) ) {
 			isset( $column_data['width'] ) ? $column_data['width'] : ''
 		);
 		if ( '' !== $width ) {
-			$style = preg_replace( '/\bwidth\s*:[^;]*;?/i', '', $style );
+			$style = preg_replace( '/(?<![a-z-])width\s*:[^;]*;?/i', '', $style );
 			$style = trim( $style );
 			if ( '' !== $style && ';' !== substr( $style, -1 ) ) {
 				$style .= ';';
@@ -2669,7 +2669,7 @@ if ( ! function_exists( 'woi_pdf_templates_maybe_apply_column_styles' ) ) {
 			$style .= 'width: ' . $width . '%;';
 		}
 
-		$style = trim( $style );
+		$style = preg_replace( '/\s{2,}/', ' ', trim( $style ) );
 		if ( '' === $style ) {
 			return '';
 		}

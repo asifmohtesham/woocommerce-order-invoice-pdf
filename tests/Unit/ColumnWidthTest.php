@@ -91,4 +91,34 @@ class ColumnWidthTest extends TestCase {
         $column = array( 'style' => 'color:#000000;', 'style_target' => 'both' );
         $this->assertSame( ' style="color: #000000;"', woi_pdf_templates_maybe_apply_column_styles( $column, 'cells' ) );
     }
+
+    public function test_dedicated_width_preserves_min_and_max_width(): void {
+        $this->stub_wp();
+        $column = array(
+            'style'        => 'min-width:80px; max-width:200px;',
+            'style_target' => 'both',
+            'width'        => '40',
+        );
+        $result = woi_pdf_templates_maybe_apply_column_styles( $column, 'cells' );
+        $this->assertStringContainsString( 'min-width: 80px;', $result );
+        $this->assertStringContainsString( 'max-width: 200px;', $result );
+        $this->assertStringContainsString( 'width: 40%;', $result );
+        $this->assertStringNotContainsString( 'min-;', $result );
+        $this->assertStringNotContainsString( 'max-;', $result );
+    }
+
+    public function test_stripping_mid_string_width_has_no_double_space(): void {
+        $this->stub_wp();
+        $column = array(
+            'style'        => 'color:#ff0000; width:99%; font-weight:bold;',
+            'style_target' => 'both',
+            'width'        => '25',
+        );
+        $result = woi_pdf_templates_maybe_apply_column_styles( $column, 'cells' );
+        $this->assertStringNotContainsString( '  ', $result ); // no double space
+        $this->assertStringContainsString( 'width: 25%;', $result );
+        $this->assertStringNotContainsString( '99%', $result );
+        $this->assertStringContainsString( 'color: #ff0000;', $result );
+        $this->assertStringContainsString( 'font-weight: bold;', $result );
+    }
 }
