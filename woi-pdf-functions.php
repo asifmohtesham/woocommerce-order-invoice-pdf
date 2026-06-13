@@ -2550,6 +2550,29 @@ if ( ! function_exists( 'woi_pdf_templates_get_footer_settings' ) ) {
 	}
 }
 
+if ( ! function_exists( 'woi_pdf_templates_normalize_column_width' ) ) {
+	/**
+	 * Validate and normalize a column width percentage.
+	 *
+	 * Accepts a numeric value in the range (0, 100]. Returns the trimmed
+	 * numeric string (no unit) or '' when unset/invalid/out of range.
+	 *
+	 * @param mixed $value Raw width value from settings.
+	 * @return string Normalized number as string, or '' if invalid.
+	 */
+	function woi_pdf_templates_normalize_column_width( $value ): string {
+		if ( null === $value || '' === $value || ! is_numeric( $value ) ) {
+			return '';
+		}
+		$num = (float) $value;
+		if ( $num <= 0 || $num > 100 ) {
+			return '';
+		}
+		// Trim trailing zeros: 50.00 -> 50, 12.50 -> 12.5.
+		return rtrim( rtrim( sprintf( '%.2f', $num ), '0' ), '.' );
+	}
+}
+
 if ( ! function_exists( 'woi_pdf_templates_sanitize_column_style' ) ) {
 	function woi_pdf_templates_sanitize_column_style( string $css ): string {
 		$css = preg_replace( '/\/\*.*?\*\//s', '', $css );
