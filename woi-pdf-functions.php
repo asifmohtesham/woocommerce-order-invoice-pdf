@@ -2506,6 +2506,7 @@ if ( ! function_exists( 'woi_pdf_templates_get_table_body' ) ) {
 								'label'         => $column_setting['label'],
 								'price_type'    => $column_setting['price_type'],
 								'discount'      => $column_setting['discount'],
+								'width'         => isset( $column_setting['width'] ) ? $column_setting['width'] : '',
 							);
 							$new_column_key                      = $column_key . '_' . $tax['rate_id'];
 							$body[ $item_id ][ $new_column_key ] = $new_column + \WOI\PDF\Editor\EditorMain::instance()->get_order_details_data( $new_column, $item, $document );
