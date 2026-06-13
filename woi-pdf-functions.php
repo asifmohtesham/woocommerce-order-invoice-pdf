@@ -2640,16 +2640,41 @@ if ( ! function_exists( 'woi_pdf_templates_sanitize_column_style' ) ) {
 
 if ( ! function_exists( 'woi_pdf_templates_maybe_apply_column_styles' ) ) {
 	function woi_pdf_templates_maybe_apply_column_styles( array $column_data, string $target ): string {
-		if ( empty( $column_data['style'] ) ) {
+		$style = '';
+
+		// Freeform style respects the style_target setting (header / cells / both).
+		if ( ! empty( $column_data['style'] ) ) {
+			$apply_style = ! isset( $column_data['style_target'] )
+				|| 'both'  === $column_data['style_target']
+				|| $target === $column_data['style_target'];
+			if ( $apply_style ) {
+				$style = woi_pdf_templates_sanitize_column_style( $column_data['style'] );
+			}
+		}
+
+		// Dedicated width applies to BOTH header and cells, and wins over any
+		// width coming from the freeform style.
+		$width = woi_pdf_templates_normalize_column_width(
+			isset( $column_data['width'] ) ? $column_data['width'] : ''
+		);
+		if ( '' !== $width ) {
+			$style = preg_replace( '/\bwidth\s*:[^;]*;?/i', '', $style );
+			$style = trim( $style );
+			if ( '' !== $style && ';' !== substr( $style, -1 ) ) {
+				$style .= ';';
+			}
+			if ( '' !== $style ) {
+				$style .= ' ';
+			}
+			$style .= 'width: ' . $width . '%;';
+		}
+
+		$style = trim( $style );
+		if ( '' === $style ) {
 			return '';
 		}
-		$apply_style = ! isset( $column_data['style_target'] )
-			|| 'both'  === $column_data['style_target']
-			|| $target === $column_data['style_target'];
-		$style_value = $apply_style
-			? esc_attr( woi_pdf_templates_sanitize_column_style( $column_data['style'] ) )
-			: '';
-		return ! empty( $apply_style ) ? ' style="' . $style_value . '"' : '';
+
+		return ' style="' . esc_attr( $style ) . '"';
 	}
 }
 
