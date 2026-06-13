@@ -47,14 +47,28 @@ jQuery(function($) {
 	$( 'select.custom-block-type' ).trigger('change'); //ensure visible state matches initially
 
 	// Add Custom block
-	$( '.document-content' ).on( "click", ".button.add-custom-block", function() { 
-		var $current_doc = $( this ).closest('.document-content');
+	$( '.document-content' ).on( "click", ".button.add-custom-block", function() {
+		var $button = $( this );
+
+		// Re-entry guard: ignore clicks while a request is already in flight
+		if ( $button.hasClass('is-loading') ) {
+			return;
+		}
+
+		var $current_doc = $button.closest('.document-content');
+		var $spinner = $button.nextAll('.woi-add-block-spinner').first();
+		var $error = $button.nextAll('.woi-add-block-error').first();
 		var document_type = $current_doc.data('document-type');
 		var data = {
 			security:      woi_pdf_templates.nonce,
 			action:        'woi_pdf_templates_add_custom_block',
 			document_type: document_type,
 		};
+
+		// Loading feedback: grey out button, spin spinner, clear prior error
+		$button.addClass('is-loading');
+		$spinner.addClass('is-active');
+		$error.hide().empty();
 
 		xhr = $.ajax({
 			type:		'POST',
@@ -74,6 +88,13 @@ jQuery(function($) {
 					},
 				});
 				setup_requirements($block);
+			},
+			error:		function() {
+				$error.text( woi_pdf_templates.add_block_error ).show();
+			},
+			complete:	function() {
+				$button.removeClass('is-loading');
+				$spinner.removeClass('is-active');
 			}
 		});
 	});

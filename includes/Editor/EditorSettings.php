@@ -147,6 +147,7 @@ class EditorSettings {
 				'ajaxurl'               => admin_url( 'admin-ajax.php' ),
 				'nonce'                 => wp_create_nonce( 'woi_pdf_templates' ),
 				'load_defaults_confirm' => __( 'Are you sure you want to load the default settings? This will overwrite your current configuration for all documents.', 'woi_pdf_templates' ),
+				'add_block_error'       => __( 'Could not add block, please try again.', 'woi_pdf_templates' ),
 			)
 		);
 	}
@@ -1492,6 +1493,8 @@ class EditorSettings {
 					?>
 					</div>
 					<br/><div class="button add-custom-block"><?php echo __( 'Add a block', 'woi_pdf_templates') ?></div>
+					<span class="spinner woi-add-block-spinner"></span>
+					<div class="woi-add-block-error" style="display:none;"></div>
 				</div> <!-- document-content -->
 			<?php endforeach ?>
 		</div>

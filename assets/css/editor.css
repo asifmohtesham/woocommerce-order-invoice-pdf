@@ -419,6 +419,24 @@
 	display: block;
 }
 
+/* Add block loading feedback */
+
+#woi-pdf-settings .add-custom-block.is-loading {
+	opacity:                0.6;
+	pointer-events:         none;
+}
+
+#woi-pdf-settings .woi-add-block-spinner {
+	float:                  none;
+	vertical-align:         middle;
+	margin:                 0 0 0 4px;
+}
+
+#woi-pdf-settings .woi-add-block-error {
+	margin:                 8px 0 0 0;
+	color:                  #d63638;
+}
+
 /* Phone */
 
 @media screen and (max-width: 767px) {
