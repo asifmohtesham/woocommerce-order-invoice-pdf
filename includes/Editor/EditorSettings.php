@@ -1130,6 +1130,24 @@ class EditorSettings {
 			unset( $column_blocks['description']['options']['global_unique_id_label'] );
 		}
 
+		// Add a dedicated Width (%) field to every built-in column block.
+		foreach ( $column_blocks as $block_key => &$block ) {
+			if ( ! isset( $block['options'] ) || ! is_array( $block['options'] ) ) {
+				continue;
+			}
+			$block['options'] = array(
+				'width' => array(
+					'type'        => 'number',
+					'description' => __( 'Width (%)', 'woi_pdf_templates' ),
+					'placeholder' => __( 'Auto', 'woi_pdf_templates' ),
+					'min'         => 0,
+					'max'         => 100,
+					'step'        => 0.5,
+				),
+			) + $block['options'];
+		}
+		unset( $block );
+
 		return apply_filters( 'woi_pdf_templates_customizer_column_blocks', $column_blocks );
 	}
 
@@ -1628,6 +1646,23 @@ class EditorSettings {
 						true
 					);
 				}
+				break;
+			case 'number':
+				printf( '<span class="option-description">%s: </span>', $field_option['description'] );
+				$placeholder = isset( $field_option['placeholder'] ) ? $field_option['placeholder'] : '';
+				$min         = isset( $field_option['min'] ) ? $field_option['min'] : '';
+				$max         = isset( $field_option['max'] ) ? $field_option['max'] : '';
+				$step        = isset( $field_option['step'] ) ? $field_option['step'] : '';
+				printf(
+					'<input type="number" data-key="%s" name="%s" value="%s" placeholder="%s" min="%s" max="%s" step="%s">',
+					esc_attr( $option_key ),
+					esc_attr( $name ),
+					esc_attr( $current ),
+					esc_attr( $placeholder ),
+					esc_attr( $min ),
+					esc_attr( $max ),
+					esc_attr( $step )
+				);
 				break;
 			case 'textarea':
 				printf( '<div class="option-description">%s: </div>', $field_option['description'] );
