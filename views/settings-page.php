@@ -21,21 +21,28 @@ $preview_states_lock = ( 3 === (int) $preview_states ) ? false : true;
 $preview_document_type = ( 'documents' === $current_tab && ! empty( $current_section ) ) ? $current_section : 'invoice';
 
 $nav_icons = array(
-	'home'    => 'dashicons-admin-home',
-	'general' => 'dashicons-admin-settings',
-	'editor'  => 'dashicons-admin-customizer',
-	'debug'   => 'dashicons-admin-tools',
+	'home'      => 'dashicons-admin-home',
+	'general'   => 'dashicons-admin-settings',
+	'documents' => 'dashicons-media-document',
+	'editor'    => 'dashicons-admin-customizer',
+	'debug'     => 'dashicons-admin-tools',
 );
 
-// Breadcrumb: active nav item label (documents get the group label prefix).
+// Breadcrumb: active document (prefixed with the group label) or active main tab.
 $breadcrumb = array();
-foreach ( $nav_items as $item ) {
-	if ( ! empty( $item['active'] ) ) {
-		if ( 'document' === $item['kind'] ) {
-			$breadcrumb[] = __( 'Documents', 'woocommerce-orders-invoice-pdf' );
-		}
-		$breadcrumb[] = $item['label'];
+foreach ( $nav_items['documents'] as $doc ) {
+	if ( ! empty( $doc['active'] ) ) {
+		$breadcrumb[] = __( 'Documents', 'woocommerce-orders-invoice-pdf' );
+		$breadcrumb[] = $doc['label'];
 		break;
+	}
+}
+if ( empty( $breadcrumb ) ) {
+	foreach ( $nav_items['tabs'] as $item ) {
+		if ( ! empty( $item['active'] ) ) {
+			$breadcrumb[] = $item['label'];
+			break;
+		}
 	}
 }
 ?>
@@ -68,42 +75,54 @@ foreach ( $nav_items as $item ) {
 	<?php do_action( 'woi_pdf_before_settings_page', $current_tab, $nonce ); ?>
 
 	<div class="woi-shell-body">
-		<nav class="woi-shell-nav" aria-label="<?php esc_attr_e( 'PDF Invoices settings', 'woocommerce-orders-invoice-pdf' ); ?>">
-			<ul>
-				<?php foreach ( $nav_items as $item ) : ?>
-					<?php if ( 'heading' === $item['kind'] ) : ?>
-						<li class="woi-nav-heading"><?php echo esc_html( $item['label'] ); ?></li>
-					<?php else :
-						$url = add_query_arg(
-							array_filter( array(
-								'page'    => 'woi_pdf_options_page',
-								'tab'     => $item['tab'],
-								'section' => $item['section'],
-							) ),
-							admin_url( 'admin.php' )
-						);
-						$classes = array( 'woi-nav-item', 'woi-nav-' . $item['kind'] );
-						if ( $item['active'] ) {
-							$classes[] = 'active';
-						}
-						if ( 'document' === $item['kind'] && empty( $item['enabled'] ) ) {
-							$classes[] = 'woi-nav-disabled-doc';
-						}
-					?>
-						<li class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>">
-							<a href="<?php echo esc_url( $url ); ?>" title="<?php echo esc_attr( $item['label'] ); ?>">
-								<?php if ( 'tab' === $item['kind'] ) : ?>
-									<span class="dashicons <?php echo esc_attr( $nav_icons[ $item['id'] ] ?? 'dashicons-media-document' ); ?>"></span>
-								<?php else : ?>
-									<span class="woi-nav-dot" aria-hidden="true"></span>
-								<?php endif; ?>
-								<span class="woi-nav-label"><?php echo esc_html( $item['label'] ); ?></span>
-							</a>
-						</li>
-					<?php endif; ?>
-				<?php endforeach; ?>
-			</ul>
+		<nav class="woi-shell-tabs" aria-label="<?php esc_attr_e( 'PDF Invoices settings', 'woocommerce-orders-invoice-pdf' ); ?>">
+			<?php foreach ( $nav_items['tabs'] as $item ) :
+				$url = add_query_arg(
+					array_filter( array(
+						'page'    => 'woi_pdf_options_page',
+						'tab'     => $item['tab'],
+						'section' => $item['section'],
+					) ),
+					admin_url( 'admin.php' )
+				);
+				$classes = array( 'woi-tab' );
+				if ( $item['active'] ) {
+					$classes[] = 'active';
+				}
+			?>
+				<a class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" href="<?php echo esc_url( $url ); ?>" title="<?php echo esc_attr( $item['label'] ); ?>">
+					<span class="dashicons <?php echo esc_attr( $nav_icons[ $item['id'] ] ?? 'dashicons-media-document' ); ?>"></span>
+					<span class="woi-tab-label"><?php echo esc_html( $item['label'] ); ?></span>
+				</a>
+			<?php endforeach; ?>
 		</nav>
+
+		<?php if ( 'documents' === $current_tab && ! empty( $nav_items['documents'] ) ) : ?>
+		<nav class="woi-shell-subtabs" aria-label="<?php esc_attr_e( 'Document types', 'woocommerce-orders-invoice-pdf' ); ?>">
+			<?php foreach ( $nav_items['documents'] as $doc ) :
+				$url = add_query_arg(
+					array(
+						'page'    => 'woi_pdf_options_page',
+						'tab'     => $doc['tab'],
+						'section' => $doc['section'],
+					),
+					admin_url( 'admin.php' )
+				);
+				$classes = array( 'woi-subtab' );
+				if ( $doc['active'] ) {
+					$classes[] = 'active';
+				}
+				if ( empty( $doc['enabled'] ) ) {
+					$classes[] = 'woi-nav-disabled-doc';
+				}
+			?>
+				<a class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" href="<?php echo esc_url( $url ); ?>" title="<?php echo esc_attr( $doc['label'] ); ?>">
+					<span class="woi-nav-dot" aria-hidden="true"></span>
+					<span class="woi-subtab-label"><?php echo esc_html( $doc['label'] ); ?></span>
+				</a>
+			<?php endforeach; ?>
+		</nav>
+		<?php endif; ?>
 
 		<main class="woi-shell-content">
 		<?php if ( 'home' === $current_tab ) : ?>
