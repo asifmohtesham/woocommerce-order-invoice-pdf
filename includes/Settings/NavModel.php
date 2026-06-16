@@ -19,27 +19,29 @@ class NavModel {
 	 * @param string $current_tab
 	 * @param string $current_section Document type when on the documents tab
 	 *
-	 * @return array List of items: array( 'kind' => 'tab'|'heading'|'document', 'id', 'label', 'tab', 'section', 'enabled', 'active' )
+	 * @return array array( 'tabs' => list<item>, 'documents' => list<item> ) where each item is
+	 *               array( 'kind', 'id', 'label', 'tab', 'section', 'enabled', 'active' )
 	 */
 	public static function build( array $settings_tabs, array $documents, string $current_tab, string $current_section ): array {
-		$items = array();
+		$tabs      = array();
+		$doc_items = array();
 
 		foreach ( $settings_tabs as $tab_key => $tab ) {
 			$label = is_array( $tab ) ? (string) ( $tab['title'] ?? $tab_key ) : (string) $tab;
 
 			if ( 'documents' === $tab_key ) {
-				$items[] = array(
-					'kind'    => 'heading',
+				$tabs[] = array(
+					'kind'    => 'tab',
 					'id'      => 'documents',
 					'label'   => $label,
-					'tab'     => '',
+					'tab'     => 'documents',
 					'section' => '',
 					'enabled' => null,
-					'active'  => false,
+					'active'  => ( 'documents' === $current_tab ),
 				);
 
 				foreach ( $documents as $document ) {
-					$items[] = array(
+					$doc_items[] = array(
 						'kind'    => 'document',
 						'id'      => (string) $document['type'],
 						'label'   => (string) $document['title'],
@@ -53,7 +55,7 @@ class NavModel {
 				continue;
 			}
 
-			$items[] = array(
+			$tabs[] = array(
 				'kind'    => 'tab',
 				'id'      => (string) $tab_key,
 				'label'   => $label,
@@ -64,7 +66,10 @@ class NavModel {
 			);
 		}
 
-		return $items;
+		return array(
+			'tabs'      => $tabs,
+			'documents' => $doc_items,
+		);
 	}
 }
 

@@ -22,44 +22,57 @@ class NavModelTest extends TestCase {
 		);
 	}
 
-	public function test_documents_tab_expands_to_heading_plus_items(): void {
-		$items = NavModel::build( $this->tabs(), $this->documents(), 'home', '' );
-		$kinds = array_column( $items, 'kind' );
-		$this->assertSame( array( 'tab', 'tab', 'heading', 'document', 'document', 'tab' ), $kinds );
+	public function test_build_returns_tabs_and_documents_keys(): void {
+		$nav = NavModel::build( $this->tabs(), $this->documents(), 'home', '' );
+		$this->assertArrayHasKey( 'tabs', $nav );
+		$this->assertArrayHasKey( 'documents', $nav );
 	}
 
-	public function test_active_document_requires_tab_and_section_match(): void {
-		$items   = NavModel::build( $this->tabs(), $this->documents(), 'documents', 'invoice' );
-		$by_id   = array_combine( array_column( $items, 'id' ), $items );
-		$invoice = $by_id['invoice'];
-		$packing = $by_id['packing-slip'];
-		$this->assertSame( 'invoice', $invoice['id'] );
-		$this->assertTrue( $invoice['active'] );
-		$this->assertFalse( $packing['active'] );
+	public function test_main_tabs_in_source_order_all_kind_tab(): void {
+		$nav = NavModel::build( $this->tabs(), $this->documents(), 'home', '' );
+		$this->assertSame( array( 'home', 'general', 'documents', 'debug' ), array_column( $nav['tabs'], 'id' ) );
+		$this->assertSame( array( 'tab' ), array_values( array_unique( array_column( $nav['tabs'], 'kind' ) ) ) );
 	}
 
-	public function test_active_plain_tab(): void {
-		$items = NavModel::build( $this->tabs(), $this->documents(), 'debug', '' );
-		$debug = end( $items );
-		$this->assertTrue( $debug['active'] );
+	public function test_documents_is_a_clickable_tab(): void {
+		$nav      = NavModel::build( $this->tabs(), $this->documents(), 'documents', 'invoice' );
+		$by_id    = array_combine( array_column( $nav['tabs'], 'id' ), $nav['tabs'] );
+		$docs_tab = $by_id['documents'];
+		$this->assertSame( 'tab', $docs_tab['kind'] );
+		$this->assertSame( 'documents', $docs_tab['tab'] );
+		$this->assertSame( '', $docs_tab['section'] );
+		$this->assertTrue( $docs_tab['active'] );
 	}
 
-	public function test_document_enabled_flag_passes_through(): void {
-		$items = NavModel::build( $this->tabs(), $this->documents(), 'home', '' );
-		$by_id = array_combine( array_column( $items, 'id' ), $items );
+	public function test_documents_tab_inactive_on_other_tabs(): void {
+		$nav   = NavModel::build( $this->tabs(), $this->documents(), 'home', '' );
+		$by_id = array_combine( array_column( $nav['tabs'], 'id' ), $nav['tabs'] );
+		$this->assertFalse( $by_id['documents']['active'] );
+	}
+
+	public function test_document_subitems_carry_enabled_and_active(): void {
+		$nav   = NavModel::build( $this->tabs(), $this->documents(), 'documents', 'invoice' );
+		$by_id = array_combine( array_column( $nav['documents'], 'id' ), $nav['documents'] );
 		$this->assertTrue( $by_id['invoice']['enabled'] );
+		$this->assertTrue( $by_id['invoice']['active'] );
 		$this->assertFalse( $by_id['packing-slip']['enabled'] );
+		$this->assertFalse( $by_id['packing-slip']['active'] );
+	}
+
+	public function test_plain_tab_active(): void {
+		$nav   = NavModel::build( $this->tabs(), $this->documents(), 'debug', '' );
+		$by_id = array_combine( array_column( $nav['tabs'], 'id' ), $nav['tabs'] );
+		$this->assertTrue( $by_id['debug']['active'] );
 	}
 
 	public function test_string_tab_title_supported(): void {
-		$tabs  = array( 'general' => 'General' );
-		$items = NavModel::build( $tabs, array(), 'general', '' );
-		$this->assertSame( 'General', $items[0]['label'] );
+		$nav = NavModel::build( array( 'general' => 'General' ), array(), 'general', '' );
+		$this->assertSame( 'General', $nav['tabs'][0]['label'] );
 	}
 
-	public function test_documents_key_absent_yields_only_tab_items(): void {
-		$items = NavModel::build( array( 'general' => 'General' ), $this->documents(), 'general', '' );
-		$this->assertCount( 1, $items );
-		$this->assertSame( 'tab', $items[0]['kind'] );
+	public function test_documents_key_absent_yields_empty_documents(): void {
+		$nav = NavModel::build( array( 'general' => 'General' ), $this->documents(), 'general', '' );
+		$this->assertCount( 1, $nav['tabs'] );
+		$this->assertSame( array(), $nav['documents'] );
 	}
 }
