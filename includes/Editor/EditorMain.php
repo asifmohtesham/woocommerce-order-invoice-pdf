@@ -1886,6 +1886,11 @@ class EditorMain {
 							$custom = $document->get_shop_vat_number();
 						}
 						break;
+					case 'woi_pdf_customer_vat_number':
+						if ( ! empty( $document ) ) {
+							$custom = $document->get_customer_vat_number();
+						}
+						break;
 					case 'woi_pdf_shop_coc_number':
 						if ( ! empty( $document ) ) {
 							$custom = $document->get_shop_coc_number();
