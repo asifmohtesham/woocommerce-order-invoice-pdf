@@ -1253,6 +1253,85 @@ function woi_pdf_get_order_customer_vat_number( \WC_Abstract_Order $order ): ?st
 }
 
 /**
+ * The supplier's (shop) VAT/TRN number from the general settings.
+ *
+ * @return string
+ */
+function woi_pdf_get_supplier_trn(): string {
+	$general = get_option( 'woi_pdf_settings_general', array() );
+	$trn     = is_array( $general ) ? ( $general['vat_number'] ?? '' ) : '';
+	return trim( (string) $trn );
+}
+
+/**
+ * The customer's VAT/TRN stored at the customer (user) level.
+ *
+ * Mirrors the "Treat as VAT number" checkout field, which persists to user
+ * meta and is reused across that customer's orders. Returns empty unless the
+ * checkout field is configured as a VAT number.
+ *
+ * @param int $customer_id
+ * @return string
+ */
+function woi_pdf_get_customer_profile_trn( $customer_id ): string {
+	$customer_id = (int) $customer_id;
+	if ( $customer_id <= 0 ) {
+		return '';
+	}
+
+	$general = get_option( 'woi_pdf_settings_general', array() );
+	if ( empty( $general['checkout_field_as_vat_number'] ) ) {
+		return '';
+	}
+
+	return trim( (string) get_user_meta( $customer_id, 'woi_pdf_checkout_field', true ) );
+}
+
+/**
+ * The recipient's (customer) VAT/TRN for an order.
+ *
+ * Resolves from the order first (captured checkout field or a VAT plugin),
+ * then falls back to the customer's saved profile value so it behaves as a
+ * customer-level field even for orders created in the admin.
+ *
+ * @param \WC_Abstract_Order|mixed $order
+ * @return string
+ */
+function woi_pdf_get_recipient_trn( $order ): string {
+	if ( ! $order instanceof \WC_Abstract_Order ) {
+		return '';
+	}
+
+	$trn = trim( (string) woi_pdf_get_order_customer_vat_number( $order ) );
+	if ( '' === $trn ) {
+		$trn = woi_pdf_get_customer_profile_trn( $order->get_customer_id() );
+	}
+
+	return $trn;
+}
+
+/**
+ * Build a labelled TRN line for the document, or an empty string when there is
+ * no value to show.
+ *
+ * @param string $value
+ * @param string $label
+ * @return string
+ */
+function woi_pdf_format_trn_line( string $value, string $label ): string {
+	$value = trim( $value );
+	if ( '' === $value ) {
+		return '';
+	}
+
+	return sprintf(
+		'<div class="trn-number"><span class="label">%1$s</span> %2$s</div>',
+		esc_html( $label ),
+		esc_html( $value )
+	);
+}
+
+/**
  * Prepare an identifier query for use with $wpdb->prepare().
  *
  * @param string $query
