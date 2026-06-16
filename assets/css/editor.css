@@ -13,9 +13,6 @@
 	border:                 none;
 }
 
-#woi-pdf-settings .ui-tabs-nav > .ui-state-default {
-	border:                 2px solid #ccc;
-}
 #woi-pdf-settings .ui-state-default {
 	width:                  auto;
 	border-radius:			0;
