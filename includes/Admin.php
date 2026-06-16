@@ -59,6 +59,9 @@ class Admin {
 		add_action( 'admin_notices', array( $this, 'review_plugin_notice' ) );
 		add_action( 'admin_notices', array( $this, 'install_wizard_notice' ) );
 
+		// keep the settings screen uncluttered by suppressing third-party admin notices there
+		add_action( 'current_screen', array( $this, 'suppress_settings_page_notices' ) );
+
 		add_action( 'init', array( $this, 'setup_wizard') );
 		// add_action( 'woi_pdf_after_pdf', array( $this,'update_pdf_counter' ), 10, 2 );
 
@@ -78,6 +81,40 @@ class Admin {
 		add_filter( 'woocommerce_rest_prepare_report_orders', array( $this, 'add_invoice_number_to_order_report' ) );
 		add_filter( 'woocommerce_report_orders_export_columns', array( $this, 'add_invoice_number_header_to_order_export' ) );
 		add_filter( 'woocommerce_report_orders_prepare_export_item', array( $this, 'add_invoice_number_value_to_order_export' ), 10, 2 );
+	}
+
+	/**
+	 * Suppress third-party admin notices on the plugin settings screen to keep it
+	 * uncluttered. Our own "missing writable directory" warning is preserved (it
+	 * signals a real failure), and the "Settings saved" feedback is unaffected
+	 * because it is printed via an explicit settings_errors() call, not this hook.
+	 */
+	public function suppress_settings_page_notices( $screen ) {
+		if ( ! ( $screen instanceof \WP_Screen ) || false === strpos( $screen->id, 'woi_pdf_options_page' ) ) {
+			return;
+		}
+
+		global $wp_filter;
+
+		// Capture our own writable-directory warning so it survives the purge below.
+		$preserved = array();
+		if ( isset( $wp_filter['admin_notices'] ) ) {
+			foreach ( $wp_filter['admin_notices']->callbacks as $callbacks ) {
+				foreach ( $callbacks as $callback ) {
+					if ( is_array( $callback['function'] ) && isset( $callback['function'][1] ) && 'no_dir_notice' === $callback['function'][1] ) {
+						$preserved[] = $callback['function'];
+					}
+				}
+			}
+		}
+
+		remove_all_actions( 'admin_notices' );
+		remove_all_actions( 'all_admin_notices' );
+		remove_all_actions( 'user_admin_notices' );
+
+		foreach ( $preserved as $callback ) {
+			add_action( 'admin_notices', $callback, 1 );
+		}
 	}
 
 	// display review admin notice after 100 pdf downloads
