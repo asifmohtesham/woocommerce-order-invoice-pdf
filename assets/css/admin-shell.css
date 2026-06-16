@@ -42,39 +42,66 @@
 	padding: 0;
 }
 
-/* --- Body: nav + content --- */
-.woi-shell-body { display: flex; align-items: stretch; min-height: 70vh; }
+/* --- Body: stacked horizontal nav rows + content --- */
+.woi-shell-body { display: block; min-height: 70vh; }
 
-.woi-shell-nav {
-	flex: 0 0 190px;
+/* Row 1: main tabs */
+.woi-shell-tabs {
+	display: flex;
+	align-items: stretch;
+	gap: 2px;
 	background: #fff;
-	border-right: 1px solid #dcdcde;
+	border-bottom: 1px solid #dcdcde;
+	padding: 0 8px;
+	overflow-x: auto;
 }
-.woi-shell-nav ul { margin: 0; padding: 8px 0; list-style: none; }
-.woi-nav-heading {
-	padding: 12px 16px 4px;
-	font-size: 11px;
-	text-transform: uppercase;
-	letter-spacing: .5px;
-	color: #787c82;
+.woi-tab {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 12px 14px;
+	text-decoration: none;
+	color: #1d2327;
+	white-space: nowrap;
+	border-bottom: 2px solid transparent;
 }
-.woi-nav-item a {
+.woi-tab:hover { color: #135e96; }
+.woi-tab:focus { box-shadow: none; outline: none; }
+.woi-tab.active {
+	color: #135e96;
+	font-weight: 600;
+	border-bottom-color: #2271b1;
+}
+.woi-tab .dashicons { width: 18px; height: 18px; font-size: 18px; }
+
+/* Row 2: document sub-tabs (only on the Documents tab) */
+.woi-shell-subtabs {
+	display: flex;
+	align-items: stretch;
+	gap: 2px;
+	background: #f6f7f7;
+	border-bottom: 1px solid #dcdcde;
+	padding: 0 8px;
+	overflow-x: auto;
+}
+.woi-subtab {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 8px 16px;
+	padding: 8px 12px;
 	text-decoration: none;
 	color: #1d2327;
-	border-left: 3px solid transparent;
+	white-space: nowrap;
+	border-bottom: 2px solid transparent;
 }
-.woi-nav-item a:hover { background: #f6f7f7; color: #135e96; }
-.woi-nav-item.active a {
-	background: #f0f6fc;
-	border-left-color: #2271b1;
-	font-weight: 600;
+.woi-subtab:hover { color: #135e96; }
+.woi-subtab.active {
 	color: #135e96;
+	font-weight: 600;
+	border-bottom-color: #2271b1;
 }
-.woi-nav-document a { padding-left: 24px; }
+
+/* Green enabled-dot, shared by sub-tabs */
 .woi-nav-dot {
 	width: 8px;
 	height: 8px;
@@ -82,10 +109,10 @@
 	background: #00a32a;
 	flex: 0 0 8px;
 }
-.woi-nav-disabled-doc a { color: #787c82; }
+.woi-nav-disabled-doc { color: #787c82; }
 .woi-nav-disabled-doc .woi-nav-dot { background: transparent; border: 1px solid #a7aaad; }
 
-.woi-shell-content { flex: 1; min-width: 0; padding: 16px; }
+.woi-shell-content { min-width: 0; padding: 16px; }
 
 /* --- Toggle switches (CSS-only, over native checkboxes) --- */
 .woi-pdf-shell .form-table input[type="checkbox"] {
@@ -206,30 +233,11 @@
 }
 
 @media screen and (max-width: 782px) {
-	/* icon rail leaves documents as anonymous dots on touch screens —
-	   switch to a horizontal scrollable nav with labels visible */
-	.woi-shell-body { display: block; }
-	.woi-shell-nav {
-		flex-basis: auto;
-		border-right: none;
-		border-bottom: 1px solid #dcdcde;
-		overflow-x: auto;
-	}
-	.woi-shell-nav ul { display: flex; align-items: center; padding: 0 8px; }
-	.woi-shell-nav .woi-nav-label { display: inline; }
-	.woi-shell-nav .woi-nav-heading { display: none; }
-	.woi-nav-item a {
-		border-left: none;
-		border-bottom: 3px solid transparent;
-		padding: 10px 12px;
-		white-space: nowrap;
-	}
-	.woi-nav-item.active a {
-		border-left: none;
-		border-bottom-color: #2271b1;
-		background: none;
-	}
-	.woi-nav-document a { padding-left: 12px; }
+	/* nav rows are already horizontal + scrollable; just tighten padding on touch */
+	.woi-shell-tabs,
+	.woi-shell-subtabs { padding: 0 4px; }
+	.woi-tab { padding: 10px 12px; }
+	.woi-subtab { padding: 8px 10px; }
 
 	.woi-shell-header { top: 46px; flex-wrap: wrap; }
 	.woi-shell-title { flex: 1 1 100%; }
