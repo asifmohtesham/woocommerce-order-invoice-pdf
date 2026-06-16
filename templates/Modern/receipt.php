@@ -2,6 +2,11 @@
 
 <?php do_action( 'woi_pdf_before_document', $this->get_type(), $this->order ); ?>
 
+<?php if ( $this->has_letterhead() ) : ?>
+<table class="head container letterhead">
+	<tr><td class="header letterhead"><?php $this->letterhead(); ?></td></tr>
+</table>
+<?php else : ?>
 <table class="head container">
 	<tr class="underline">
 		<td class="header">
@@ -32,6 +37,7 @@
 		</td>
 	</tr>
 </table>
+<?php endif; ?>
 
 <table class="order-data-addresses">
 	<tr>
