@@ -1319,53 +1319,100 @@ abstract class OrderDocument implements DocumentInterface {
 	}
 
 	/**
-	 * Show logo HTML
+	 * Return letterhead attachment id
+	 */
+	public function get_letterhead_id(): int {
+		$letterhead_id = ! empty( $this->settings['letterhead_logo'] ) ? $this->get_settings_text( 'letterhead_logo', 0, false ) : 0;
+		$letterhead_id = apply_filters( 'woi_pdf_letterhead_id', $letterhead_id, $this );
+
+		return $letterhead_id && is_numeric( $letterhead_id ) ? absint( $letterhead_id ) : 0;
+	}
+
+	/**
+	 * Return letterhead max-height
+	 */
+	public function get_letterhead_height() {
+		if ( ! empty( $this->settings['letterhead_logo_height'] ) ) {
+			return apply_filters( 'woi_pdf_letterhead_height', str_replace( ' ', '', $this->settings['letterhead_logo_height'] ), $this );
+		}
+	}
+
+	/**
+	 * Show header logo HTML
 	 *
 	 * @return void
 	 */
 	public function header_logo(): void {
-		$attachment_id = $this->get_header_logo_id();
+		$this->render_settings_image(
+			$this->get_header_logo_id(),
+			$this->get_shop_name(),
+			'woi_pdf_header_logo_img_element'
+		);
+	}
 
-		if ( $attachment_id > 0 ) {
-			$company         = $this->get_shop_name();
-			$attachment_src  = wp_get_attachment_image_url( $attachment_id, 'full' );
-			$attachment_file = get_attached_file( $attachment_id );
-			$attachment_path = $attachment_file ? wp_normalize_path( realpath( $attachment_file ) ) : '';
+	/**
+	 * Show letterhead HTML
+	 *
+	 * @return void
+	 */
+	public function letterhead(): void {
+		$this->render_settings_image(
+			$this->get_letterhead_id(),
+			$this->get_shop_name(),
+			'woi_pdf_letterhead_img_element'
+		);
+	}
 
-			$use_path = apply_filters( 'woi_pdf_use_path', true );
-
-			$src = ( $use_path && ! empty( $attachment_path ) ) ? $attachment_path : $attachment_src;
-
-			if ( empty( $src ) ) {
-				woi_pdf_log_error( 'Header logo file not found.', 'critical' );
-				return;
-			}
-
-			// fix URLs using path
-			if ( ! $use_path && false !== strpos( $src, 'http' ) && false !== strpos( $src, WP_CONTENT_DIR ) ) {
-				$path = preg_replace( '/^https?:\/\//', '', $src ); // removes http(s)://
-				$src  = str_replace( trailingslashit( WP_CONTENT_DIR ), trailingslashit( WP_CONTENT_URL ), $path ); // replaces path with URL
-			}
-
-			if ( ! woi_pdf_is_file_readable( $src ) ) {
-				woi_pdf_log_error( 'Header logo file not readable: ' . $src, 'critical' );
-				return;
-			}
-
-			$img_src     = isset( WOI_PDF()->settings->debug_settings['embed_images'] )
-				? woi_pdf_get_image_src_in_base64( $src )
-				: $src;
-
-			$img_element = sprintf(
-				'<img src="%1$s" alt="%2$s"/>',
-				woi_pdf_escape_url_path_or_base64( $img_src ),
-				esc_attr( $company )
-			);
-
-			$img_element = apply_filters( 'woi_pdf_header_logo_img_element', $img_element, $attachment_id, $this );
-
-			echo $img_element; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	/**
+	 * Render a settings image (header logo or letterhead) as an <img> element.
+	 *
+	 * @param int    $attachment_id Attachment ID to render.
+	 * @param string $alt           Alt text (shop name).
+	 * @param string $filter        Filter applied to the final <img> markup.
+	 * @return void
+	 */
+	private function render_settings_image( int $attachment_id, string $alt, string $filter ): void {
+		if ( $attachment_id <= 0 ) {
+			return;
 		}
+
+		$attachment_src  = wp_get_attachment_image_url( $attachment_id, 'full' );
+		$attachment_file = get_attached_file( $attachment_id );
+		$attachment_path = $attachment_file ? wp_normalize_path( realpath( $attachment_file ) ) : '';
+
+		$use_path = apply_filters( 'woi_pdf_use_path', true );
+
+		$src = ( $use_path && ! empty( $attachment_path ) ) ? $attachment_path : $attachment_src;
+
+		if ( empty( $src ) ) {
+			woi_pdf_log_error( 'Settings image file not found.', 'critical' );
+			return;
+		}
+
+		// fix URLs using path
+		if ( ! $use_path && false !== strpos( $src, 'http' ) && false !== strpos( $src, WP_CONTENT_DIR ) ) {
+			$path = preg_replace( '/^https?:\/\//', '', $src ); // removes http(s)://
+			$src  = str_replace( trailingslashit( WP_CONTENT_DIR ), trailingslashit( WP_CONTENT_URL ), $path ); // replaces path with URL
+		}
+
+		if ( ! woi_pdf_is_file_readable( $src ) ) {
+			woi_pdf_log_error( 'Settings image file not readable: ' . $src, 'critical' );
+			return;
+		}
+
+		$img_src = isset( WOI_PDF()->settings->debug_settings['embed_images'] )
+			? woi_pdf_get_image_src_in_base64( $src )
+			: $src;
+
+		$img_element = sprintf(
+			'<img src="%1$s" alt="%2$s"/>',
+			woi_pdf_escape_url_path_or_base64( $img_src ),
+			esc_attr( $alt )
+		);
+
+		$img_element = apply_filters( $filter, $img_element, $attachment_id, $this );
+
+		echo $img_element; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	public function get_settings_text( $settings_key, $default = false, $autop = true ) {
