@@ -72,6 +72,9 @@ if ( empty( $breadcrumb ) ) {
 		</div>
 	</header>
 
+	<?php /* WP relocates floating admin notices to just after this marker, keeping them below the sticky header instead of pushing it down. */ ?>
+	<hr class="wp-header-end">
+
 	<?php do_action( 'woi_pdf_before_settings_page', $current_tab, $nonce ); ?>
 
 	<div class="woi-shell-body">

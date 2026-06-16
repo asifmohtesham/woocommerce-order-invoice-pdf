@@ -176,7 +176,7 @@ jQuery( function( $ ) {
 		}
 
 		const header = $( '.woi-shell-header' )[0];
-		const top    = header ? Math.max( 48, header.getBoundingClientRect().bottom + 8 ) : 88;
+		const top    = header ? Math.max( 32, header.getBoundingClientRect().bottom ) : 88;
 
 		$previewWrapper.find( '.preview-document' ).css( 'top', top + 'px' );
 	}

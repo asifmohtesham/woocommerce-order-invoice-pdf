@@ -1,6 +1,6 @@
 /* ===== PDF Invoices settings shell ===== */
 
-.woi-pdf-shell { margin: 0 20px 0 0; }
+.woi-pdf-shell { margin: 0 20px 0 0; --woi-overlay-width: min(560px, 90vw); }
 
 /* --- Sticky header --- */
 .woi-shell-header {
@@ -206,14 +206,15 @@
 .woi-pdf-shell.woi-preview-overlay-open #woi-pdf-preview-wrapper .preview-document {
 	display: block;
 	position: fixed;
-	top: 88px;
-	right: 16px;
-	bottom: 16px;
-	width: min(560px, 90vw);
+	top: 88px;          /* JS tracks the live header bottom; this is the no-JS fallback */
+	right: 0;
+	bottom: 0;          /* full viewport height: header bottom → viewport bottom */
+	width: var(--woi-overlay-width);
 	background: #fff;
-	border: 1px solid #dcdcde;
-	border-radius: 6px;
-	box-shadow: 0 4px 20px rgba(0,0,0,.18);
+	border: none;
+	border-left: 1px solid #dcdcde;
+	border-radius: 0;
+	box-shadow: -4px 0 20px rgba(0,0,0,.12);
 	z-index: 99;
 	overflow: auto;
 	padding: 10px;
@@ -233,6 +234,14 @@
 }
 .woi-pdf-shell.woi-preview-overlay-open #woi-pdf-preview-wrapper .preview {
 	padding-right: 0;
+}
+
+/* Reserve room for the fixed overlay so content (e.g. Item Columns) reflows left of it
+   instead of hiding behind it. Desktop only — on small screens the overlay is ~full-width. */
+@media screen and (min-width: 783px) {
+	.woi-pdf-shell.woi-preview-overlay-open .woi-shell-content {
+		margin-right: calc(var(--woi-overlay-width) + 24px);
+	}
 }
 
 @media screen and (max-width: 782px) {
