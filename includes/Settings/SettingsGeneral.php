@@ -168,6 +168,38 @@ class SettingsGeneral {
 			),
 			array(
 				'type'     => 'section',
+				'id'       => 'general_letterhead',
+				'title'    => __( 'Letterhead', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'section',
+			),
+			array(
+				'type'     => 'setting',
+				'id'       => 'letterhead_mode',
+				'title'    => __( 'Letterhead mode', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'checkbox',
+				'section'  => 'general_letterhead',
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'letterhead_mode',
+					'description' => __( 'Replace the shop logo and shop details with a single full-width letterhead image.', 'woocommerce-orders-invoice-pdf' ),
+				),
+			),
+			array(
+				'type'     => 'setting',
+				'id'       => 'letterhead_logo',
+				'title'    => __( 'Letterhead image', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'media_upload',
+				'section'  => 'general_letterhead',
+				'show_if'  => array( 'field' => 'letterhead_mode', 'value' => 1 ),
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'letterhead_logo',
+					'height_id'   => 'letterhead_logo_height',
+					'description' => __( 'Upload your letterhead. Replaces the header in the PDF.', 'woocommerce-orders-invoice-pdf' ),
+				),
+			),
+			array(
+				'type'     => 'section',
 				'id'       => 'general_shop_details',
 				'title'    => __( 'Shop details', 'woocommerce-orders-invoice-pdf' ),
 				'callback' => 'section',
