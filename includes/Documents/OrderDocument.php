@@ -1284,6 +1284,20 @@ abstract class OrderDocument implements DocumentInterface {
 	}
 
 	/**
+	 * Whether letterhead mode is enabled in settings.
+	 */
+	public function is_letterhead_mode(): bool {
+		return ! empty( $this->settings['letterhead_mode'] );
+	}
+
+	/**
+	 * Whether a letterhead should be rendered: mode on AND an image is set.
+	 */
+	public function has_letterhead(): bool {
+		return $this->is_letterhead_mode() && ! empty( $this->settings['letterhead_logo'] );
+	}
+
+	/**
 	 * Return logo id
 	 *
 	 * @return int
