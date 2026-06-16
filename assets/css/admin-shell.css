@@ -54,6 +54,11 @@
 	border-bottom: 1px solid #dcdcde;
 	padding: 0 8px;
 	overflow-x: auto;
+	/* pin just under the sticky dark header; JS keeps the offset in sync with the
+	   header height (which wraps taller on narrow screens) */
+	position: sticky;
+	top: var(--woi-tabs-sticky-top, 82px);
+	z-index: 90;
 }
 .woi-tab {
 	display: flex;

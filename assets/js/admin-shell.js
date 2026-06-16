@@ -155,6 +155,20 @@ jQuery( function( $ ) {
 	openHashTarget();
 	$( window ).on( 'hashchange', openHashTarget );
 
+	//----------> Pin the tab bar under the sticky header <----------//
+	// The header height varies (it wraps on narrow screens), so expose its stuck
+	// bottom as a CSS variable that .woi-shell-tabs uses for its sticky `top`.
+	function positionStickyTabs() {
+		const header = $( '.woi-shell-header' )[0];
+		if ( ! header ) {
+			return;
+		}
+		const stickyTop = parseInt( $( header ).css( 'top' ), 10 ) || 32;
+		$shell.css( '--woi-tabs-sticky-top', ( stickyTop + header.offsetHeight ) + 'px' );
+	}
+	positionStickyTabs();
+	$( window ).on( 'resize', positionStickyTabs );
+
 	//----------> Preview overlay (all widths) <----------//
 	const $previewWrapper = $( '#woi-pdf-preview-wrapper' );
 	const $previewToggle  = $( '.woi-shell-preview-toggle' );
