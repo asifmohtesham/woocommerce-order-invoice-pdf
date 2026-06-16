@@ -44,6 +44,12 @@
 	min-width: 200px;
 	max-width: 320px;
 }
+
+/* select2 replaces the native select with a sibling container above the threshold */
+#woi-pdf-settings .document-select-wrapper .select2-container {
+	min-width: 200px;
+	max-width: 320px;
+}
 /* ─────────────────────────────────────────────────────────────── */
 
 #woi-pdf-settings .document-content {
