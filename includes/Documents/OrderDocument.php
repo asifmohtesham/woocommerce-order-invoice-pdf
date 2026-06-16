@@ -1484,6 +1484,23 @@ abstract class OrderDocument implements DocumentInterface {
 	}
 
 	/**
+	 * Return/Show the customer's VAT/TRN number captured on the order.
+	 *
+	 * Required on full tax invoices in jurisdictions such as the UAE. The value
+	 * is resolved from the order by woi_pdf_get_order_customer_vat_number(),
+	 * which understands the native checkout field and common VAT plugins.
+	 */
+	public function get_customer_vat_number(): string {
+		if ( ! $this->order instanceof \WC_Abstract_Order ) {
+			return '';
+		}
+		return (string) woi_pdf_get_order_customer_vat_number( $this->order );
+	}
+	public function customer_vat_number(): void {
+		echo esc_html( $this->get_customer_vat_number() );
+	}
+
+	/**
 	 * Return/Show company COC number
 	 */
 	public function get_shop_coc_number() {

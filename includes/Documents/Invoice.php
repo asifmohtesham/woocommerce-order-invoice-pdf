@@ -75,7 +75,10 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 	 */
 	public function get_title(): string {
 		// override/not using $this->title to allow for language switching!
-		$title = __( 'Invoice', 'woocommerce-orders-invoice-pdf' );
+		$default = __( 'Invoice', 'woocommerce-orders-invoice-pdf' );
+		// allow a configurable document title (e.g. "Tax Invoice" for jurisdictions that require it)
+		$custom  = trim( (string) $this->get_settings_text( 'document_title', '', false ) );
+		$title   = '' !== $custom ? $custom : $default;
 		$title = apply_filters_deprecated( "woi_pdf_{$this->slug}_title", array( $title, $this ), '3.8.7', 'woi_pdf_document_title' ); // deprecated
 		return apply_filters( 'woi_pdf_document_title', $title, $this );
 	}
@@ -290,6 +293,19 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 					'multiple'         => true,
 					'enhanced_select'  => true,
 					'placeholder'      => __( 'Select one or more statuses', 'woocommerce-orders-invoice-pdf' ),
+				)
+			),
+			array(
+				'type'			=> 'setting',
+				'id'			=> 'document_title',
+				'title'			=> __( 'Document title', 'woocommerce-orders-invoice-pdf' ),
+				'callback'		=> 'text_element',
+				'section'		=> $this->type,
+				'args'			=> array(
+					'option_name'	=> $option_name,
+					'id'			=> 'document_title',
+					'size'			=> 'regular',
+					'description'	=> __( 'The heading shown on the document. Leave blank to use the default "Invoice". Set to "Tax Invoice" where local tax regulations require it.', 'woocommerce-orders-invoice-pdf' ),
 				)
 			),
 			array(
