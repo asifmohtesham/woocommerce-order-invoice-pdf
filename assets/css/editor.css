@@ -24,100 +24,27 @@
 	border:                 none;
 }
 
-/* ── Scrollable tab bar ─────────────────────────────────────── */
-#woi-pdf-settings .tab-scroll-wrapper {
-	display:        flex;
-	align-items:    flex-end;
-	overflow:       hidden;
-	margin:         0 0 -2px 20px;
-	position:       relative;
-	z-index:        999;
+/* ── Document picker ────────────────────────────────────────── */
+#woi-pdf-settings .document-tabs { display: none; }
+
+#woi-pdf-settings .document-select-wrapper {
+	display:     flex;
+	align-items: center;
+	gap:         8px;
+	margin:      0 0 10px 20px;
 }
 
-#woi-pdf-settings .tab-scroll-track {
-	flex:           1;
-	overflow:       hidden;
-	position:       relative;
+#woi-pdf-settings .document-select-label {
+	font-weight: bold;
+	font-size:   14px;
+	color:       #555;
 }
 
-#woi-pdf-settings .tab-scroll-track::before,
-#woi-pdf-settings .tab-scroll-track::after {
-	content:        '';
-	position:       absolute;
-	top:            0;
-	bottom:         0;
-	width:          28px;
-	pointer-events: none;
-	z-index:        2;
-	transition:     opacity 0.15s;
+#woi-pdf-settings .document-select {
+	min-width: 200px;
+	max-width: 320px;
 }
-
-#woi-pdf-settings .tab-scroll-track::before {
-	left:       0;
-	background: linear-gradient(to right, #f0f0f1, transparent);
-}
-
-#woi-pdf-settings .tab-scroll-track::after {
-	right:      0;
-	background: linear-gradient(to left, #f0f0f1, transparent);
-}
-
-#woi-pdf-settings .tab-scroll-track.at-start::before { opacity: 0; }
-#woi-pdf-settings .tab-scroll-track.at-end::after    { opacity: 0; }
-
-#woi-pdf-settings .tab-scroll-btn {
-	flex-shrink:     0;
-	display:         flex;
-	align-items:     center;
-	justify-content: center;
-	width:           24px;
-	height:          38px;
-	padding:         0;
-	background:      transparent;
-	border:          none;
-	font-size:       20px;
-	font-weight:     300;
-	color:           #aaa;
-	cursor:          pointer;
-	transition:      color 0.15s;
-}
-
-#woi-pdf-settings .tab-scroll-btn:hover { color: #1d2327; }
-#woi-pdf-settings .tab-scroll-btn.hidden { visibility: hidden; }
-
-#woi-pdf-settings .document-tabs {
-	display:         flex;
-	flex-wrap:       nowrap;
-	overflow-x:      auto;
-	overflow-y:      hidden;
-	scrollbar-width: none;
-	scroll-behavior: smooth;
-	list-style:      none;
-	margin:          0;
-	padding:         0;
-}
-
-#woi-pdf-settings .document-tabs::-webkit-scrollbar { display: none; }
 /* ─────────────────────────────────────────────────────────────── */
-
-#woi-pdf-settings .document-tabs li.ui-tabs-active {
-	background: 			white;
-	border-bottom-width: 	2px;
-	border-bottom-color: 	white;
-}
-
-#woi-pdf-settings .document-tabs li a {
-	display:                inline-block;
-	padding:                10px;
-	text-decoration: 		none;
-	font-weight: 			bold;
-	font-size:              15px;
-	color:                  #555;
-}
-
-#woi-pdf-settings .document-tabs li.ui-tabs-active a {
-	color:                  black;
-}
 
 #woi-pdf-settings .document-content {
 	background:             #fff;
@@ -444,17 +371,8 @@
 		padding:                1em 1em 1em 1.4em;
 	}
 
-	#woi-pdf-settings .tab-scroll-wrapper {
+	#woi-pdf-settings .document-select-wrapper {
 		margin:                 0 0 10px 0;
-	}
-
-	#woi-pdf-settings .document-tabs li {
-		margin:                 0 8px 8px 0;
-	}
-
-	#woi-pdf-settings .document-tabs li.ui-tabs-active {
-		border-bottom-color:    #ccc;
-		padding:                0;
 	}
 
 	#woi-pdf-settings .add-field-plus {
