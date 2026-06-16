@@ -88,6 +88,11 @@ class Main {
 		// Add due date via action hook for legacy templates
 		add_action( 'woi_pdf_after_order_data', array( $this, 'display_due_date_table_row' ), 10, 2 );
 
+		// Display VAT/TRN numbers under the shop and billing addresses (works in
+		// both the static templates and the Customiser, which fire these hooks).
+		add_action( 'woi_pdf_after_shop_address', array( $this, 'display_supplier_trn' ), 20, 2 );
+		add_action( 'woi_pdf_after_billing_address', array( $this, 'display_recipient_trn' ), 20, 2 );
+
 		add_action( 'woi_pdf_delete_document', array( $this, 'log_document_deletion_to_order_notes' ) );
 
 		// Add document link to emails
@@ -1891,6 +1896,32 @@ class Main {
 				$webhook->enqueue();
 			}
 		}
+	}
+
+	/**
+	 * Print the supplier (shop) VAT/TRN line under the shop address.
+	 *
+	 * @param null|string $document_type
+	 * @param null|\WC_Abstract_Order $order
+	 *
+	 * @return void
+	 */
+	public function display_supplier_trn( ?string $document_type = null, ?\WC_Abstract_Order $order = null ): void {
+		$label = apply_filters( 'woi_pdf_supplier_trn_label', __( 'TRN:', 'woocommerce-orders-invoice-pdf' ) );
+		echo woi_pdf_format_trn_line( woi_pdf_get_supplier_trn(), $label ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped within helper
+	}
+
+	/**
+	 * Print the recipient (customer) VAT/TRN line under the billing address.
+	 *
+	 * @param null|string $document_type
+	 * @param null|\WC_Abstract_Order $order
+	 *
+	 * @return void
+	 */
+	public function display_recipient_trn( ?string $document_type = null, ?\WC_Abstract_Order $order = null ): void {
+		$label = apply_filters( 'woi_pdf_recipient_trn_label', __( 'TRN:', 'woocommerce-orders-invoice-pdf' ) );
+		echo woi_pdf_format_trn_line( woi_pdf_get_recipient_trn( $order ), $label ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped within helper
 	}
 
 	/**
