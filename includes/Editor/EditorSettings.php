@@ -1386,19 +1386,28 @@ class EditorSettings {
 	
 		?>
 		<div id="documents" style="display:none;">
-			<div class="tab-scroll-wrapper">
-				<button type="button" class="tab-scroll-btn tab-scroll-prev" aria-label="<?php esc_attr_e( 'Previous tabs', 'woi_pdf_templates' ); ?>">&#8249;</button>
-				<div class="tab-scroll-track">
-					<ul class="document-tabs">
-						<?php foreach ($args['documents'] as $document => $title) {
-							$document_id = $id.'_'.$document;
-							printf( '<li><a href="#%1$s" data-document_type="%2$s">%3$s</a></li>', $document_id, $document, $title );
-						}
-						?>
-					</ul>
-				</div>
-				<button type="button" class="tab-scroll-btn tab-scroll-next" aria-label="<?php esc_attr_e( 'Next tabs', 'woi_pdf_templates' ); ?>">&#8250;</button>
+			<div class="document-select-wrapper">
+				<label for="<?php echo esc_attr( $id ); ?>_document_select" class="document-select-label"><?php esc_html_e( 'Document', 'woi_pdf_templates' ); ?></label>
+				<?php
+				$select2_threshold       = (int) apply_filters( 'woi_pdf_document_select_select2_threshold', 8 );
+				$document_select_classes = 'document-select';
+				if ( count( $args['documents'] ) > $select2_threshold ) {
+					$document_select_classes .= ' wc-enhanced-select';
+				}
+				?>
+				<select id="<?php echo esc_attr( $id ); ?>_document_select" class="<?php echo esc_attr( $document_select_classes ); ?>">
+					<?php foreach ( $args['documents'] as $document => $title ) {
+						$document_id = $id.'_'.$document;
+						printf( '<option value="#%1$s" data-document_type="%2$s">%3$s</option>', esc_attr( $document_id ), esc_attr( $document ), esc_html( $title ) );
+					} ?>
+				</select>
 			</div>
+			<ul class="document-tabs">
+				<?php foreach ( $args['documents'] as $document => $title ) {
+					$document_id = $id.'_'.$document;
+					printf( '<li><a href="#%1$s" data-document_type="%2$s">%3$s</a></li>', $document_id, $document, $title );
+				} ?>
+			</ul>
 
 			<?php foreach ($args['documents'] as $document => $title): ?>
 				<?php
