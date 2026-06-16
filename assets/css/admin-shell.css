@@ -174,16 +174,19 @@
 }
 .woi-pdf-shell .settings_category > h2 {
 	margin: 0;
-	/* extra right padding reserves room for the legacy absolute chevron
-	   (settings-styles.min.css: h2::after at right:5px, ~16px wide) so the
-	   flex-positioned .woi-count badge doesn't land underneath it */
-	padding: 12px 36px 12px 16px;
+	padding: 12px 16px;
 	font-size: 14px;
 	cursor: pointer;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 }
+/* !important: legacy `#woi-pdf-preview-wrapper .sidebar .settings_category h2`
+   (settings-styles.min.css) carries an ID and sets padding-right:0, outranking
+   the class-only rule above; the same legacy block pins a chevron ::after at
+   right:5px (~16px wide). Force room on the right so the flex .woi-count badge
+   stops left of the chevron instead of landing under it. */
+.woi-pdf-shell .settings_category > h2 { padding-right: 36px !important; }
 .woi-pdf-shell .settings_category > h2:hover { background: #f6f7f7; }
 .woi-count {
 	background: #f0f0f1;
