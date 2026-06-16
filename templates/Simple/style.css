@@ -118,6 +118,12 @@ td.header img {
 	width: auto;
 }
 
+td.header.letterhead img {
+	width: 100%;
+	height: auto;
+	max-height: none;
+}
+
 /* .mpdf td.header img { */
 	/* img width & heights can only be set with inline styles (mpdf 8.0) https://github.com/mpdf/mpdf/issues/366 */
 	/* using woi_pdf_header_logo_img_element filter instead in wcpdf-mpdf.php */

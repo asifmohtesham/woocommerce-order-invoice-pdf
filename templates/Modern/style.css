@@ -129,6 +129,12 @@ td.header img {
 	width: auto;
 }
 
+td.header.letterhead img {
+	width: 100%;
+	height: auto;
+	max-height: none;
+}
+
 td.header {
 	font-size: 16pt;
 	font-weight: normal;

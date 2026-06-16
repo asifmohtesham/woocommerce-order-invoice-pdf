@@ -1221,10 +1221,22 @@ class Main {
 	 * Apply header logo height from settings
 	 */
 	public function set_header_logo_height( $document_type, $document = null ) {
-		if ( !empty($document) && $header_logo_height = $document->get_header_logo_height() ) {
+		if ( empty( $document ) ) {
+			return;
+		}
+
+		if ( $header_logo_height = $document->get_header_logo_height() ) {
 			?>
 			td.header img {
 				max-height: <?php echo esc_html( $header_logo_height ); ?>;
+			}
+			<?php
+		}
+
+		if ( method_exists( $document, 'get_letterhead_height' ) && $letterhead_height = $document->get_letterhead_height() ) {
+			?>
+			td.header.letterhead img {
+				max-height: <?php echo esc_html( $letterhead_height ); ?>;
 			}
 			<?php
 		}
