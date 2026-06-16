@@ -72,9 +72,6 @@ if ( empty( $breadcrumb ) ) {
 		</div>
 	</header>
 
-	<?php /* WP relocates floating admin notices to just after this marker, keeping them below the sticky header instead of pushing it down. */ ?>
-	<hr class="wp-header-end">
-
 	<?php do_action( 'woi_pdf_before_settings_page', $current_tab, $nonce ); ?>
 
 	<div class="woi-shell-body">
@@ -126,6 +123,10 @@ if ( empty( $breadcrumb ) ) {
 			<?php endforeach; ?>
 		</nav>
 		<?php endif; ?>
+
+		<?php /* WP relocates floating admin notices to just after this marker. Placed below the nav
+		         rows so the sticky dark header + tab bar stay flush at the top, with notices above the content. */ ?>
+		<hr class="wp-header-end">
 
 		<main class="woi-shell-content">
 		<?php if ( 'home' === $current_tab ) : ?>
