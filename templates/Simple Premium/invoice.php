@@ -41,7 +41,7 @@
 
 <?php do_action( 'woi_pdf_before_document_label', $this->get_type(), $this->order ); ?>
 
-<?php if ( $this->has_header_logo() ) : ?>
+<?php if ( $this->has_header_logo() || $this->has_letterhead() ) : ?>
 	<h1 class="document-type-label"><?php $this->title(); ?></h1>
 <?php endif; ?>
 
