@@ -1405,7 +1405,7 @@ class EditorSettings {
 			<ul class="document-tabs">
 				<?php foreach ( $args['documents'] as $document => $title ) {
 					$document_id = $id.'_'.$document;
-					printf( '<li><a href="#%1$s" data-document_type="%2$s">%3$s</a></li>', $document_id, $document, $title );
+					printf( '<li><a href="#%1$s" data-document_type="%2$s">%3$s</a></li>', esc_attr( $document_id ), esc_attr( $document ), esc_html( $title ) );
 				} ?>
 			</ul>
 
