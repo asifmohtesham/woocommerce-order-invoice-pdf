@@ -201,7 +201,9 @@ jQuery(function($) {
 	$( '#documents' ).on( 'change', '.document-select', function() {
 		$( '#documents' ).tabs( 'option', 'active', this.selectedIndex );
 		var document_type = $( this ).find( 'option:selected' ).data( 'document_type' );
-		$( '#woi-pdf-preview-wrapper :input[name="document_type"]' ).val( document_type ).trigger( 'change' );
+		if ( document_type ) {
+			$( '#woi-pdf-preview-wrapper :input[name="document_type"]' ).val( document_type ).trigger( 'change' );
+		}
 	} );
 
 
