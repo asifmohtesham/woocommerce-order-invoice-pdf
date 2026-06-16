@@ -66,13 +66,15 @@
 	border-bottom: 2px solid transparent;
 }
 .woi-tab:hover { color: #135e96; }
+/* negative offset keeps the ring inside the border box so overflow-x:auto can't clip it */
 .woi-tab:focus { box-shadow: none; outline: none; }
+.woi-tab:focus-visible { outline: 2px solid #2271b1; outline-offset: -2px; }
 .woi-tab.active {
 	color: #135e96;
 	font-weight: 600;
 	border-bottom-color: #2271b1;
 }
-.woi-tab .dashicons { width: 18px; height: 18px; font-size: 18px; }
+.woi-tab .dashicons { width: 18px; height: 18px; font-size: 18px; line-height: 1; }
 
 /* Row 2: document sub-tabs (only on the Documents tab) */
 .woi-shell-subtabs {
@@ -95,6 +97,8 @@
 	border-bottom: 2px solid transparent;
 }
 .woi-subtab:hover { color: #135e96; }
+.woi-subtab:focus { box-shadow: none; outline: none; }
+.woi-subtab:focus-visible { outline: 2px solid #2271b1; outline-offset: -2px; }
 .woi-subtab.active {
 	color: #135e96;
 	font-weight: 600;
@@ -188,9 +192,8 @@
 .woi-pdf-shell .woi-js-hidden { display: none; }
 
 /* --- Responsive ---
-   No icon-only tier: with the preview as an overlay the layout is just nav + form,
-   so the labeled 190px sidebar stays down to 783px; below that the nav goes
-   horizontal with labels (see the 782px block). */
+   The nav is horizontal (two stacked tab rows) at all widths; the 782px block
+   below just tightens tab padding for touch and adjusts the sticky header. */
 
 /* --- Preview overlay (all widths) --- */
 .woi-pdf-shell #woi-pdf-preview-wrapper .gutter { display: none; }
