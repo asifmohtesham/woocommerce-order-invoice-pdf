@@ -1,12 +1,4 @@
 jQuery(function($) {
-	function debounce( fn, wait ) {
-		var timer;
-		return function() {
-			clearTimeout( timer );
-			timer = setTimeout( fn, wait );
-		};
-	}
-
 	$( "#documents .field-list" ).sortable({
 		items: '.field',
 		cursor: 'move',
@@ -204,7 +196,13 @@ jQuery(function($) {
 
 	$( '#documents' ).tabs().show();
 	$(document.body).trigger( 'wc-enhanced-select-init' );
-	initTabScroll();
+
+	// Document picker: drive jQuery UI tabs() + sync preview document type
+	$( '#documents' ).on( 'change', '.document-select', function() {
+		$( '#documents' ).tabs( 'option', 'active', this.selectedIndex );
+		var document_type = $( this ).find( 'option:selected' ).data( 'document_type' );
+		$( '#woi-pdf-preview-wrapper :input[name="document_type"]' ).val( document_type ).trigger( 'change' );
+	} );
 
 
 	// Change template path on description in General settings
@@ -275,42 +273,6 @@ jQuery(function($) {
 		setup_requirements( $(this) );
 	});
 
-	function initTabScroll() {
-		$( window ).off( 'resize.tabScroll' );
-		var $wrapper = $( '#documents .tab-scroll-wrapper' );
-		if ( ! $wrapper.length ) return;
-
-		var $track = $wrapper.find( '.tab-scroll-track' );
-		var $ul    = $wrapper.find( '.document-tabs' );
-		var $prev  = $wrapper.find( '.tab-scroll-prev' );
-		var $next  = $wrapper.find( '.tab-scroll-next' );
-		var ul     = $ul[0];
-
-		function update() {
-			var atStart = ul.scrollLeft <= 0;
-			var atEnd   = ul.scrollLeft + ul.clientWidth >= ul.scrollWidth - 1;
-			$prev.toggleClass( 'hidden', atStart );
-			$next.toggleClass( 'hidden', atEnd );
-			$track.toggleClass( 'at-start', atStart );
-			$track.toggleClass( 'at-end',   atEnd );
-		}
-
-		$prev.off( 'click.tabScroll' ).on( 'click.tabScroll', function() {
-			ul.scrollLeft -= Math.round( ul.clientWidth * 0.5 );
-			update();
-		} );
-
-		$next.off( 'click.tabScroll' ).on( 'click.tabScroll', function() {
-			ul.scrollLeft += Math.round( ul.clientWidth * 0.5 );
-			update();
-		} );
-
-		$ul.off( 'scroll.tabScroll' ).on( 'scroll.tabScroll', debounce( update, 16 ) );
-		$( window ).on( 'resize.tabScroll', debounce( update, 150 ) );
-
-		update();
-	}
-
 	// Show custom block requirement field
 	$('.custom-blocks').on('change', '.select-requirements', function() { 
 		let requirement = $(this).val();
@@ -342,18 +304,12 @@ jQuery(function($) {
 		$( this ).trigger( 'woi-pdf-settings-changed' );
 	} );
 
-	// Update Preview document type on editor document change
-	$( document ).on( 'click', 'ul.document-tabs > li > a', function( event ) {
-		let document_type = $( this ).data( 'document_type' );
-		$( '#woi-pdf-preview-wrapper :input[name="document_type"]' ).val( document_type ).trigger( 'change' );
-	} );
-
-	// Detect if the editor active tab is different from Invoice, and if yes change the preview document type input
+	// Detect if the editor document is different from Invoice, and if yes change the preview document type input
 	$( document ).ready( function() {
-		if ( $( '#documents ul.document-tabs' ).length ) {
-			let $active_tab_link = $( '#documents ul.document-tabs > li.ui-state-active > a' );
-			let document_type    = $active_tab_link.data( 'document_type' );
-			if ( document_type.length && document_type != 'invoice' ) {
+		var $select = $( '#documents .document-select' );
+		if ( $select.length ) {
+			var document_type = $select.find( 'option:selected' ).data( 'document_type' );
+			if ( document_type && document_type !== 'invoice' ) {
 				$( '#woi-pdf-preview-wrapper :input[name="document_type"]' ).val( document_type ).trigger( 'change' );
 			}
 		}
