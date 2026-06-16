@@ -90,7 +90,7 @@ if ( empty( $breadcrumb ) ) {
 					$classes[] = 'active';
 				}
 			?>
-				<a class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" href="<?php echo esc_url( $url ); ?>" title="<?php echo esc_attr( $item['label'] ); ?>">
+				<a class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" href="<?php echo esc_url( $url ); ?>" title="<?php echo esc_attr( $item['label'] ); ?>"<?php echo $item['active'] ? ' aria-current="page"' : ''; ?>>
 					<span class="dashicons <?php echo esc_attr( $nav_icons[ $item['id'] ] ?? 'dashicons-media-document' ); ?>"></span>
 					<span class="woi-tab-label"><?php echo esc_html( $item['label'] ); ?></span>
 				</a>
@@ -116,7 +116,7 @@ if ( empty( $breadcrumb ) ) {
 					$classes[] = 'woi-nav-disabled-doc';
 				}
 			?>
-				<a class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" href="<?php echo esc_url( $url ); ?>" title="<?php echo esc_attr( $doc['label'] ); ?>">
+				<a class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" href="<?php echo esc_url( $url ); ?>" title="<?php echo esc_attr( $doc['label'] ); ?>"<?php echo $doc['active'] ? ' aria-current="page"' : ''; ?>>
 					<span class="woi-nav-dot" aria-hidden="true"></span>
 					<span class="woi-subtab-label"><?php echo esc_html( $doc['label'] ); ?></span>
 				</a>
