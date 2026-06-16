@@ -53,22 +53,61 @@ class TrnDisplayTest extends TestCase {
         $this->assertStringContainsString( 'trn-number', $html );
     }
 
-    // --- recipient fallback to the customer (user) profile ---
+    // --- customer-level TRN: dedicated profile field, then checkout-field fallback ---
 
-    public function test_profile_trn_returns_user_meta_when_treated_as_vat(): void {
-        Functions\when( 'get_option' )->justReturn( array( 'checkout_field_as_vat_number' => 1 ) );
-        Functions\when( 'get_user_meta' )->justReturn( '100888888800003' );
+    /** Stub get_user_meta with a per-key map. */
+    private function stub_user_meta( array $map ): void {
+        Functions\when( 'get_user_meta' )->alias(
+            static function ( $id, $key ) use ( $map ) {
+                return $map[ $key ] ?? '';
+            }
+        );
+    }
+
+    public function test_profile_trn_prefers_dedicated_field_ungated(): void {
+        Functions\when( 'get_option' )->justReturn( array() ); // checkout-as-VAT off
+        $this->stub_user_meta( array(
+            '_woi_pdf_customer_trn' => '100888888800003',
+            'woi_pdf_checkout_field' => 'IGNORED',
+        ) );
         $this->assertSame( '100888888800003', woi_pdf_get_customer_profile_trn( 7 ) );
     }
 
-    public function test_profile_trn_empty_when_not_treated_as_vat(): void {
+    public function test_profile_trn_falls_back_to_checkout_field_when_treated_as_vat(): void {
+        Functions\when( 'get_option' )->justReturn( array( 'checkout_field_as_vat_number' => 1 ) );
+        $this->stub_user_meta( array(
+            '_woi_pdf_customer_trn' => '',
+            'woi_pdf_checkout_field' => '100777777700003',
+        ) );
+        $this->assertSame( '100777777700003', woi_pdf_get_customer_profile_trn( 7 ) );
+    }
+
+    public function test_profile_trn_ignores_checkout_field_when_not_treated_as_vat(): void {
         Functions\when( 'get_option' )->justReturn( array() );
-        Functions\when( 'get_user_meta' )->justReturn( '100888888800003' );
+        $this->stub_user_meta( array(
+            '_woi_pdf_customer_trn' => '',
+            'woi_pdf_checkout_field' => '100777777700003',
+        ) );
         $this->assertSame( '', woi_pdf_get_customer_profile_trn( 7 ) );
     }
 
     public function test_profile_trn_empty_for_guest(): void {
         Functions\when( 'get_option' )->justReturn( array( 'checkout_field_as_vat_number' => 1 ) );
         $this->assertSame( '', woi_pdf_get_customer_profile_trn( 0 ) );
+    }
+
+    // --- customer edit screen field registration ---
+
+    public function test_adds_trn_field_under_customer_billing(): void {
+        Functions\when( '__' )->returnArg( 1 );
+        $fields = woi_pdf_add_customer_trn_field( array( 'billing' => array( 'fields' => array() ) ) );
+        $this->assertArrayHasKey( '_woi_pdf_customer_trn', $fields['billing']['fields'] );
+        $this->assertArrayHasKey( 'label', $fields['billing']['fields']['_woi_pdf_customer_trn'] );
+    }
+
+    public function test_adds_trn_field_when_billing_section_absent(): void {
+        Functions\when( '__' )->returnArg( 1 );
+        $fields = woi_pdf_add_customer_trn_field( array() );
+        $this->assertArrayHasKey( '_woi_pdf_customer_trn', $fields['billing']['fields'] );
     }
 }

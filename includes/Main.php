@@ -93,6 +93,9 @@ class Main {
 		add_action( 'woi_pdf_after_shop_address', array( $this, 'display_supplier_trn' ), 20, 2 );
 		add_action( 'woi_pdf_after_billing_address', array( $this, 'display_recipient_trn' ), 20, 2 );
 
+		// Customer-level TRN field on the customer edit screen (admin).
+		add_filter( 'woocommerce_customer_meta_fields', 'woi_pdf_add_customer_trn_field' );
+
 		add_action( 'woi_pdf_delete_document', array( $this, 'log_document_deletion_to_order_notes' ) );
 
 		// Add document link to emails

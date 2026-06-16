@@ -1279,12 +1279,47 @@ function woi_pdf_get_customer_profile_trn( $customer_id ): string {
 		return '';
 	}
 
+	// Dedicated, admin-managed customer TRN (set on the customer edit screen).
+	$trn = trim( (string) get_user_meta( $customer_id, '_woi_pdf_customer_trn', true ) );
+	if ( '' !== $trn ) {
+		return $trn;
+	}
+
+	// Otherwise fall back to the checkout field saved on the customer, but only
+	// when that field is configured to hold a VAT number.
 	$general = get_option( 'woi_pdf_settings_general', array() );
 	if ( empty( $general['checkout_field_as_vat_number'] ) ) {
 		return '';
 	}
 
 	return trim( (string) get_user_meta( $customer_id, 'woi_pdf_checkout_field', true ) );
+}
+
+/**
+ * Register a "TRN" field on the customer edit screen (under billing).
+ *
+ * Hooked to `woocommerce_customer_meta_fields`; WooCommerce renders and saves
+ * it to the `_woi_pdf_customer_trn` user meta automatically.
+ *
+ * @param array $fields
+ * @return array
+ */
+function woi_pdf_add_customer_trn_field( $fields ): array {
+	$fields = is_array( $fields ) ? $fields : array();
+
+	if ( ! isset( $fields['billing'] ) || ! is_array( $fields['billing'] ) ) {
+		$fields['billing'] = array();
+	}
+	if ( ! isset( $fields['billing']['fields'] ) || ! is_array( $fields['billing']['fields'] ) ) {
+		$fields['billing']['fields'] = array();
+	}
+
+	$fields['billing']['fields']['_woi_pdf_customer_trn'] = array(
+		'label'       => __( 'TRN', 'woocommerce-orders-invoice-pdf' ),
+		'description' => __( 'Tax Registration Number shown on this customer\'s tax invoices.', 'woocommerce-orders-invoice-pdf' ),
+	);
+
+	return $fields;
 }
 
 /**
