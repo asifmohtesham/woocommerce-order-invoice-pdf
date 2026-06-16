@@ -161,7 +161,7 @@ jQuery( function( $ ) {
 		history.replaceState( null, '', '?' + params.toString() );
 
 		// Update document section links so they carry the param on navigation
-		$( '.doc-output-toggle-group .doc-output-toggle, .woi-nav-document a' ).each( function() {
+		$( '.doc-output-toggle-group .doc-output-toggle, .woi-subtab' ).each( function() {
 			const href       = $( this ).attr( 'href' );
 			const [ path ]   = href.split( '?' );
 			const linkParams = updateParams( new URLSearchParams( href.split( '?' )[1] ) );
