@@ -164,7 +164,14 @@ jQuery( function( $ ) {
 			return;
 		}
 		const stickyTop = parseInt( $( header ).css( 'top' ), 10 ) || 32;
-		$shell.css( '--woi-tabs-sticky-top', ( stickyTop + header.offsetHeight ) + 'px' );
+		const tabsTop   = stickyTop + header.offsetHeight;
+		$shell.css( '--woi-tabs-sticky-top', tabsTop + 'px' );
+
+		// Sub-tab row (Documents tab) sticks directly below the main tab row.
+		const tabs = $( '.woi-shell-tabs' )[0];
+		if ( tabs ) {
+			$shell.css( '--woi-subtabs-sticky-top', ( tabsTop + tabs.offsetHeight ) + 'px' );
+		}
 	}
 	positionStickyTabs();
 	$( window ).on( 'resize', positionStickyTabs );

@@ -90,6 +90,10 @@
 	border-bottom: 1px solid #dcdcde;
 	padding: 0 8px;
 	overflow-x: auto;
+	/* pin directly below the sticky main tab row (JS tracks main-tabs bottom) */
+	position: sticky;
+	top: var(--woi-subtabs-sticky-top, 124px);
+	z-index: 89;
 }
 .woi-subtab {
 	display: flex;
