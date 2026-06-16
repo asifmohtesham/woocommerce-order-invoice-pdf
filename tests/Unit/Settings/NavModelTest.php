@@ -59,6 +59,19 @@ class NavModelTest extends TestCase {
 		$this->assertFalse( $by_id['packing-slip']['active'] );
 	}
 
+	public function test_documents_tab_itself_has_null_enabled(): void {
+		$nav   = NavModel::build( $this->tabs(), $this->documents(), 'home', '' );
+		$by_id = array_combine( array_column( $nav['tabs'], 'id' ), $nav['tabs'] );
+		$this->assertNull( $by_id['documents']['enabled'] );
+	}
+
+	public function test_items_expose_the_full_seven_key_shape(): void {
+		$nav      = NavModel::build( $this->tabs(), $this->documents(), 'documents', 'invoice' );
+		$expected = array( 'kind', 'id', 'label', 'tab', 'section', 'enabled', 'active' );
+		$this->assertSame( $expected, array_keys( $nav['tabs'][0] ) );
+		$this->assertSame( $expected, array_keys( $nav['documents'][0] ) );
+	}
+
 	public function test_plain_tab_active(): void {
 		$nav   = NavModel::build( $this->tabs(), $this->documents(), 'debug', '' );
 		$by_id = array_combine( array_column( $nav['tabs'], 'id' ), $nav['tabs'] );
