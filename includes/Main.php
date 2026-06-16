@@ -96,6 +96,11 @@ class Main {
 		// Customer-level TRN field on the customer edit screen (admin).
 		add_filter( 'woocommerce_customer_meta_fields', 'woi_pdf_add_customer_trn_field' );
 
+		// Collapse a company name that is duplicated into the address name fields
+		// (common in imported B2B orders) so it does not print twice.
+		add_filter( 'woi_pdf_billing_address', array( $this, 'dedupe_billing_company_line' ), 10, 2 );
+		add_filter( 'woi_pdf_shipping_address', array( $this, 'dedupe_shipping_company_line' ), 10, 2 );
+
 		add_action( 'woi_pdf_delete_document', array( $this, 'log_document_deletion_to_order_notes' ) );
 
 		// Add document link to emails
@@ -1925,6 +1930,36 @@ class Main {
 	public function display_recipient_trn( ?string $document_type = null, ?\WC_Abstract_Order $order = null ): void {
 		$label = apply_filters( 'woi_pdf_recipient_trn_label', __( 'TRN:', 'woocommerce-orders-invoice-pdf' ) );
 		echo woi_pdf_format_trn_line( woi_pdf_get_recipient_trn( $order ), $label ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped within helper
+	}
+
+	/**
+	 * Remove a billing company name that is duplicated into the name lines.
+	 *
+	 * @param string $address
+	 * @param mixed  $document
+	 * @return string
+	 */
+	public function dedupe_billing_company_line( $address, $document = null ) {
+		$order = ( is_object( $document ) && isset( $document->order ) ) ? $document->order : null;
+		if ( ! is_object( $order ) || ! is_callable( array( $order, 'get_billing_company' ) ) ) {
+			return $address;
+		}
+		return woi_pdf_dedupe_address_company_line( (string) $address, (string) $order->get_billing_company() );
+	}
+
+	/**
+	 * Remove a shipping company name that is duplicated into the name lines.
+	 *
+	 * @param string $address
+	 * @param mixed  $document
+	 * @return string
+	 */
+	public function dedupe_shipping_company_line( $address, $document = null ) {
+		$order = ( is_object( $document ) && isset( $document->order ) ) ? $document->order : null;
+		if ( ! is_object( $order ) || ! is_callable( array( $order, 'get_shipping_company' ) ) ) {
+			return $address;
+		}
+		return woi_pdf_dedupe_address_company_line( (string) $address, (string) $order->get_shipping_company() );
 	}
 
 	/**

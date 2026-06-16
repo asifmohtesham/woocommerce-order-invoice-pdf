@@ -1367,6 +1367,44 @@ function woi_pdf_format_trn_line( string $value, string $label ): string {
 }
 
 /**
+ * Collapse a company line that is repeated on consecutive lines of a formatted
+ * address.
+ *
+ * Handles the common B2B case where an order's billing/shipping name fields
+ * also contain the company name, so WooCommerce renders the company twice.
+ * Only consecutive lines equal to the company value are collapsed, so genuine
+ * repeats (e.g. city == state) are left untouched.
+ *
+ * @param string $address Formatted address (lines separated by <br> tags).
+ * @param string $company The order's company value.
+ * @return string
+ */
+function woi_pdf_dedupe_address_company_line( string $address, string $company ): string {
+	$company = strtolower( trim( $company ) );
+	if ( '' === $company ) {
+		return $address;
+	}
+
+	$parts = preg_split( '/<br\s*\/?>/i', $address );
+	if ( ! is_array( $parts ) || count( $parts ) < 2 ) {
+		return $address;
+	}
+
+	$result          = array();
+	$previous_company = false;
+	foreach ( $parts as $part ) {
+		$is_company = ( strtolower( trim( wp_strip_all_tags( $part ) ) ) === $company );
+		if ( $is_company && $previous_company ) {
+			continue; // drop the repeated company line
+		}
+		$result[]         = $part;
+		$previous_company = $is_company;
+	}
+
+	return implode( '<br/>', $result );
+}
+
+/**
  * Prepare an identifier query for use with $wpdb->prepare().
  *
  * @param string $query
