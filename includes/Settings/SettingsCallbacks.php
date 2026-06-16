@@ -59,7 +59,11 @@ class SettingsCallbacks {
 		$option_name   = $args['option_name'] ?? '';
 		$id            = $args['id'] ?? '';
 		$settings      = get_option( $option_name, array() );
-		$attachment_id = isset( $settings[ $id ] ) ? absint( $settings[ $id ] ) : 0;
+		// Honour a freshly picked attachment passed by the AJAX re-render ($args['current'])
+		// so the selection survives the HTML regeneration that happens before saving.
+		$attachment_id = ! empty( $args['current'] )
+			? absint( $args['current'] )
+			: ( isset( $settings[ $id ] ) ? absint( $settings[ $id ] ) : 0 );
 		$height_id     = ! empty( $args['height_id'] ) ? $args['height_id'] : ( $id . '_height' );
 		$height        = $settings[ $height_id ] ?? '';
 		$setting_name  = $option_name . '[' . $id . ']';
