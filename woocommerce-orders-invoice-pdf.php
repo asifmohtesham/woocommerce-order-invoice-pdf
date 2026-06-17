@@ -21,7 +21,7 @@ if ( ! class_exists( 'WOI_PDF' ) ) :
 
 class WOI_PDF {
 
-	public string $version     = '1.4.1';
+	public string $version     = '1.4.2';
 	public string $version_php = '7.4';
 	public string $version_woo = '3.3';
 	public string $version_wp  = '6.0';

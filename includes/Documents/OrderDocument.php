@@ -196,6 +196,22 @@ abstract class OrderDocument implements DocumentInterface {
 			unset( $settings['display_number'] );
 		}
 
+		/**
+		 * Allow templates and plugins to inject default settings into documents.
+		 *
+		 * Callbacks receive the merged settings array and MUST return it. Only add
+		 * keys that are absent from $settings — never overwrite values the user has
+		 * already saved (use array_key_exists to check, not isset).
+		 *
+		 * @since 1.4.2
+		 *
+		 * @param array         $settings       Merged document settings.
+		 * @param OrderDocument $this           The document instance.
+		 * @param bool          $latest         Whether these are "latest" (not historical) settings.
+		 * @param string        $output_format  Output format ('pdf', 'html', …).
+		 */
+		$settings = apply_filters( 'woi_pdf_document_settings', $settings, $this, $latest, $output_format );
+
 		return $settings;
 	}
 

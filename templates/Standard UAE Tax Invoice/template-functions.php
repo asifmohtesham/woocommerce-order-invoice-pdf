@@ -5,53 +5,87 @@
  * Pre-wires the bilingual engine ON with UAE/Arabic defaults so the user gets
  * bilingual output in one click after selecting this template.
  *
- * NOTE on the defaults mechanism:
- * The `woi_pdf_template_editor_defaults` and `woi_pdf_template_editor_settings`
- * filters are called by EditorSettings::get_settings() with $settings_name equal
- * to 'columns' or 'totals' only (the drag-drop Customiser editor sections).
- * Bilingual settings (enable_second_language, second_language, etc.) are stored
- * as separate WP options (woi_pdf_documents_settings_{document_type}) and are NOT
- * routed through these filters. The switch cases below for bilingual keys are
- * therefore included for intent documentation; they are no-ops unless the filter
- * is later extended to cover those setting names.
+ * Load-timing note: this file is included via Main::load_template_functions()
+ * which resolves to the ACTIVE template only (via get_template_path() with no
+ * argument falls back to the saved general_settings['template_path']). There is
+ * therefore no need for an extra active-template guard here — the callbacks
+ * below are only registered when this template is selected.
  *
  * Requires PDF Invoices & Packing Slips for WooCommerce 1.4.13 or higher.
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-add_filter( 'woi_pdf_template_editor_defaults', 'woi_pdf_standard_uae_template_defaults', 9, 3 );
-add_filter( 'woi_pdf_template_editor_settings', 'woi_pdf_standard_uae_template_defaults', 9, 3 );
-function woi_pdf_standard_uae_template_defaults( $settings, $document_type, $settings_name ) {
-	$editor_settings = get_option( 'woi_pdf_editor_settings' );
+// ---------------------------------------------------------------------------
+// 1. Document-settings injection — bilingual defaults
+// ---------------------------------------------------------------------------
 
-	if ( isset( $editor_settings['settings_saved'] ) && ! isset( $_GET['load-defaults'] ) ) {
-		return $settings;
-	}
+add_filter( 'woi_pdf_document_settings', 'woi_pdf_standard_uae_inject_bilingual_defaults', 9, 4 );
 
-	// Seed bilingual engine defaults for the UAE preset.
-	// These cases are intent-documenting; see file header for why they are
-	// currently no-ops (the filter is only called with 'columns'/'totals').
+/**
+ * Merge bilingual defaults into the document settings for the UAE preset.
+ *
+ * Only fills keys that are absent from $settings (array_key_exists check so a
+ * deliberately-empty/zero user value is respected). The filter is registered
+ * with priority 9, before any user-land callbacks, so user overrides at p≥10
+ * can still win.
+ *
+ * @param array         $settings      Merged document settings.
+ * @param object        $document      The OrderDocument instance.
+ * @param bool          $latest        Whether these are latest (non-historical) settings.
+ * @param string        $output_format Output format ('pdf', 'html', …).
+ * @return array
+ */
+function woi_pdf_standard_uae_inject_bilingual_defaults( $settings, $document, $latest, $output_format ) {
 	if ( class_exists( '\WOI\PDF\Bilingual\BilingualEngine' ) ) {
 		$dict = \WOI\PDF\Bilingual\BilingualEngine::instance()->dictionary( 'ar' );
 	} else {
 		$dict = array();
 	}
 
-	switch ( $settings_name ) {
-		case 'enable_second_language':
-			$settings = 1; break;
-		case 'second_language':
-			$settings = 'ar'; break;
-		case 'second_language_rtl':
-			$settings = 1; break;
-		case 'document_title':
-			$settings = __( 'Tax Invoice', 'woocommerce-orders-invoice-pdf' ); break;
-		case 'second_language_labels':
-			$settings = $dict; break;
+	$defaults = array(
+		'enable_second_language'  => 1,
+		'second_language'         => 'ar',
+		'second_language_rtl'     => 1,
+		'document_title'          => __( 'Tax Invoice', 'woocommerce-orders-invoice-pdf' ),
+		'second_language_labels'  => $dict,
+	);
+
+	foreach ( $defaults as $key => $value ) {
+		if ( ! array_key_exists( $key, $settings ) ) {
+			$settings[ $key ] = $value;
+		}
 	}
 
-	// Columns and totals defaults — UAE-specific column set is a later sub-project.
-	// For now these mirror the Business template defaults.
+	return $settings;
+}
+
+// ---------------------------------------------------------------------------
+// 2. Editor (Customiser) defaults — columns and totals
+// ---------------------------------------------------------------------------
+
+add_filter( 'woi_pdf_template_editor_defaults', 'woi_pdf_standard_uae_editor_defaults', 9, 3 );
+add_filter( 'woi_pdf_template_editor_settings', 'woi_pdf_standard_uae_editor_defaults', 9, 3 );
+
+/**
+ * Seed Customiser column and totals defaults for the UAE preset.
+ *
+ * These filters are called by EditorSettings::get_settings() with
+ * $settings_name equal to 'columns' or 'totals' only (the drag-drop editor
+ * sections). Bilingual keys are NOT routed through these filters, hence they
+ * are handled via woi_pdf_document_settings above.
+ *
+ * @param mixed  $settings       Current setting value.
+ * @param string $document_type  Document type slug.
+ * @param string $settings_name  Setting key name.
+ * @return mixed
+ */
+function woi_pdf_standard_uae_editor_defaults( $settings, $document_type, $settings_name ) {
+	$editor_settings = get_option( 'woi_pdf_editor_settings' );
+
+	if ( isset( $editor_settings['settings_saved'] ) && ! isset( $_GET['load-defaults'] ) ) {
+		return $settings;
+	}
+
 	if ( in_array( $document_type, array( 'packing-slip', 'delivery-note' ) ) ) {
 		switch ( $settings_name ) {
 			case 'columns':
