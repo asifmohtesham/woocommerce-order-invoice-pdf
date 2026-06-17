@@ -52,12 +52,12 @@ class BilingualEngine {
 	}
 
 	public function secondary_shop_name(): string {
-		$general = (array) get_option( 'woi_pdf_general_settings' );
+		$general = (array) get_option( 'woi_pdf_settings_general' );
 		return isset( $general['shop_name_ar'] ) ? trim( (string) $general['shop_name_ar'] ) : '';
 	}
 
 	public function secondary_shop_address(): string {
-		$general = (array) get_option( 'woi_pdf_general_settings' );
+		$general = (array) get_option( 'woi_pdf_settings_general' );
 		return isset( $general['shop_address_ar'] ) ? trim( (string) $general['shop_address_ar'] ) : '';
 	}
 

@@ -2510,6 +2510,226 @@ function woi_pdf_get_bacs_account_options(): array {
 	return $bacs_account_options;
 }
 
+// ---------------------------------------------------------------------------
+// Bilingual settings — invoice Customiser fields
+// ---------------------------------------------------------------------------
+
+/**
+ * Inject bilingual settings fields into the invoice document settings array.
+ *
+ * Hooked on `woi_pdf_invoice_pdf_settings_fields` (priority 10).
+ *
+ * @param array  $fields      The existing settings fields array.
+ * @param string $option_name The WP option name for invoice settings.
+ * @return array
+ */
+function woi_pdf_add_invoice_bilingual_settings( array $fields, string $option_name ): array {
+	$fields[] = array(
+		'type'     => 'section',
+		'id'       => 'invoice_second_language',
+		'title'    => __( 'Second language', 'woocommerce-orders-invoice-pdf' ),
+		'callback' => 'section',
+	);
+	$fields[] = array(
+		'type'     => 'setting',
+		'id'       => 'enable_second_language',
+		'title'    => __( 'Enable second language', 'woocommerce-orders-invoice-pdf' ),
+		'callback' => 'checkbox',
+		'section'  => 'invoice_second_language',
+		'args'     => array(
+			'option_name' => $option_name,
+			'id'          => 'enable_second_language',
+			'description' => __( 'Show a second language alongside the primary language on this document (e.g. Arabic + English).', 'woocommerce-orders-invoice-pdf' ),
+		),
+	);
+	$fields[] = array(
+		'type'     => 'setting',
+		'id'       => 'second_language',
+		'title'    => __( 'Second language', 'woocommerce-orders-invoice-pdf' ),
+		'callback' => 'select',
+		'section'  => 'invoice_second_language',
+		'show_if'  => array( 'field' => 'enable_second_language', 'value' => 1 ),
+		'args'     => array(
+			'option_name' => $option_name,
+			'id'          => 'second_language',
+			'default'     => 'ar',
+			'options'     => array(
+				'ar' => __( 'Arabic', 'woocommerce-orders-invoice-pdf' ),
+			),
+		),
+	);
+	$fields[] = array(
+		'type'     => 'setting',
+		'id'       => 'second_language_rtl',
+		'title'    => __( 'Right-to-left', 'woocommerce-orders-invoice-pdf' ),
+		'callback' => 'checkbox',
+		'section'  => 'invoice_second_language',
+		'show_if'  => array( 'field' => 'enable_second_language', 'value' => 1 ),
+		'args'     => array(
+			'option_name' => $option_name,
+			'id'          => 'second_language_rtl',
+			'default'     => 1,
+			'description' => __( 'Render the second-language text right-to-left.', 'woocommerce-orders-invoice-pdf' ),
+		),
+	);
+	$fields[] = array(
+		'type'     => 'setting',
+		'id'       => 'second_language_labels',
+		'title'    => __( 'Label translations', 'woocommerce-orders-invoice-pdf' ),
+		'callback' => 'woi_pdf_second_language_labels_table',
+		'section'  => 'invoice_second_language',
+		'show_if'  => array( 'field' => 'enable_second_language', 'value' => 1 ),
+		'args'     => array(
+			'option_name' => $option_name,
+			'id'          => 'second_language_labels',
+		),
+	);
+	return $fields;
+}
+if ( function_exists( 'add_filter' ) ) {
+	add_filter( 'woi_pdf_invoice_pdf_settings_fields', 'woi_pdf_add_invoice_bilingual_settings', 10, 2 );
+}
+
+/**
+ * Render the editable label-translation table for the second language.
+ *
+ * Outputs one row per key in BilingualEngine::dictionary(), showing the
+ * primary English label (read-only) and an editable input for the translation.
+ * Saved values pre-fill the input; if none are saved the dictionary seed value
+ * is used so the admin sees the Arabic defaults immediately.
+ *
+ * @param array $args Settings field args (option_name, id).
+ */
+function woi_pdf_second_language_labels_table( array $args = array() ): void {
+	$option_name = $args['option_name'] ?? '';
+	$field_id    = $args['id'] ?? 'second_language_labels';
+	$settings    = get_option( $option_name, array() );
+	$saved       = isset( $settings[ $field_id ] ) && is_array( $settings[ $field_id ] )
+		? $settings[ $field_id ]
+		: array();
+
+	// Read the dictionary — primary English key label map.
+	$engine = \WOI\PDF\Bilingual\BilingualEngine::instance();
+	$dict   = $engine->dictionary( 'ar' );
+
+	if ( empty( $dict ) ) {
+		echo '<p>' . esc_html__( 'No dictionary entries found.', 'woocommerce-orders-invoice-pdf' ) . '</p>';
+		return;
+	}
+
+	// Human-readable English primary labels (keyed by dictionary key).
+	$primary_labels = array(
+		'document'          => __( 'Document title', 'woocommerce-orders-invoice-pdf' ),
+		'document_number'   => __( 'Document number', 'woocommerce-orders-invoice-pdf' ),
+		'document_date'     => __( 'Document date', 'woocommerce-orders-invoice-pdf' ),
+		'document_due_date' => __( 'Due date', 'woocommerce-orders-invoice-pdf' ),
+		'billing_address'   => __( 'Billing address', 'woocommerce-orders-invoice-pdf' ),
+		'shipping_address'  => __( 'Shipping address', 'woocommerce-orders-invoice-pdf' ),
+		'order_number'      => __( 'Order number', 'woocommerce-orders-invoice-pdf' ),
+		'order_date'        => __( 'Order date', 'woocommerce-orders-invoice-pdf' ),
+		'sku'               => __( 'SKU', 'woocommerce-orders-invoice-pdf' ),
+		'description'       => __( 'Description', 'woocommerce-orders-invoice-pdf' ),
+		'quantity'          => __( 'Quantity', 'woocommerce-orders-invoice-pdf' ),
+		'price'             => __( 'Price', 'woocommerce-orders-invoice-pdf' ),
+		'tax_rate'          => __( 'Tax rate', 'woocommerce-orders-invoice-pdf' ),
+		'weight'            => __( 'Weight', 'woocommerce-orders-invoice-pdf' ),
+		'subtotal'          => __( 'Subtotal', 'woocommerce-orders-invoice-pdf' ),
+		'discount'          => __( 'Discount', 'woocommerce-orders-invoice-pdf' ),
+		'shipping'          => __( 'Shipping', 'woocommerce-orders-invoice-pdf' ),
+		'fee'               => __( 'Fee', 'woocommerce-orders-invoice-pdf' ),
+		'vat'               => __( 'VAT', 'woocommerce-orders-invoice-pdf' ),
+		'total'             => __( 'Total', 'woocommerce-orders-invoice-pdf' ),
+	);
+
+	echo '<table class="woi-bilingual-labels-table widefat" style="max-width:700px;">';
+	echo '<thead><tr>';
+	echo '<th>' . esc_html__( 'Label key', 'woocommerce-orders-invoice-pdf' ) . '</th>';
+	echo '<th>' . esc_html__( 'Primary (English)', 'woocommerce-orders-invoice-pdf' ) . '</th>';
+	echo '<th>' . esc_html__( 'Translation', 'woocommerce-orders-invoice-pdf' ) . '</th>';
+	echo '</tr></thead><tbody>';
+
+	foreach ( $dict as $key => $seed_value ) {
+		$primary    = $primary_labels[ $key ] ?? $key;
+		$saved_val  = isset( $saved[ $key ] ) ? (string) $saved[ $key ] : '';
+		// Pre-fill from saved override; if blank, seed with dictionary default.
+		$input_val  = '' !== $saved_val ? $saved_val : $seed_value;
+		$input_name = esc_attr( $option_name ) . '[' . esc_attr( $field_id ) . '][' . esc_attr( $key ) . ']';
+		$input_id   = esc_attr( $field_id . '_' . $key );
+
+		echo '<tr>';
+		printf( '<td><code>%s</code></td>', esc_html( $key ) );
+		printf( '<td>%s</td>', esc_html( $primary ) );
+		printf(
+			'<td><input type="text" id="%s" name="%s" value="%s" class="regular-text" dir="rtl" /></td>',
+			esc_attr( $input_id ),
+			esc_attr( $input_name ),
+			esc_attr( $input_val )
+		);
+		echo '</tr>';
+	}
+
+	echo '</tbody></table>';
+	echo '<p class="description">' . esc_html__( 'Leave blank to use the dictionary default. Changes apply to new documents (or all documents when "Always use most current settings" is on).', 'woocommerce-orders-invoice-pdf' ) . '</p>';
+}
+
+// ---------------------------------------------------------------------------
+// Test accessor — returns declared invoice settings field IDs (test-only use).
+// Placed in functions file so the bootstrap can load it without WP context.
+// ---------------------------------------------------------------------------
+if ( ! function_exists( 'woi_pdf_test_get_invoice_setting_ids' ) ) {
+	/**
+	 * Return the list of field IDs registered for the invoice document.
+	 *
+	 * Builds the base fields array and then directly applies any hooked
+	 * additions (bilingual fields via woi_pdf_add_invoice_bilingual_settings).
+	 * Does NOT call apply_filters() so it works without a WordPress environment.
+	 *
+	 * FOR TESTING ONLY — do not call from production code.
+	 *
+	 * @return string[]
+	 */
+	function woi_pdf_test_get_invoice_setting_ids(): array {
+		$option_name = 'woi_pdf_documents_settings_invoice';
+
+		// Base fields mirroring Invoice::get_pdf_settings_fields() (section
+		// entries omitted — only 'setting' type entries matter for ID lookup).
+		$base_fields = array(
+			array( 'type' => 'setting', 'id' => 'enabled' ),
+			array( 'type' => 'setting', 'id' => 'attach_to_email_ids' ),
+			array( 'type' => 'setting', 'id' => 'disable_for_statuses' ),
+			array( 'type' => 'setting', 'id' => 'document_title' ),
+			array( 'type' => 'setting', 'id' => 'display_shipping_address' ),
+			array( 'type' => 'setting', 'id' => 'display_email' ),
+			array( 'type' => 'setting', 'id' => 'display_phone' ),
+			array( 'type' => 'setting', 'id' => 'display_customer_notes' ),
+			array( 'type' => 'setting', 'id' => 'display_date' ),
+			array( 'type' => 'setting', 'id' => 'due_date' ),
+			array( 'type' => 'setting', 'id' => 'display_number' ),
+			array( 'type' => 'setting', 'id' => 'next_invoice_number' ),
+			array( 'type' => 'setting', 'id' => 'number_format' ),
+			array( 'type' => 'setting', 'id' => 'reset_number_yearly' ),
+			array( 'type' => 'setting', 'id' => 'my_account_buttons' ),
+			array( 'type' => 'setting', 'id' => 'invoice_number_column' ),
+			array( 'type' => 'setting', 'id' => 'invoice_date_column' ),
+			array( 'type' => 'setting', 'id' => 'invoice_number_search' ),
+			array( 'type' => 'setting', 'id' => 'invoice_number_partial_search' ),
+			array( 'type' => 'setting', 'id' => 'disable_free' ),
+			array( 'type' => 'setting', 'id' => 'mark_printed' ),
+			array( 'type' => 'setting', 'id' => 'unmark_printed' ),
+			array( 'type' => 'setting', 'id' => 'use_latest_settings' ),
+		);
+
+		// Directly invoke the bilingual filter callback so the test works
+		// without a WordPress environment (no apply_filters needed).
+		$fields = woi_pdf_add_invoice_bilingual_settings( $base_fields, $option_name );
+
+		return array_values( array_filter( array_map(
+			static function ( array $f ): string { return $f['id'] ?? ''; },
+			$fields
+		) ) );
+	}
+}
+
 // EDI extension stubs — the EDI/UBL extension is not included in this build.
 // These stubs keep base-plugin code paths from fataling when the extension is absent.
 if ( ! function_exists( 'woi_pdf_edi_is_available' ) ) {

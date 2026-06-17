@@ -338,6 +338,31 @@ class SettingsGeneral {
 				),
 			),
 			array(
+				'type'     => 'setting',
+				'id'       => 'shop_name_ar',
+				'title'    => __( 'Shop name (second language)', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'text_element',
+				'section'  => 'general_shop_details',
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'shop_name_ar',
+					'description' => __( 'Shop name in the second language (e.g. Arabic). Displayed alongside the primary name on bilingual documents.', 'woocommerce-orders-invoice-pdf' ),
+				),
+			),
+			array(
+				'type'     => 'setting',
+				'id'       => 'shop_address_ar',
+				'title'    => __( 'Shop address (second language)', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'textarea_element',
+				'section'  => 'general_shop_details',
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'shop_address_ar',
+					'rows'        => 4,
+					'description' => __( 'Shop address in the second language (e.g. Arabic). Displayed alongside the primary address on bilingual documents.', 'woocommerce-orders-invoice-pdf' ),
+				),
+			),
+			array(
 				'type'     => 'section',
 				'id'       => 'general_extra',
 				'title'    => __( 'Extra template fields', 'woocommerce-orders-invoice-pdf' ),
