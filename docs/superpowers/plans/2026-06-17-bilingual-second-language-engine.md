@@ -122,7 +122,7 @@ return array(
 	'document'          => 'فاتورة ضريبية',
 	'document_number'   => 'رقم الفاتورة',
 	'document_date'     => 'التاريخ',
-	'due_date'          => 'تاريخ الاستحقاق',
+	'document_due_date' => 'تاريخ الاستحقاق',
 	'billing_address'   => 'المشترى',
 	'shipping_address'  => 'عنوان الشحن',
 	'order_number'      => 'رقم المرجع',
