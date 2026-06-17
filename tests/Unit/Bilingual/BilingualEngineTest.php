@@ -56,4 +56,25 @@ class BilingualEngineTest extends TestCase {
 	public function test_unknown_label_returns_empty(): void {
 		$this->assertSame( '', BilingualEngine::instance()->secondary_label( 'nope', $this->doc( array() ) ) );
 	}
+
+	public function test_primary_labels_returns_non_empty_map(): void {
+		$labels = BilingualEngine::instance()->primary_labels();
+		$this->assertNotEmpty( $labels );
+		$this->assertArrayHasKey( 'document', $labels );
+		$this->assertArrayHasKey( 'document_number', $labels );
+		$this->assertArrayHasKey( 'total', $labels );
+	}
+
+	public function test_primary_labels_covers_all_ar_dictionary_keys(): void {
+		$engine = BilingualEngine::instance();
+		$dict   = $engine->dictionary( 'ar' );
+		$labels = $engine->primary_labels();
+		foreach ( array_keys( $dict ) as $key ) {
+			$this->assertArrayHasKey(
+				$key,
+				$labels,
+				"primary_labels() is missing key '{$key}' that exists in ar dictionary"
+			);
+		}
+	}
 }

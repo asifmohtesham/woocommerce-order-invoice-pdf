@@ -2617,29 +2617,8 @@ function woi_pdf_second_language_labels_table( array $args = array() ): void {
 		return;
 	}
 
-	// Human-readable English primary labels (keyed by dictionary key).
-	$primary_labels = array(
-		'document'          => __( 'Document title', 'woocommerce-orders-invoice-pdf' ),
-		'document_number'   => __( 'Document number', 'woocommerce-orders-invoice-pdf' ),
-		'document_date'     => __( 'Document date', 'woocommerce-orders-invoice-pdf' ),
-		'document_due_date' => __( 'Due date', 'woocommerce-orders-invoice-pdf' ),
-		'billing_address'   => __( 'Billing address', 'woocommerce-orders-invoice-pdf' ),
-		'shipping_address'  => __( 'Shipping address', 'woocommerce-orders-invoice-pdf' ),
-		'order_number'      => __( 'Order number', 'woocommerce-orders-invoice-pdf' ),
-		'order_date'        => __( 'Order date', 'woocommerce-orders-invoice-pdf' ),
-		'sku'               => __( 'SKU', 'woocommerce-orders-invoice-pdf' ),
-		'description'       => __( 'Description', 'woocommerce-orders-invoice-pdf' ),
-		'quantity'          => __( 'Quantity', 'woocommerce-orders-invoice-pdf' ),
-		'price'             => __( 'Price', 'woocommerce-orders-invoice-pdf' ),
-		'tax_rate'          => __( 'Tax rate', 'woocommerce-orders-invoice-pdf' ),
-		'weight'            => __( 'Weight', 'woocommerce-orders-invoice-pdf' ),
-		'subtotal'          => __( 'Subtotal', 'woocommerce-orders-invoice-pdf' ),
-		'discount'          => __( 'Discount', 'woocommerce-orders-invoice-pdf' ),
-		'shipping'          => __( 'Shipping', 'woocommerce-orders-invoice-pdf' ),
-		'fee'               => __( 'Fee', 'woocommerce-orders-invoice-pdf' ),
-		'vat'               => __( 'VAT', 'woocommerce-orders-invoice-pdf' ),
-		'total'             => __( 'Total', 'woocommerce-orders-invoice-pdf' ),
-	);
+	// Human-readable English primary labels — single source of truth in the engine.
+	$primary_labels = $engine->primary_labels();
 
 	echo '<table class="woi-bilingual-labels-table widefat" style="max-width:700px;">';
 	echo '<thead><tr>';
@@ -2653,8 +2632,8 @@ function woi_pdf_second_language_labels_table( array $args = array() ): void {
 		$saved_val  = isset( $saved[ $key ] ) ? (string) $saved[ $key ] : '';
 		// Pre-fill from saved override; if blank, seed with dictionary default.
 		$input_val  = '' !== $saved_val ? $saved_val : $seed_value;
-		$input_name = esc_attr( $option_name ) . '[' . esc_attr( $field_id ) . '][' . esc_attr( $key ) . ']';
-		$input_id   = esc_attr( $field_id . '_' . $key );
+		$input_name = $option_name . '[' . $field_id . '][' . $key . ']';
+		$input_id   = $field_id . '_' . $key;
 
 		echo '<tr>';
 		printf( '<td><code>%s</code></td>', esc_html( $key ) );

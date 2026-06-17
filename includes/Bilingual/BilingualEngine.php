@@ -108,6 +108,40 @@ class BilingualEngine {
 		return $totals;
 	}
 
+	/**
+	 * Returns a key → English-label map for every dictionary key.
+	 *
+	 * This is the single canonical source for human-readable primary labels used
+	 * in the settings UI.  Filterable so themes/plugins can rename entries.
+	 *
+	 * @return array<string,string>
+	 */
+	public function primary_labels(): array {
+		$map = array(
+			'document'          => __( 'Document title', 'woocommerce-orders-invoice-pdf' ),
+			'document_number'   => __( 'Document number', 'woocommerce-orders-invoice-pdf' ),
+			'document_date'     => __( 'Document date', 'woocommerce-orders-invoice-pdf' ),
+			'document_due_date' => __( 'Due date', 'woocommerce-orders-invoice-pdf' ),
+			'billing_address'   => __( 'Billing address', 'woocommerce-orders-invoice-pdf' ),
+			'shipping_address'  => __( 'Shipping address', 'woocommerce-orders-invoice-pdf' ),
+			'order_number'      => __( 'Order number', 'woocommerce-orders-invoice-pdf' ),
+			'order_date'        => __( 'Order date', 'woocommerce-orders-invoice-pdf' ),
+			'sku'               => __( 'SKU', 'woocommerce-orders-invoice-pdf' ),
+			'description'       => __( 'Description', 'woocommerce-orders-invoice-pdf' ),
+			'quantity'          => __( 'Quantity', 'woocommerce-orders-invoice-pdf' ),
+			'price'             => __( 'Price', 'woocommerce-orders-invoice-pdf' ),
+			'tax_rate'          => __( 'Tax rate', 'woocommerce-orders-invoice-pdf' ),
+			'weight'            => __( 'Weight', 'woocommerce-orders-invoice-pdf' ),
+			'subtotal'          => __( 'Subtotal', 'woocommerce-orders-invoice-pdf' ),
+			'discount'          => __( 'Discount', 'woocommerce-orders-invoice-pdf' ),
+			'shipping'          => __( 'Shipping', 'woocommerce-orders-invoice-pdf' ),
+			'fee'               => __( 'Fee', 'woocommerce-orders-invoice-pdf' ),
+			'vat'               => __( 'VAT', 'woocommerce-orders-invoice-pdf' ),
+			'total'             => __( 'Total', 'woocommerce-orders-invoice-pdf' ),
+		);
+		return (array) apply_filters( 'woi_pdf_second_language_primary_labels', $map );
+	}
+
 	public function font_family(): string {
 		return 'Noto Naskh Arabic';
 	}
