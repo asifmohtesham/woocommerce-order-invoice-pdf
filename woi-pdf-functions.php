@@ -2959,6 +2959,22 @@ if ( ! function_exists( 'woi_pdf_templates_get_order_shipping_methods' ) ) {
 	}
 }
 
+if ( ! function_exists( 'woi_pdf_print_bilingual_styles' ) ) {
+	/**
+	 * Echo bilingual font/secondary CSS into the document head.
+	 * Hooked on woi_pdf_custom_styles. No-op when the document is single-language.
+	 *
+	 * @param string $document_type
+	 * @param object $document
+	 */
+	function woi_pdf_print_bilingual_styles( $document_type, $document = null ) {
+		if ( ! $document ) {
+			return;
+		}
+		echo \WOI\PDF\Bilingual\BilingualEngine::instance()->font_css( $document ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+}
+
 if ( ! function_exists( 'woi_pdf_templates_get_country_groups' ) ) {
 	function woi_pdf_templates_get_country_groups(): array {
 		$all_countries    = WC()->countries->get_countries();

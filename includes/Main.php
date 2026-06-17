@@ -73,6 +73,9 @@ class Main {
 		// apply header logo height
 		add_action( 'woi_pdf_custom_styles', array( $this, 'set_header_logo_height' ), 9, 2 );
 
+		// inject bilingual font CSS into document head
+		add_action( 'woi_pdf_custom_styles', 'woi_pdf_print_bilingual_styles', 20, 2 );
+
 		// set ink saving mode
 		add_filter( 'woi_pdf_template_custom_styles', array( $this, 'apply_ink_saving_styles' ), 10, 2 );
 
