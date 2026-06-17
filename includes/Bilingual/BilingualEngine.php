@@ -79,4 +79,24 @@ class BilingualEngine {
 		}
 		return '' !== $name ? $name : $value;
 	}
+
+	public function font_family(): string {
+		return 'Noto Naskh Arabic';
+	}
+
+	public function font_css( $document ): string {
+		if ( ! $this->is_enabled( $document ) ) {
+			return '';
+		}
+		// Dompdf resolves font-family names against its synced font dir by family
+		// name; the bundled NotoNaskhArabic TTFs are copied there by FontSynchronizer.
+		$family = $this->font_family();
+		$dir    = $this->is_rtl( $document ) ? 'rtl' : 'ltr';
+		$css    = "@font-face { font-family: '{$family}'; font-style: normal; font-weight: normal; src: url('NotoNaskhArabic-Regular.ttf'); }\n";
+		$css   .= "@font-face { font-family: '{$family}'; font-style: normal; font-weight: bold; src: url('NotoNaskhArabic-Bold.ttf'); }\n";
+		$css   .= ".woi-lbl-secondary { display: block; font-family: '{$family}'; direction: {$dir}; }\n";
+		$css   .= ".woi-lbl-inline .woi-lbl-secondary { display: inline; }\n";
+		$css   .= ".woi-bilingual-secondary { font-family: '{$family}'; direction: {$dir}; }\n";
+		return $css;
+	}
 }
