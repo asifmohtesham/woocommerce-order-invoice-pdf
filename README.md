@@ -152,6 +152,42 @@ Permission: `edit_shop_order` per-order capability. Filterable via `woi_pdf_api_
 
 ---
 
+## Second language (bilingual documents)
+
+Documents can be rendered in two languages side by side. The feature is off by default and has no impact on documents that do not enable it (no extra spans, no `@font-face` declarations, no font assets loaded).
+
+### Enabling it
+
+Open **WooCommerce → PDF Documents → Customiser**, select the document type, and tick **Enable second language**. Choose the target language (Arabic is the bundled preset) and confirm the RTL direction flag. Settings are stored per document type and per template selection.
+
+### What the engine renders
+
+Three rendering patterns are produced automatically once the engine is on:
+
+- **Stacked column headers** — every item-table column header gets a secondary-language line beneath the primary label (e.g. "Description" over "الوصف"). Handled via `BilingualEngine::add_header_secondaries()` and totals rows via `add_totals_secondaries()`.
+- **Inline label pairs** — metadata fields (invoice number, invoice date, order number, etc.) are rendered as `Primary label \ Secondary label` on a single line (e.g. `Invoice No \ الفاتورة رقم`) using the `render_label` chokepoint in `BilingualLabelTrait`.
+- **Mirror blocks** — the shop block and the buyer/billing-address block are each rendered twice, side by side: the primary (LTR) version on the left and the secondary (RTL) version on the right. Implemented via `bilingual_shop_block` and `bilingual_address_block` in `BilingualLabelTrait`.
+
+### Label translations
+
+Every field label has an editable translation in the Customiser. The translations are seeded from the bundled Arabic dictionary (`includes/Bilingual/dictionary/ar.php`) when the Customiser section is first opened. Leaving a field blank falls back to the dictionary value at render time — only non-blank overrides are applied. `BilingualEngine::primary_labels()` provides the canonical English label for each key; `BilingualEngine::dictionary()` provides the bundled secondary-language values. Both are filterable.
+
+### Shop Arabic name and address
+
+Two fields — **Shop name (Arabic)** and **Shop address (Arabic)** — appear in **WooCommerce → PDF Documents → General Settings**. These drive the secondary side of the shop mirror block. Buyer country and state are localised via `WC_Countries::get_countries()` and `get_states()` with the locale switched to the secondary language where WooCommerce has a translation; other buyer content (name, company, street) is shown as entered.
+
+### Font
+
+The Noto Naskh Arabic font (Regular + Bold, TTF) is bundled with the plugin and registered with Dompdf on activation. The `@font-face` CSS is emitted only when the engine is enabled for the document being rendered, so non-bilingual PDF generation is unaffected.
+
+### Standard UAE Tax Invoice template
+
+A preset template named **Standard UAE Tax Invoice** ships with the plugin. It is a scaffold based on the Business template with the bilingual engine pre-enabled (via the `woi_pdf_document_settings` filter, which merges the bilingual defaults non-destructively so any explicit user customisation is preserved). Selecting this template gives bilingual output without any manual Customiser configuration.
+
+The preset is a starting point. UAE-specific item columns, a VAT summary row, an amount-in-words line, and signature blocks are planned follow-ups and are **not yet included**. The current template produces a bilingual layout that matches the Business template structure, not the full UAE tax invoice reference format.
+
+---
+
 ## Development
 
 ```bash
@@ -159,7 +195,7 @@ composer install
 ./vendor/bin/phpunit
 ```
 
-16 tests, 30 assertions. PHPUnit 9 + Brain Monkey — no WordPress installation required to run the test suite.
+119 tests, 220 assertions. PHPUnit 9 + Brain Monkey — no WordPress installation required to run the test suite.
 
 ---
 
