@@ -83,6 +83,47 @@ trait BilingualLabelTrait {
 	}
 
 	/**
+	 * Emit the shop-NAME slot.
+	 *
+	 * DISABLED: emits only the shop-name div — identical to the original markup.
+	 * ENABLED:  emits the full two-column mirror table (name + address combined),
+	 *           because the mirror must be output in the name slot so custom blocks
+	 *           attached to woi_pdf_after_shop_name / woi_pdf_before_shop_address
+	 *           bracket it correctly.
+	 *
+	 * @param bool $wrap_shop_address Passed through to bilingual_shop_block() in
+	 *   enabled mode; controls whether shop_address() is wrapped in a div.
+	 */
+	public function bilingual_shop_name_slot( bool $wrap_shop_address = false ): void {
+		if ( ! $this->bilingual_enabled() ) {
+			echo '<div class="shop-name"><h3>'; $this->shop_name(); echo '</h3></div>';
+			return;
+		}
+		// Enabled: emit the full mirror here; address slot will be a no-op.
+		$this->bilingual_shop_block( $wrap_shop_address );
+	}
+
+	/**
+	 * Emit the shop-ADDRESS slot.
+	 *
+	 * DISABLED: emits shop_address() with optional wrapper — identical to original.
+	 * ENABLED:  no-op; the address was already emitted by bilingual_shop_name_slot().
+	 *
+	 * @param bool $wrap_shop_address When true, wraps address in
+	 *   <div class="shop-address"> (Modern/Simple-style).
+	 */
+	public function bilingual_shop_address_slot( bool $wrap_shop_address = false ): void {
+		if ( $this->bilingual_enabled() ) {
+			return; // mirror already emitted address in the name slot
+		}
+		if ( $wrap_shop_address ) {
+			echo '<div class="shop-address">'; $this->shop_address(); echo '</div>';
+		} else {
+			$this->shop_address();
+		}
+	}
+
+	/**
 	 * Echo a billing or shipping address block, bilingual when enabled.
 	 *
 	 * @param string $type 'billing' or 'shipping'.

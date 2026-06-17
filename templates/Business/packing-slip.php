@@ -12,9 +12,10 @@
 		<td class="shop-info">
 			<div class="shop-address">
 				<?php do_action( 'woi_pdf_before_shop_name', $this->get_type(), $this->order ); ?>
+				<?php $this->bilingual_shop_name_slot(); ?>
 				<?php do_action( 'woi_pdf_after_shop_name', $this->get_type(), $this->order ); ?>
 				<?php do_action( 'woi_pdf_before_shop_address', $this->get_type(), $this->order ); ?>
-				<?php $this->bilingual_shop_block(); ?>
+				<?php $this->bilingual_shop_address_slot(); ?>
 				<?php do_action( 'woi_pdf_after_shop_address', $this->get_type(), $this->order ); ?>
 				<?php do_action( 'woi_pdf_before_shop_phone_number', $this->get_type(), $this->order ); ?>
 				<?php if ( ! empty( $this->get_shop_phone_number() ) ) : ?>

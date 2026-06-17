@@ -22,9 +22,10 @@
 		</td>
 		<td class="shop-info">
 			<?php do_action( 'woi_pdf_before_shop_name', $this->get_type(), $this->order ); ?>
+			<?php $this->bilingual_shop_name_slot( true ); ?>
 			<?php do_action( 'woi_pdf_after_shop_name', $this->get_type(), $this->order ); ?>
 			<?php do_action( 'woi_pdf_before_shop_address', $this->get_type(), $this->order ); ?>
-			<?php $this->bilingual_shop_block( true ); ?>
+			<?php $this->bilingual_shop_address_slot( true ); ?>
 			<?php do_action( 'woi_pdf_after_shop_address', $this->get_type(), $this->order ); ?>
 		</td>
 	</tr>

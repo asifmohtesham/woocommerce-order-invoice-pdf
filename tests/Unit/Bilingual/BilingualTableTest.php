@@ -41,4 +41,10 @@ class BilingualTableTest extends TestCase {
 		$out = BilingualEngine::instance()->add_totals_secondaries( $totals, 'invoice', $this->doc( array( 'enable_second_language' => 1 ) ) );
 		$this->assertSame( 'المجموع', $out['t1']['secondary'] );
 	}
+
+	public function test_fees_row_gets_arabic_secondary(): void {
+		$totals = array( 't1' => array( 'type' => 'fees', 'label' => 'Fees', 'value' => 'AED 10.00' ) );
+		$out = BilingualEngine::instance()->add_totals_secondaries( $totals, 'invoice', $this->doc( array( 'enable_second_language' => 1 ) ) );
+		$this->assertSame( 'رسوم', $out['t1']['secondary'] );
+	}
 }

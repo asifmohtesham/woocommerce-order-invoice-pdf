@@ -77,4 +77,18 @@ class BilingualEngineTest extends TestCase {
 			);
 		}
 	}
+
+	public function test_dictionary_rejects_invalid_lang_code(): void {
+		$engine = BilingualEngine::instance();
+		$this->assertSame( array(), $engine->dictionary( '../etc/passwd' ) );
+		$this->assertSame( array(), $engine->dictionary( 'ar/../secret' ) );
+		$this->assertSame( array(), $engine->dictionary( '' ) );
+		$this->assertSame( array(), $engine->dictionary( 'AR' ) ); // uppercase rejected
+	}
+
+	public function test_dictionary_returns_array_for_valid_ar(): void {
+		$engine = BilingualEngine::instance();
+		$dict = $engine->dictionary( 'ar' );
+		$this->assertArrayHasKey( 'total', $dict );
+	}
 }

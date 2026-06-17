@@ -49,4 +49,51 @@ class MirrorBlockTest extends TestCase {
 		$this->assertStringContainsString( 'ميلانو', $out );
 		$this->assertStringContainsString( 'woi-bilingual-secondary', $out );
 	}
+
+	// ---- slot-method tests ----
+
+	public function test_disabled_name_slot_emits_name_div(): void {
+		ob_start();
+		$this->doc( false )->bilingual_shop_name_slot();
+		$out = ob_get_clean();
+		$this->assertStringContainsString( '<div class="shop-name"><h3>', $out );
+		$this->assertStringContainsString( 'MILANO', $out );
+		// address must NOT appear here in disabled mode
+		$this->assertStringNotContainsString( 'Dubai', $out );
+	}
+
+	public function test_disabled_address_slot_emits_address(): void {
+		ob_start();
+		$this->doc( false )->bilingual_shop_address_slot();
+		$out = ob_get_clean();
+		$this->assertStringContainsString( 'Dubai', $out );
+		// no wrapper when $wrap = false
+		$this->assertStringNotContainsString( '<div class="shop-address">', $out );
+	}
+
+	public function test_disabled_address_slot_wraps_when_requested(): void {
+		ob_start();
+		$this->doc( false )->bilingual_shop_address_slot( true );
+		$out = ob_get_clean();
+		$this->assertStringContainsString( '<div class="shop-address">', $out );
+		$this->assertStringContainsString( 'Dubai', $out );
+	}
+
+	public function test_enabled_name_slot_emits_mirror_table(): void {
+		ob_start();
+		$this->doc( true )->bilingual_shop_name_slot();
+		$out = ob_get_clean();
+		$this->assertStringContainsString( 'bilingual-shop', $out );
+		$this->assertStringContainsString( 'MILANO', $out );
+		$this->assertStringContainsString( 'ميلانو', $out );
+		// address also in mirror
+		$this->assertStringContainsString( 'Dubai', $out );
+	}
+
+	public function test_enabled_address_slot_is_noop(): void {
+		ob_start();
+		$this->doc( true )->bilingual_shop_address_slot();
+		$out = ob_get_clean();
+		$this->assertSame( '', $out );
+	}
 }

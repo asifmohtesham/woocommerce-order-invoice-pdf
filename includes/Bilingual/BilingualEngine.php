@@ -35,6 +35,9 @@ class BilingualEngine {
 	}
 
 	public function dictionary( string $language = 'ar' ): array {
+		if ( ! preg_match( '/^[a-z]{2,8}$/', $language ) ) {
+			return array();
+		}
 		$file = __DIR__ . '/dictionary/' . $language . '.php';
 		$dict = is_readable( $file ) ? (array) include $file : array();
 		return apply_filters( 'woi_pdf_second_language_dictionary', $dict, $language );
@@ -135,7 +138,7 @@ class BilingualEngine {
 			'subtotal'          => __( 'Subtotal', 'woocommerce-orders-invoice-pdf' ),
 			'discount'          => __( 'Discount', 'woocommerce-orders-invoice-pdf' ),
 			'shipping'          => __( 'Shipping', 'woocommerce-orders-invoice-pdf' ),
-			'fee'               => __( 'Fee', 'woocommerce-orders-invoice-pdf' ),
+			'fees'              => __( 'Fees', 'woocommerce-orders-invoice-pdf' ),
 			'vat'               => __( 'VAT', 'woocommerce-orders-invoice-pdf' ),
 			'total'             => __( 'Total', 'woocommerce-orders-invoice-pdf' ),
 		);
