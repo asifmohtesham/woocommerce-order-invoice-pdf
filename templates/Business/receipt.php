@@ -12,10 +12,9 @@
 		<td class="shop-info">
 			<div class="shop-address">
 				<?php do_action( 'woi_pdf_before_shop_name', $this->get_type(), $this->order ); ?>
-				<div class="shop-name"><h3><?php $this->shop_name(); ?></h3></div>
 				<?php do_action( 'woi_pdf_after_shop_name', $this->get_type(), $this->order ); ?>
 				<?php do_action( 'woi_pdf_before_shop_address', $this->get_type(), $this->order ); ?>
-				<?php $this->shop_address(); ?>
+				<?php $this->bilingual_shop_block(); ?>
 				<?php do_action( 'woi_pdf_after_shop_address', $this->get_type(), $this->order ); ?>
 				<?php do_action( 'woi_pdf_before_shop_phone_number', $this->get_type(), $this->order ); ?>
 				<?php if ( ! empty( $this->get_shop_phone_number() ) ) : ?>
@@ -56,7 +55,7 @@
 	<tr>
 		<td class="address billing-address">
 			<?php do_action( 'woi_pdf_before_billing_address', $this->get_type(), $this->order ); ?>
-			<p><?php $this->billing_address(); ?></p>
+			<?php $this->bilingual_address_block( 'billing' ); ?>
 			<?php do_action( 'woi_pdf_after_billing_address', $this->get_type(), $this->order ); ?>
 			<?php if ( isset( $this->settings['display_email'] ) ) : ?>
 				<div class="billing-email"><?php $this->billing_email(); ?></div>
@@ -69,7 +68,7 @@
 			<?php if ( $this->show_shipping_address() ) : ?>
 				<h3><?php $this->shipping_address_title(); ?></h3>
 				<?php do_action( 'woi_pdf_before_shipping_address', $this->get_type(), $this->order ); ?>
-				<p><?php $this->shipping_address(); ?></p>
+				<?php $this->bilingual_address_block( 'shipping' ); ?>
 				<?php do_action( 'woi_pdf_after_shipping_address', $this->get_type(), $this->order ); ?>
 				<?php if ( isset( $this->settings['display_phone'] ) ) : ?>
 					<div class="shipping-phone"><?php $this->shipping_phone(); ?></div>

@@ -347,3 +347,9 @@ table.totals tr.payment_method {
 .woi-lbl-inline .woi-lbl-primary,
 .woi-lbl-inline .woi-lbl-secondary { display: inline; }
 .woi-lbl-inline .woi-lbl-secondary::before { content: "\005C"; padding: 0 3px; } /* backslash separator */
+
+/* Bilingual mirror blocks */
+.bilingual-shop, .bilingual-address { width: 100%; border-collapse: collapse; }
+.bilingual-shop td, .bilingual-address td { vertical-align: top; width: 50%; }
+.bilingual-secondary { text-align: right; }
+.woi-bilingual-secondary { font-family: 'Noto Naskh Arabic'; }

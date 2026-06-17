@@ -410,4 +410,10 @@ span.shipping-method, span.payment-method, /* for legacy templates */
 .woi-lbl-secondary { display: block; }
 .woi-lbl-inline .woi-lbl-primary,
 .woi-lbl-inline .woi-lbl-secondary { display: inline; }
+
+/* Bilingual mirror blocks */
+.bilingual-shop, .bilingual-address { width: 100%; border-collapse: collapse; }
+.bilingual-shop td, .bilingual-address td { vertical-align: top; width: 50%; }
+.bilingual-secondary { text-align: right; }
+.woi-bilingual-secondary { font-family: 'Noto Naskh Arabic'; }
 .woi-lbl-inline .woi-lbl-secondary::before { content: "\005C"; padding: 0 3px; } /* backslash separator */
