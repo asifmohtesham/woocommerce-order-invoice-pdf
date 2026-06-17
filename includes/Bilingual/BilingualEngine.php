@@ -80,6 +80,34 @@ class BilingualEngine {
 		return '' !== $name ? $name : $value;
 	}
 
+	public function add_header_secondaries( array $headers, string $type, $document ): array {
+		if ( ! $this->is_enabled( $document ) ) {
+			return $headers;
+		}
+		foreach ( $headers as $key => $row ) {
+			$col_type  = $row['type'] ?? '';
+			$secondary = '' !== $col_type ? $this->secondary_label( $col_type, $document ) : '';
+			if ( '' !== $secondary ) {
+				$headers[ $key ]['secondary'] = $secondary;
+			}
+		}
+		return $headers;
+	}
+
+	public function add_totals_secondaries( array $totals, string $type, $document ): array {
+		if ( ! $this->is_enabled( $document ) ) {
+			return $totals;
+		}
+		foreach ( $totals as $key => $row ) {
+			$total_type = $row['type'] ?? '';
+			$secondary  = '' !== $total_type ? $this->secondary_label( $total_type, $document ) : '';
+			if ( '' !== $secondary ) {
+				$totals[ $key ]['secondary'] = $secondary;
+			}
+		}
+		return $totals;
+	}
+
 	public function font_family(): string {
 		return 'Noto Naskh Arabic';
 	}

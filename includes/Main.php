@@ -76,6 +76,10 @@ class Main {
 		// inject bilingual font CSS into document head
 		add_action( 'woi_pdf_custom_styles', 'woi_pdf_print_bilingual_styles', 20, 2 );
 
+		// inject bilingual secondary labels into item-table headers and totals rows
+		add_filter( 'woi_pdf_templates_table_headers', array( \WOI\PDF\Bilingual\BilingualEngine::instance(), 'add_header_secondaries' ), 20, 3 );
+		add_filter( 'woi_pdf_templates_totals', array( \WOI\PDF\Bilingual\BilingualEngine::instance(), 'add_totals_secondaries' ), 20, 3 );
+
 		// set ink saving mode
 		add_filter( 'woi_pdf_template_custom_styles', array( $this, 'apply_ink_saving_styles' ), 10, 2 );
 

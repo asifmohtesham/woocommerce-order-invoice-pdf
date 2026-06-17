@@ -132,7 +132,12 @@
 	<thead>
 		<tr>
 			<?php foreach ( woi_pdf_templates_get_table_headers( $this ) as $column_key => $header_data ) : ?>
-				<th class="<?php echo esc_attr( $header_data['class'] ); ?>"<?php echo woi_pdf_templates_maybe_apply_column_styles( $header_data, 'header' ); ?>><?php echo esc_html( $header_data['title'] ); ?></th>
+				<th class="<?php echo esc_attr( $header_data['class'] ); ?>"<?php echo woi_pdf_templates_maybe_apply_column_styles( $header_data, 'header' ); ?>><?php
+					echo esc_html( $header_data['title'] );
+					if ( ! empty( $header_data['secondary'] ) ) {
+						echo '<span class="woi-lbl-secondary" dir="rtl">' . esc_html( $header_data['secondary'] ) . '</span>';
+					}
+				?></th>
 			<?php endforeach; ?>
 		</tr>
 	</thead>
@@ -157,7 +162,12 @@
 		<table class="totals-table">
 			<?php foreach ( woi_pdf_templates_get_totals( $this ) as $total_key => $total_data ) : ?>
 				<tr class="<?php echo esc_attr( $total_data['class'] ); ?>">
-					<th class="description"><span><?php echo esc_html( $total_data['label'] ); ?></span></th>
+					<th class="description"><span><?php
+						echo esc_html( $total_data['label'] );
+						if ( ! empty( $total_data['secondary'] ) ) {
+							echo '<span class="woi-lbl-secondary" dir="rtl">' . esc_html( $total_data['secondary'] ) . '</span>';
+						}
+					?></span></th>
 					<td class="price"><span class="totals-price"><?php echo esc_html( $total_data['value'] ); ?></span></td>
 				</tr>
 			<?php endforeach; ?>
