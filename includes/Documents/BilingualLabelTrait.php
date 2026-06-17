@@ -31,6 +31,11 @@ trait BilingualLabelTrait {
 	 *   <div class="shop-address"> (Modern/Simple-style templates). When false
 	 *   (default, Business-style), shop_address() is emitted raw — the caller's
 	 *   outer <div class="shop-address"> already provides the wrapper.
+	 *
+	 * @internal This flag is an internal marker for template-markup variants
+	 *   (Business raw vs Modern/Simple/SP wrapped) and is not part of the
+	 *   stable public API. Callers must not rely on this signature remaining
+	 *   unchanged across plugin versions.
 	 */
 	public function bilingual_shop_block( bool $wrap_shop_address = false ): void {
 		if ( ! $this->bilingual_enabled() ) {
@@ -65,7 +70,7 @@ trait BilingualLabelTrait {
 			if ( $wrap_shop_address ) {
 				echo '<div class="shop-address">' . $wrapped . '</div>';
 			} else {
-				echo '<div class="shop-address">' . $wrapped . '</div>';
+				echo $wrapped;
 			}
 		} else {
 			if ( $wrap_shop_address ) {
