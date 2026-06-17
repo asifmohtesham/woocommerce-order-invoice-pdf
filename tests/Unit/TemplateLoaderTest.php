@@ -43,4 +43,12 @@ class TemplateLoaderTest extends TestCase {
 
         $this->assertSame( '', $result );
     }
+
+    public function test_standard_uae_template_is_discovered(): void {
+        $dir = dirname( __DIR__, 2 ) . '/templates/Standard UAE Tax Invoice';
+        $this->assertDirectoryExists( $dir );
+        $this->assertFileExists( $dir . '/invoice.php' );
+        $this->assertFileExists( $dir . '/template-functions.php' );
+        $this->assertFileExists( $dir . '/fonts/NotoNaskhArabic-Regular.ttf' );
+    }
 }
