@@ -50,4 +50,33 @@ class BilingualEngine {
 		}
 		return (string) apply_filters( 'woi_pdf_second_language_label', $value, $key, $document );
 	}
+
+	public function secondary_shop_name(): string {
+		$general = (array) get_option( 'woi_pdf_general_settings' );
+		return isset( $general['shop_name_ar'] ) ? trim( (string) $general['shop_name_ar'] ) : '';
+	}
+
+	public function secondary_shop_address(): string {
+		$general = (array) get_option( 'woi_pdf_general_settings' );
+		return isset( $general['shop_address_ar'] ) ? trim( (string) $general['shop_address_ar'] ) : '';
+	}
+
+	public function localized_location( string $value, string $type, $order ): string {
+		$code = ( 'state' === $type ) ? $order->get_billing_state() : $order->get_billing_country();
+		if ( empty( $code ) ) {
+			return $value;
+		}
+		$switched = switch_to_locale( 'ar' );
+		if ( 'state' === $type ) {
+			$states = WC()->countries->get_states( $order->get_billing_country() );
+			$name   = $states[ $code ] ?? '';
+		} else {
+			$countries = WC()->countries->get_countries();
+			$name      = $countries[ $code ] ?? '';
+		}
+		if ( $switched ) {
+			restore_previous_locale();
+		}
+		return '' !== $name ? $name : $value;
+	}
 }
