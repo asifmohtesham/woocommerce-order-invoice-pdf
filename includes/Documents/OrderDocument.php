@@ -3,6 +3,7 @@ namespace WOI\PDF\Documents;
 
 use WOI\PDF\Semaphore;
 use WOI\PDF\Documents\DocumentInterface;
+use WOI\PDF\Documents\BilingualLabelTrait;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -18,6 +19,8 @@ if ( ! class_exists( '\\WOI\\PDF\\Documents\\OrderDocument' ) ) :
  */
 
 abstract class OrderDocument implements DocumentInterface {
+
+	use BilingualLabelTrait;
 
 	/**
 	 * Document type.
@@ -724,7 +727,7 @@ abstract class OrderDocument implements DocumentInterface {
 	 * @return void
 	 */
 	public function title() {
-		echo esc_html( $this->get_title() );
+		$this->render_label( 'document' );
 	}
 
 	/**
@@ -742,7 +745,7 @@ abstract class OrderDocument implements DocumentInterface {
 	 * @return void
 	 */
 	public function number_title() {
-		echo esc_html( $this->get_number_title() );
+		$this->render_label( 'document_number' );
 	}
 
 	/**
@@ -760,7 +763,7 @@ abstract class OrderDocument implements DocumentInterface {
 	 * @return void
 	 */
 	public function date_title() {
-		echo esc_html( $this->get_date_title() );
+		$this->render_label( 'document_date' );
 	}
 
 	/**
@@ -778,7 +781,7 @@ abstract class OrderDocument implements DocumentInterface {
 	 * @return void
 	 */
 	public function due_date_title() {
-		echo esc_html( $this->get_due_date_title() );
+		$this->render_label( 'document_due_date' );
 	}
 
 	/**
@@ -796,7 +799,7 @@ abstract class OrderDocument implements DocumentInterface {
 	 * @return void
 	 */
 	public function billing_address_title(): void {
-		echo esc_html( $this->get_billing_address_title() );
+		$this->render_label( 'billing_address' );
 	}
 
 	/**
@@ -814,7 +817,7 @@ abstract class OrderDocument implements DocumentInterface {
 	 * @return void
 	 */
 	public function shipping_address_title(): void {
-		echo esc_html( $this->get_shipping_address_title() );
+		$this->render_label( 'shipping_address' );
 	}
 
 	/**
@@ -832,7 +835,7 @@ abstract class OrderDocument implements DocumentInterface {
 	 * @return void
 	 */
 	public function order_number_title(): void {
-		echo esc_html( $this->get_order_number_title() );
+		$this->render_label( 'order_number' );
 	}
 
 	/**
@@ -850,7 +853,7 @@ abstract class OrderDocument implements DocumentInterface {
 	 * @return void
 	 */
 	public function order_date_title(): void {
-		echo esc_html( $this->get_order_date_title() );
+		$this->render_label( 'order_date' );
 	}
 
 	/**

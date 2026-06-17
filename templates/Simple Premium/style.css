@@ -417,3 +417,10 @@ table.notes-totals::after {
 .rtl div.notes {
 	float: right !important;
 }
+
+/* Bilingual label pairs */
+.woi-lbl-primary { display: block; }
+.woi-lbl-secondary { display: block; }
+.woi-lbl-inline .woi-lbl-primary,
+.woi-lbl-inline .woi-lbl-secondary { display: inline; }
+.woi-lbl-inline .woi-lbl-secondary::before { content: "\005C"; padding: 0 3px; } /* backslash separator */
