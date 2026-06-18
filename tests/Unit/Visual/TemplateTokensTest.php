@@ -20,11 +20,6 @@ class TemplateTokensTest extends TestCase {
             'shop_name_ar'    => 'متجر',
             'shop_address_ar' => 'دبي',
         ) );
-        // Block-token helpers are real functions loaded by woi-pdf-functions.php;
-        // stub them so scalar/merge tests are not pulled into WooCommerce internals.
-        Functions\when( 'woi_pdf_templates_get_table_headers' )->justReturn( array() );
-        Functions\when( 'woi_pdf_templates_get_table_body' )->justReturn( array() );
-        Functions\when( 'woi_pdf_templates_get_totals' )->justReturn( array() );
     }
 
     protected function tearDown(): void {
@@ -53,6 +48,11 @@ class TemplateTokensTest extends TestCase {
     }
 
     public function test_scalar_tokens_resolve_and_escape(): void {
+        // Block-token helpers must be stubbed so map() does not pull in WooCommerce internals.
+        Functions\when( 'woi_pdf_templates_get_table_headers' )->justReturn( array() );
+        Functions\when( 'woi_pdf_templates_get_table_body' )->justReturn( array() );
+        Functions\when( 'woi_pdf_templates_get_totals' )->justReturn( array() );
+
         $tokens = new TemplateTokens();
         $map    = $tokens->map( $this->stub_document() );
 
@@ -67,6 +67,11 @@ class TemplateTokensTest extends TestCase {
     }
 
     public function test_merge_replaces_known_and_strips_unknown_tokens(): void {
+        // Block-token helpers must be stubbed so merge() -> map() does not pull in WooCommerce internals.
+        Functions\when( 'woi_pdf_templates_get_table_headers' )->justReturn( array() );
+        Functions\when( 'woi_pdf_templates_get_table_body' )->justReturn( array() );
+        Functions\when( 'woi_pdf_templates_get_totals' )->justReturn( array() );
+
         $tokens = new TemplateTokens();
         $html   = '<h1>{{document_title}}</h1><p>{{shop_name}}</p><i>{{bogus}}</i>';
         $out    = $tokens->merge( $html, $this->stub_document() );

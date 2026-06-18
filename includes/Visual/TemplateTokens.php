@@ -53,7 +53,7 @@ class TemplateTokens {
      */
     public function merge( string $html, $document ): string {
         $html = strtr( $html, $this->map( $document ) );
-        return (string) preg_replace( '/\{\{\s*[a-z0-9_]+\s*\}\}/i', '', $html );
+        return (string) preg_replace( '/\{\{[^}]*\}\}/', '', $html );
     }
 
     /** Capture the output of an echo-style callback. */
