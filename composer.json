@@ -49,6 +49,9 @@
         "test": "vendor/bin/phpunit"
     },
     "config": {
+        "platform": {
+            "php": "8.1"
+        },
         "allow-plugins": {
             "composer/installers": true
         }
