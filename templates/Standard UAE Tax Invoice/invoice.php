@@ -16,16 +16,19 @@
 				<?php do_action( 'woi_pdf_after_shop_name', $this->get_type(), $this->order ); ?>
 				<?php do_action( 'woi_pdf_before_shop_address', $this->get_type(), $this->order ); ?>
 				<?php $this->shop_block_primary(); ?>
-				<?php do_action( 'woi_pdf_after_shop_address', $this->get_type(), $this->order ); ?>
-				<?php do_action( 'woi_pdf_before_shop_phone_number', $this->get_type(), $this->order ); ?>
-				<?php if ( ! empty( $this->get_shop_phone_number() ) ) : ?>
-					<div class="shop-phone-number"><?php $this->shop_phone_number(); ?></div>
-				<?php endif; ?>
-				<?php do_action( 'woi_pdf_after_shop_phone_number', $this->get_type(), $this->order ); ?>
-				<?php if ( ! empty( $this->get_shop_email_address() ) ) : ?>
-					<div class="shop-email-address"><?php $this->shop_email_address(); ?></div>
-				<?php endif; ?>
-				<?php do_action( 'woi_pdf_after_shop_email_address', $this->get_type(), $this->order ); ?>
+				<?php // TRN, phone and email share one line below the address. ?>
+				<div class="shop-contact-line">
+					<?php do_action( 'woi_pdf_after_shop_address', $this->get_type(), $this->order ); ?>
+					<?php do_action( 'woi_pdf_before_shop_phone_number', $this->get_type(), $this->order ); ?>
+					<?php if ( ! empty( $this->get_shop_phone_number() ) ) : ?>
+						<span class="shop-phone-number"><?php $this->shop_phone_number(); ?></span>
+					<?php endif; ?>
+					<?php do_action( 'woi_pdf_after_shop_phone_number', $this->get_type(), $this->order ); ?>
+					<?php if ( ! empty( $this->get_shop_email_address() ) ) : ?>
+						<span class="shop-email-address"><?php $this->shop_email_address(); ?></span>
+					<?php endif; ?>
+					<?php do_action( 'woi_pdf_after_shop_email_address', $this->get_type(), $this->order ); ?>
+				</div>
 			</div>
 		</td>
 		<td class="header logo-cell">

@@ -177,6 +177,21 @@ table.bilingual-head td.shop-info-secondary {
 	direction: rtl;
 }
 
+/* TRN, phone and email render on a single line below the shop address. */
+.shop-contact-line {
+	margin-top: 1.5mm;
+	font-size: 8pt;
+}
+
+.shop-contact-line .trn-number {
+	display: inline;
+}
+
+.shop-contact-line .shop-phone-number::before,
+.shop-contact-line .shop-email-address::before {
+	content: "\00A0\00A0|\00A0\00A0"; /* spaced pipe separator */
+}
+
 .header-stretcher {
 	height: 3cm;
 	display: block;
