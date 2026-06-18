@@ -25,6 +25,7 @@ class ComposerStaticInitc879be829c23a266847f108d9a6d87a6
         'db356362850385d08a5381de2638b5fd' => __DIR__ . '/..' . '/mpdf/mpdf/src/functions.php',
         'ec07570ca5a812141189b1fa81503674' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
         'bbef1bbc46b0ac09e97d96605eae3d0e' => __DIR__ . '/../..' . '/woi-pdf-functions.php',
+        '43f61405e47f9c38f2ceda8111eec78a' => __DIR__ . '/../..' . '/includes/Visual/functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (

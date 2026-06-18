@@ -620,6 +620,18 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 			),
 			array(
 				'type'     => 'setting',
+				'id'       => 'enable_visual_template_invoice',
+				'title'    => __( 'Visual template (invoice)', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'checkbox',
+				'section'  => $this->type,
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'enable_visual_template_invoice',
+					'description' => __( 'Render the invoice from the visual editor design instead of the selected template.', 'woocommerce-orders-invoice-pdf' ),
+				)
+			),
+			array(
+				'type'     => 'setting',
 				'id'       => 'use_latest_settings',
 				'title'    => __( 'Always use most current settings', 'woocommerce-orders-invoice-pdf' ),
 				'callback' => 'checkbox',

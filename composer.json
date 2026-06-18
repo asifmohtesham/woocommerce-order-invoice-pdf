@@ -16,7 +16,8 @@
     },
     "autoload": {
         "files": [
-            "woi-pdf-functions.php"
+            "woi-pdf-functions.php",
+            "includes/Visual/functions.php"
         ],
         "psr-4": {
             "WOI\\PDF\\": "includes/"

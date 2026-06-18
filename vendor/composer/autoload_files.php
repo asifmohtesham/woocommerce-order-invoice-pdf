@@ -24,4 +24,5 @@ return array(
     'db356362850385d08a5381de2638b5fd' => $vendorDir . '/mpdf/mpdf/src/functions.php',
     'ec07570ca5a812141189b1fa81503674' => $vendorDir . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
     'bbef1bbc46b0ac09e97d96605eae3d0e' => $baseDir . '/woi-pdf-functions.php',
+    '43f61405e47f9c38f2ceda8111eec78a' => $baseDir . '/includes/Visual/functions.php',
 );

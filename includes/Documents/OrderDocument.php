@@ -1806,6 +1806,32 @@ abstract class OrderDocument implements DocumentInterface {
 		);
 		$args = $args + $default_args;
 
+		// Visual template path: when the toggle is on and a stored template exists
+		// for an invoice, render from the GrapesJS-designed HTML instead.
+		$store   = new \WOI\PDF\Visual\VisualTemplateStore();
+		$stored  = $store->get( $this->get_type() );
+		$toggle  = (bool) $this->get_setting( 'enable_visual_template_invoice' );
+
+		if ( \WOI\PDF\Visual\visual_template_active( $this->get_type(), $toggle, $stored ) ) {
+			$merged  = ( new \WOI\PDF\Visual\TemplateTokens() )->merge( $stored, $this );
+			$html    = $this->render_template(
+				WOI_PDF()->plugin_path() . '/templates/_visual/visual-document-wrapper.php',
+				array( 'content' => $merged )
+			);
+
+			// clean up special characters
+			if ( apply_filters( 'woi_pdf_convert_encoding', function_exists( 'htmlspecialchars_decode' ) ) ) {
+				$html = htmlspecialchars_decode( woi_pdf_convert_encoding( $html ), ENT_QUOTES );
+			}
+
+			do_action( 'woi_pdf_after_html', $this->get_type(), $this );
+
+			// remove temporary filters
+			\woi_pdf_remove_filters( $html_filters );
+
+			return apply_filters( 'woi_pdf_get_html', $html, $this );
+		}
+
 		$html = $this->render_template( $this->locate_template_file( "{$this->type}.php" ), array(
 				'order'    => $this->order,
 				'order_id' => $this->order_id,
