@@ -16,7 +16,7 @@ class VisualTemplateStore {
     }
 
     public function get( string $doc_type ): string {
-        $stored = get_option( $this->option_name( $doc_type ), '' );
+        $stored = get_option( $this->option_name( $doc_type ) );
         return is_string( $stored ) ? $stored : '';
     }
 
