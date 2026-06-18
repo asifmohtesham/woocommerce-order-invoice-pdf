@@ -2599,6 +2599,24 @@ function woi_pdf_add_invoice_bilingual_settings( array $fields, string $option_n
 	);
 	$fields[] = array(
 		'type'     => 'setting',
+		'id'       => 'second_language_font',
+		'title'    => __( 'Second-language font', 'woocommerce-orders-invoice-pdf' ),
+		'callback' => 'select',
+		'section'  => 'invoice_second_language',
+		'show_if'  => array( 'field' => 'enable_second_language', 'value' => 1 ),
+		'args'     => array(
+			'option_name' => $option_name,
+			'id'          => 'second_language_font',
+			'default'     => 'xbriyaz',
+			'options'     => array(
+				'xbriyaz' => __( 'XB Riyaz (Naskh)', 'woocommerce-orders-invoice-pdf' ),
+				'lateef'  => __( 'Lateef', 'woocommerce-orders-invoice-pdf' ),
+			),
+			'description' => __( 'Font used for the second-language (Arabic) text in the PDF.', 'woocommerce-orders-invoice-pdf' ),
+		),
+	);
+	$fields[] = array(
+		'type'     => 'setting',
 		'id'       => 'second_language_labels',
 		'title'    => __( 'Label translations', 'woocommerce-orders-invoice-pdf' ),
 		'callback' => 'woi_pdf_second_language_labels_table',

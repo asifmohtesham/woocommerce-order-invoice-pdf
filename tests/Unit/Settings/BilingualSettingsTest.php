@@ -32,6 +32,7 @@ class BilingualSettingsTest extends TestCase {
 		$fields = woi_pdf_test_get_invoice_setting_ids();
 		$this->assertContains( 'enable_second_language', $fields );
 		$this->assertContains( 'second_language', $fields );
+		$this->assertContains( 'second_language_font', $fields );
 		$this->assertContains( 'second_language_labels', $fields );
 	}
 }
