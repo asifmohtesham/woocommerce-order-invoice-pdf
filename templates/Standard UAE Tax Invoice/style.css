@@ -131,9 +131,10 @@ tr.no-borders, td.no-borders {
 
 /* Header */
 td.header img {
+	/* max-height alone scales the logo proportionally in mPDF. Do NOT add
+	   max-width:100% here — mPDF then sizes width to the cell and ignores
+	   max-height, blowing the logo up to full size. */
 	max-height: 3cm;
-	max-width: 100%;
-	width: auto;
 }
 
 td.header.letterhead img {
