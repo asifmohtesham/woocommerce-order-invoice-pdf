@@ -165,7 +165,6 @@ if ( empty( $breadcrumb ) ) {
 
 				<div class="preview-document">
 					<div class="preview-data-wrapper">
-						<div class="save-settings"><?php submit_button(); ?></div>
 						<div class="preview-data preview-order-data">
 							<div class="preview-order-search-wrapper">
 								<input type="text" name="preview-order-search" id="preview-order-search"

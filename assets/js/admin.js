@@ -508,14 +508,10 @@ jQuery( function( $ ) {
 		} );
 	}
 
-	function showSaveBtn( event ) {
-		$( '.preview-data-wrapper .save-settings p' ).css( 'margin-right', '0' );
-	}
-
-	// Submit settings form when clicking on secondary save button
-	$( document.body ).on( 'click', '.preview-data-wrapper .save-settings p input', function( event ) {
-		$( '#woi-pdf-settings input#submit' ).trigger( 'click' );
-	} );
+	// The redundant in-preview "Save Changes" button was removed; saving is done
+	// from the sticky top "Save" and the in-form "Save Changes". showSaveBtn is
+	// retained as a no-op so its existing callers stay harmless.
+	function showSaveBtn( event ) {}
 
 	// Trigger the Preview
 	function triggerPreview( timeoutDuration = 0 ) {
