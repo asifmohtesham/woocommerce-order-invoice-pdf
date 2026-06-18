@@ -4,6 +4,7 @@ namespace WOI\PDF\Documents;
 use WOI\PDF\Semaphore;
 use WOI\PDF\Documents\DocumentInterface;
 use WOI\PDF\Documents\BilingualLabelTrait;
+use WOI\PDF\Makers\PreviewWatermark;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -1767,7 +1768,11 @@ abstract class OrderDocument implements DocumentInterface {
 			'font_subsetting'	=> $this->get_setting( 'font_subsetting', false ),
 		);
 		$pdf_maker = woi_pdf_get_pdf_maker( $this->get_html(), $pdf_settings, $this );
-		$pdf       = $pdf_maker->output();
+
+		// Stamp a "SAMPLE" watermark onto the preview only.
+		PreviewWatermark::register();
+		$pdf = $pdf_maker->output();
+		PreviewWatermark::unregister();
 
 		return $pdf;
 	}
