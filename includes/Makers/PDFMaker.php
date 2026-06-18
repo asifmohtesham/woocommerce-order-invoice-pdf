@@ -3,6 +3,7 @@ namespace WOI\PDF\Makers;
 
 use WOI\PDF\Vendor\Dompdf\Dompdf;
 use WOI\PDF\Vendor\Dompdf\Options;
+use WOI\PDF\Bilingual\ArabicShaper;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -49,8 +50,15 @@ class PDFMaker {
 			$this->set_additional_debug_options( $options );
 		}
 
+		// Dompdf has no Arabic shaper/bidi engine: pre-shape Arabic runs into
+		// presentation forms and visual order before handing the HTML over.
+		// PDF-only path — HTML/email output is shaped by the browser instead.
+		$html = class_exists( '\\WOI\\PDF\\Bilingual\\ArabicShaper' )
+			? ArabicShaper::shape_html( $this->html )
+			: $this->html;
+
 		$dompdf = new Dompdf( $options );
-		$dompdf->loadHtml( $this->html );
+		$dompdf->loadHtml( $html );
 		$dompdf->setPaper( $this->settings['paper_size'], $this->settings['paper_orientation'] );
 		$dompdf = apply_filters( 'woi_pdf_before_dompdf_render', $dompdf, $this->html, $options, $this->document );
 		$dompdf->render();

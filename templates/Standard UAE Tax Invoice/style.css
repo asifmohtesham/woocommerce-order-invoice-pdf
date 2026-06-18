@@ -145,12 +145,13 @@ td.header.letterhead img {
 td.header {
 	font-size: 16pt;
 	font-weight: normal;
-	text-align: right;
+	text-align: center; /* centre the logo within the header cell (#12) */
 }
 
 .header-stretcher {
 	height: 3cm;
 	display: block;
+	text-align: center;
 }
 
 td.header, td.shop-info {
@@ -434,6 +435,12 @@ td.totals {
 .bilingual-secondary { text-align: right; }
 
 /* Standard UAE Tax Invoice — boxed table style */
+
+/* Meta block (invoice no., dates, order refs): constrain to half the page width
+   and align it to the right, so the stacked English+Arabic label pairs have a
+   tidy column instead of spanning the full width cramped against the addresses (#9). */
+table.order-data { width: 50%; margin-left: auto; }
+
 table.order-details { border-collapse: collapse; width: 100%; }
 table.order-details th, table.order-details td { border: 0.5pt solid #000; padding: 2px 4px; }
 .document-type-label { text-align: center; }

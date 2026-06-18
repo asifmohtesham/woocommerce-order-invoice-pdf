@@ -134,12 +134,38 @@ trait BilingualLabelTrait {
 			echo '<p>'; $this->$emit(); echo '</p>';
 			return;
 		}
+
+		// WooCommerce stores only the Latin address; there is no built-in Arabic
+		// translation. Without a real secondary we must NOT echo the same Latin
+		// block in both columns — that produces the confusing duplicate seen on
+		// the UAE invoice. A site can supply a translated address through this
+		// filter (e.g. from order meta); when it returns empty we render the
+		// single-column block instead of a mirror.
+		$primary   = $this->capture( array( $this, $emit ) );
+		$secondary = (string) apply_filters( 'woi_pdf_bilingual_address_secondary', '', $type, $this, $primary );
+
+		if ( '' === trim( $secondary ) ) {
+			echo '<p>' . $primary . '</p>';
+			return;
+		}
+
 		$dir = $this->bilingual_rtl() ? 'rtl' : 'ltr';
 		echo '<table class="bilingual-address"><tr>';
-		echo '<td class="bilingual-primary"><p>'; $this->$emit(); echo '</p></td>';
-		echo '<td class="bilingual-secondary woi-bilingual-secondary" dir="' . esc_attr( $dir ) . '"><p>';
-		$this->$emit(); // same Latin content; surrounding labels come from render_label
-		echo '</p></td></tr></table>';
+		echo '<td class="bilingual-primary"><p>' . $primary . '</p></td>';
+		echo '<td class="bilingual-secondary woi-bilingual-secondary" dir="' . esc_attr( $dir ) . '"><p>'
+			. nl2br( esc_html( $secondary ) ) . '</p></td></tr></table>';
+	}
+
+	/**
+	 * Run an echoing callback and return its output instead of printing it.
+	 *
+	 * @param callable $callback Callable that echoes markup.
+	 * @return string
+	 */
+	private function capture( callable $callback ): string {
+		ob_start();
+		$callback();
+		return (string) ob_get_clean();
 	}
 
 	/**

@@ -73,7 +73,7 @@ class PreviewWatermark {
 		$font   = $fonts->getFont( 'DejaVu Sans', 'normal' );
 
 		$size  = 72.0;
-		$color = array( 0.8, 0.8, 0.8 ); // light gray; page_text has no true alpha
+		$color = array( 0.6, 0.6, 0.6 ); // mid gray; transparency comes from set_opacity below
 		$angle = 45.0;
 
 		$width      = $canvas->get_width();
@@ -84,8 +84,22 @@ class PreviewWatermark {
 		$x = ( $width - ( $text_width * cos( deg2rad( $angle ) ) ) ) / 2;
 		$y = ( $height + ( $text_width * sin( deg2rad( $angle ) ) ) ) / 2;
 
+		// The watermark is drawn AFTER render, so it always sits on top of the
+		// content — Dompdf can't z-order it behind. Make it semi-transparent
+		// instead so every line item, quantity and attribute reads clearly
+		// through the "SAMPLE" text. set_opacity affects subsequent drawing
+		// operations; bracket the page_text() and restore full opacity after.
+		$opacity = (float) apply_filters( 'woi_pdf_preview_watermark_opacity', 0.12 );
+		if ( method_exists( $canvas, 'set_opacity' ) ) {
+			$canvas->set_opacity( $opacity );
+		}
+
 		// page_text() applies the text to EVERY page of the document.
 		$canvas->page_text( $x, $y, $text, $font, $size, $color, 0.0, 0.0, $angle );
+
+		if ( method_exists( $canvas, 'set_opacity' ) ) {
+			$canvas->set_opacity( 1.0 );
+		}
 
 		return $dompdf;
 	}

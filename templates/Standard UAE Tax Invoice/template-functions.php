@@ -60,6 +60,39 @@ function woi_pdf_standard_uae_inject_bilingual_defaults( $settings, $document, $
 }
 
 // ---------------------------------------------------------------------------
+// 1b. Document title — keep the English title in step with the Arabic
+// ---------------------------------------------------------------------------
+
+add_filter( 'woi_pdf_document_title', 'woi_pdf_standard_uae_document_title', 10, 2 );
+
+/**
+ * Force the English document title to "Tax Invoice" when the merchant has not
+ * set a custom one.
+ *
+ * The Arabic secondary label is the dictionary value "فاتورة ضريبية" (Tax
+ * Invoice). Without this, orders that have no saved `document_title` fall back
+ * to the bare "Invoice" default, leaving the English and Arabic titles saying
+ * different things. Filtering at render time fixes historical orders too — the
+ * settings-injection default in (1) only covers freshly saved settings.
+ *
+ * A merchant-supplied custom title is left untouched.
+ *
+ * @param string $title    Resolved title.
+ * @param object $document The OrderDocument instance.
+ * @return string
+ */
+function woi_pdf_standard_uae_document_title( $title, $document ) {
+	$custom = '';
+	if ( is_object( $document ) && is_callable( array( $document, 'get_settings_text' ) ) ) {
+		$custom = trim( (string) $document->get_settings_text( 'document_title', '', false ) );
+	}
+	if ( '' === $custom ) {
+		return __( 'Tax Invoice', 'woocommerce-orders-invoice-pdf' );
+	}
+	return $title;
+}
+
+// ---------------------------------------------------------------------------
 // 2. Editor (Customiser) defaults — columns and totals
 // ---------------------------------------------------------------------------
 
