@@ -116,6 +116,11 @@ class Main {
 
 		// Add document link to emails
 		add_action( 'init', array( $this, 'handle_document_link_in_emails' ), 20 );
+
+		// Visual template editor admin page
+		if ( is_admin() ) {
+			new \WOI\PDF\Visual\VisualEditorPage();
+		}
 	}
 
 	/**
