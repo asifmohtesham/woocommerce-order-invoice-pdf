@@ -1008,7 +1008,17 @@ abstract class OrderDocument implements DocumentInterface {
 	public function get_title_for( string $slug ): string {
 		switch ( $slug ) {
 			case 'document':
-				$title = apply_filters_deprecated( "woi_pdf_{$this->slug}_title", array( $this->title, $this ), '3.8.7', 'woi_pdf_document_title' );
+				// The visible document heading honours the configurable
+				// `document_title` setting (e.g. "Tax Invoice"), falling back to
+				// the doc-type default. Both the deprecated per-slug filter and
+				// the current `woi_pdf_document_title` filter are applied so the
+				// heading matches its bilingual secondary label. (Previously this
+				// returned the bare $this->title and only fired the deprecated
+				// filter, so the setting never reached the heading.)
+				$custom = trim( (string) $this->get_settings_text( 'document_title', '', false ) );
+				$title  = '' !== $custom ? $custom : $this->title;
+				$title  = apply_filters_deprecated( "woi_pdf_{$this->slug}_title", array( $title, $this ), '3.8.7', 'woi_pdf_document_title' );
+				$title  = apply_filters( 'woi_pdf_document_title', $title, $this );
 				break;
 			case 'document_number':
 				$title = sprintf(

@@ -30,7 +30,8 @@ class InvoiceTitleTest extends TestCase {
             ->disableOriginalConstructor()
             ->onlyMethods( [ 'get_settings_text' ] )
             ->getMock();
-        $invoice->slug = 'invoice';
+        $invoice->slug  = 'invoice';
+        $invoice->title = 'Invoice';
         $invoice->method( 'get_settings_text' )->willReturn( $document_title );
 
         return $invoice;
@@ -49,5 +50,21 @@ class InvoiceTitleTest extends TestCase {
     public function test_get_title_trims_custom_document_title(): void {
         $invoice = $this->make_invoice( '  Tax Invoice  ' );
         $this->assertSame( 'Tax Invoice', $invoice->get_title() );
+    }
+
+    /**
+     * The visible heading is rendered via render_label('document') ->
+     * get_title_for('document'), NOT get_title(). Regression guard: that path
+     * must honour the document_title setting too, otherwise the English heading
+     * drifts from its Arabic secondary label.
+     */
+    public function test_get_title_for_document_uses_custom_title(): void {
+        $invoice = $this->make_invoice( 'Tax Invoice' );
+        $this->assertSame( 'Tax Invoice', $invoice->get_title_for( 'document' ) );
+    }
+
+    public function test_get_title_for_document_falls_back_to_doc_type_default(): void {
+        $invoice = $this->make_invoice( '' );
+        $this->assertSame( 'Invoice', $invoice->get_title_for( 'document' ) );
     }
 }
