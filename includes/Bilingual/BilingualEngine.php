@@ -145,23 +145,41 @@ class BilingualEngine {
 		return (array) apply_filters( 'woi_pdf_second_language_primary_labels', $map );
 	}
 
-	public function font_family(): string {
-		return 'Noto Naskh Arabic';
+	/** mPDF font-family keys we ship for the secondary (Arabic) script. */
+	protected $secondary_fonts = array( 'xbriyaz', 'lateef' );
+
+	/**
+	 * The mPDF font-family used for secondary-language (Arabic) text.
+	 *
+	 * mPDF ships these fonts (XB Riyaz, Lateef) and shapes Arabic natively from
+	 * their OpenType tables — no @font-face or synced TTFs required. The choice
+	 * is a document setting (`second_language_font`), defaulting to XB Riyaz.
+	 *
+	 * @param object|null $document
+	 * @return string
+	 */
+	public function font_family( $document = null ): string {
+		$choice = '';
+		if ( is_object( $document ) && is_callable( array( $document, 'get_setting' ) ) ) {
+			$choice = strtolower( trim( (string) $document->get_setting( 'second_language_font' ) ) );
+		}
+		if ( ! in_array( $choice, $this->secondary_fonts, true ) ) {
+			$choice = 'xbriyaz';
+		}
+		return (string) apply_filters( 'woi_pdf_second_language_font', $choice, $document );
 	}
 
 	public function font_css( $document ): string {
 		if ( ! $this->is_enabled( $document ) ) {
 			return '';
 		}
-		// Dompdf resolves font-family names against its synced font dir by family
-		// name; the bundled NotoNaskhArabic TTFs are copied there by FontSynchronizer.
-		$family = $this->font_family();
+		// mPDF resolves these font-family names against its bundled Arabic fonts
+		// and shapes them natively, so no @font-face declaration is needed.
+		$family = $this->font_family( $document );
 		$dir    = $this->is_rtl( $document ) ? 'rtl' : 'ltr';
-		$css    = "@font-face { font-family: '{$family}'; font-style: normal; font-weight: normal; src: url('NotoNaskhArabic-Regular.ttf'); }\n";
-		$css   .= "@font-face { font-family: '{$family}'; font-style: normal; font-weight: bold; src: url('NotoNaskhArabic-Bold.ttf'); }\n";
-		$css   .= ".woi-lbl-secondary { display: block; font-family: '{$family}'; direction: {$dir}; }\n";
+		$css    = ".woi-lbl-secondary { display: block; font-family: {$family}; direction: {$dir}; }\n";
 		$css   .= ".woi-lbl-inline .woi-lbl-secondary { display: inline; }\n";
-		$css   .= ".woi-bilingual-secondary { font-family: '{$family}'; direction: {$dir}; }\n";
+		$css   .= ".woi-bilingual-secondary { font-family: {$family}; direction: {$dir}; }\n";
 		return $css;
 	}
 }

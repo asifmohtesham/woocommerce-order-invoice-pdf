@@ -1,11 +1,8 @@
 <?php
 namespace WOI\PDF;
 
-use WOI\PDF\Vendor\Dompdf\Dompdf;
-use WOI\PDF\Vendor\Dompdf\Options;
 use function apply_filters;
 use function do_action;
-use function get_temp_dir;
 use function header;
 use function strlen;
 use function file_exists;
@@ -29,35 +26,26 @@ class DocumentRenderer {
     }
 
     /**
-     * Render HTML to a PDF binary string via Dompdf.
+     * Render HTML to a PDF binary string via mPDF.
+     *
+     * Used for email-attachment PDFs. Shares the engine + hooks with PDFMaker
+     * through MpdfMaker so output is consistent across paths.
      *
      * @param string $html    Full HTML document string.
-     * @param array  $options Optional Dompdf options (paper size, orientation, etc.).
+     * @param array  $options Optional overrides (paper_size, paper_orientation).
      * @return string Raw PDF binary.
      */
     public function render( string $html, array $options = array() ): string {
-        $dompdf_options = new Options();
-        $dompdf_options->set( 'defaultFont', 'open-sans' );
-        $dompdf_options->set( 'isRemoteEnabled', apply_filters( 'woi_pdf_dompdf_remote_enabled', true ) );
-        $dompdf_options->set( 'tempDir', apply_filters( 'woi_pdf_tmp_path', get_temp_dir() ) );
-
-        foreach ( $options as $key => $value ) {
-            $dompdf_options->set( $key, $value );
-        }
-
-        $dompdf = new Dompdf( $dompdf_options );
-        $dompdf->setPaper(
-            apply_filters( 'woi_pdf_paper_size', 'A4' ),
-            apply_filters( 'woi_pdf_paper_orientation', 'portrait' )
+        $settings = $options + array(
+            'paper_size'        => apply_filters( 'woi_pdf_paper_size', 'A4' ),
+            'paper_orientation' => apply_filters( 'woi_pdf_paper_orientation', 'portrait' ),
         );
 
-        $dompdf->loadHtml( apply_filters( 'woi_pdf_get_html', $html ) );
-
-        do_action( 'woi_pdf_before_dompdf_render', $dompdf );
-        $dompdf->render();
-        do_action( 'woi_pdf_after_dompdf_render', $dompdf );
-
-        return (string) $dompdf->output();
+        return \WOI\PDF\Makers\MpdfMaker::render(
+            apply_filters( 'woi_pdf_get_html', $html ),
+            $settings,
+            null
+        );
     }
 
     /**

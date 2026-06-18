@@ -488,5 +488,7 @@ table.order-data { width: 50%; margin-left: auto; }
 table.order-details { border-collapse: collapse; width: 100%; }
 table.order-details th, table.order-details td { border: 0.5pt solid #000; padding: 2px 4px; }
 .document-type-label { text-align: center; }
-.woi-bilingual-secondary { font-family: 'Noto Naskh Arabic'; }
+/* Secondary (Arabic) font is set dynamically by the bilingual engine's
+   custom-styles hook (mPDF-bundled xbriyaz/lateef); fallback default here. */
+.woi-bilingual-secondary { font-family: xbriyaz; }
 .woi-lbl-inline .woi-lbl-secondary::before { content: "\005C"; padding: 0 3px; } /* backslash separator */

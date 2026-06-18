@@ -46,6 +46,7 @@ function woi_pdf_standard_uae_inject_bilingual_defaults( $settings, $document, $
 		'enable_second_language'  => 1,
 		'second_language'         => 'ar',
 		'second_language_rtl'     => 1,
+		'second_language_font'    => 'xbriyaz', // mPDF-bundled Arabic font (XB Riyaz); 'lateef' also available
 		'document_title'          => __( 'Tax Invoice', 'woocommerce-orders-invoice-pdf' ),
 		'second_language_labels'  => $dict,
 	);

@@ -28,7 +28,7 @@ class BilingualStyleHookTest extends TestCase {
 		ob_start();
 		woi_pdf_print_bilingual_styles( 'invoice', $this->doc( array( 'enable_second_language' => 1 ) ) );
 		$out = ob_get_clean();
-		$this->assertStringContainsString( '@font-face', $out );
+		$this->assertStringContainsString( 'font-family: xbriyaz', $out );
 	}
 
 	public function test_callback_silent_when_disabled(): void {

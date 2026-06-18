@@ -24,8 +24,19 @@ class BilingualFontTest extends TestCase {
 		};
 	}
 
-	public function test_font_family_name(): void {
-		$this->assertSame( 'Noto Naskh Arabic', BilingualEngine::instance()->font_family() );
+	public function test_font_family_defaults_to_xbriyaz(): void {
+		$this->assertSame( 'xbriyaz', BilingualEngine::instance()->font_family() );
+		$this->assertSame( 'xbriyaz', BilingualEngine::instance()->font_family( $this->doc( array() ) ) );
+	}
+
+	public function test_font_family_honours_lateef_setting(): void {
+		$doc = $this->doc( array( 'second_language_font' => 'lateef' ) );
+		$this->assertSame( 'lateef', BilingualEngine::instance()->font_family( $doc ) );
+	}
+
+	public function test_font_family_rejects_unknown_font(): void {
+		$doc = $this->doc( array( 'second_language_font' => 'comic-sans' ) );
+		$this->assertSame( 'xbriyaz', BilingualEngine::instance()->font_family( $doc ) );
 	}
 
 	public function test_font_css_empty_when_disabled(): void {
@@ -34,8 +45,9 @@ class BilingualFontTest extends TestCase {
 
 	public function test_font_css_present_when_enabled(): void {
 		$css = BilingualEngine::instance()->font_css( $this->doc( array( 'enable_second_language' => 1 ) ) );
-		$this->assertStringContainsString( '@font-face', $css );
-		$this->assertStringContainsString( 'Noto Naskh Arabic', $css );
+		// mPDF shapes natively from bundled fonts: no @font-face needed.
+		$this->assertStringNotContainsString( '@font-face', $css );
+		$this->assertStringContainsString( 'font-family: xbriyaz', $css );
 		$this->assertStringContainsString( '.woi-lbl-secondary', $css );
 	}
 }
