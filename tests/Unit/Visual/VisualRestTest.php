@@ -35,6 +35,22 @@ class VisualRestTest extends TestCase {
         $result = $rest->handle_visual_template_save( $request );
 
         $this->assertSame( array( 'saved' => true ), $result );
+        $this->assertNotNull( $saved, 'update_option was not called — save() did not run' );
         $this->assertStringContainsString( '{{shop_name}}', $saved );
+    }
+
+    public function test_visual_route_hooked_even_when_rest_api_disabled(): void {
+        Functions\when( 'get_option' )->justReturn( array() ); // debug off: no enable_rest_api
+
+        $hooked = false;
+        Functions\when( 'add_action' )->alias( function ( $hook, $cb ) use ( &$hooked ) {
+            if ( 'rest_api_init' === $hook && is_array( $cb ) && isset( $cb[1] ) && 'register_visual_template_route' === $cb[1] ) {
+                $hooked = true;
+            }
+        } );
+
+        new Rest();
+
+        $this->assertTrue( $hooked, 'register_visual_template_route was not hooked to rest_api_init' );
     }
 }

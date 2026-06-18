@@ -16,6 +16,8 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 		protected string $rest_base = 'orders';
 
 		public function __construct() {
+			add_action( 'rest_api_init', array( $this, 'register_visual_template_route' ) );
+
 			$debug_settings = get_option( 'woi_pdf_settings_debug', array() );
 
 			if ( ! isset( $debug_settings['enable_rest_api'] ) ) {
@@ -38,6 +40,25 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 		 */
 		private function is_rest_api_supported(): bool {
 			return function_exists( 'register_rest_route' ) && version_compare( get_bloginfo( 'version' ), '5.4', '>=' );
+		}
+
+		/**
+		 * Registers the visual-template REST route unconditionally (not gated by debug settings).
+		 *
+		 * @return void
+		 */
+		public function register_visual_template_route(): void {
+			register_rest_route( 'woi-pdf/v1', '/visual-template', array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'handle_visual_template_save' ),
+				'permission_callback' => function () {
+					return current_user_can( 'manage_woocommerce' );
+				},
+				'args'                => array(
+					'doc_type' => array( 'type' => 'string', 'required' => true ),
+					'html'     => array( 'type' => 'string', 'required' => true ),
+				),
+			) );
 		}
 
 		/**
@@ -87,18 +108,6 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 				),
 			) );
 
-			// Save visual invoice template.
-			register_rest_route( 'woi-pdf/v1', '/visual-template', array(
-				'methods'             => 'POST',
-				'callback'            => array( $this, 'handle_visual_template_save' ),
-				'permission_callback' => function () {
-					return current_user_can( 'manage_woocommerce' );
-				},
-				'args'                => array(
-					'doc_type' => array( 'type' => 'string', 'required' => true ),
-					'html'     => array( 'type' => 'string', 'required' => true ),
-				),
-			) );
 		}
 
 		/**
