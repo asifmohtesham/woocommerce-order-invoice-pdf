@@ -58,7 +58,7 @@ class PreviewWatermark {
 	 * @param object|null $document The order document (unused).
 	 * @return object
 	 */
-	public static function stamp_after_render( $dompdf, $html = '', $options = null, $document = null ) {
+	public static function stamp_after_render( $dompdf, $html = '', $options = null, $document = null ): object {
 		if ( ! self::is_enabled() ) {
 			return $dompdf;
 		}

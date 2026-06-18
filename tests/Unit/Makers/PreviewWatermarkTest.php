@@ -87,7 +87,7 @@ class PreviewWatermarkTest extends TestCase {
 		$canvas = $this->fakeCanvas();
 		$dompdf = $this->fakeDompdf( $canvas, $this->fakeFonts() );
 		PreviewWatermark::stamp_after_render( $dompdf );
-		$this->assertSame( array( 'SAMPLE' ), $canvas->texts );
+		$this->assertSame( array( PreviewWatermark::get_text() ), $canvas->texts );
 	}
 
 	public function test_stamp_skips_when_disabled(): void {
