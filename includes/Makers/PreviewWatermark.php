@@ -12,7 +12,11 @@ if ( ! class_exists( '\\WOI\\PDF\\Makers\\PreviewWatermark' ) ) :
  *
  * Registered only during OrderDocument::preview_pdf() via the
  * woi_pdf_after_dompdf_render filter, so real (customer-facing) PDFs are
- * never affected.
+ * never affected. The preview render fires this hook as apply_filters() on its
+ * own Dompdf instance (PDFMaker::output()); the real-PDF render path
+ * (DocumentRenderer::render()) fires it as do_action() on a separate instance,
+ * and register()/unregister() are bracketed by a try/finally in preview_pdf(),
+ * so the two paths can never share the watermark.
  */
 class PreviewWatermark {
 
