@@ -40,7 +40,10 @@
                 'X-WP-Nonce': woiVisual.nonce
             },
             body: JSON.stringify( { doc_type: woiVisual.docType, html: getHtml() } )
-        } ).then( function ( r ) { return r.json(); } );
+        } ).then( function ( r ) {
+            if ( ! r.ok ) { return Promise.reject( new Error( 'HTTP ' + r.status ) ); }
+            return r.json();
+        } );
     }
 
     /**
@@ -65,7 +68,7 @@
         className: 'fa fa-floppy-o',
         attributes: { title: 'Save' },
         command: function () {
-            save().then( function () { alert( 'Saved' ); } );
+            save().then( function () { alert( 'Saved' ); } ).catch( function ( e ) { alert( 'Save failed: ' + ( e && e.message ? e.message : e ) ); } );
         }
     } );
 
@@ -86,7 +89,7 @@
                 var url = woiVisual.previewUrl +
                     '&security=' + encodeURIComponent( woiVisual.previewNonce );
                 window.open( url, '_blank' );
-            } );
+            } ).catch( function ( e ) { alert( 'Save failed, preview not opened: ' + ( e && e.message ? e.message : e ) ); } );
         }
     } );
 
@@ -104,9 +107,10 @@
             var blob = new Blob( [ merged ], { type: 'text/html; charset=utf-8' } );
             var url  = URL.createObjectURL( blob );
             var tab  = window.open( url, '_blank' );
-            // Revoke after a short delay — enough time for the tab to load the blob.
+            // Revoke after 10 s — enough time for the tab to load the blob.
+            // (The 'load' event does not reliably fire for blob-navigated tabs.)
             if ( tab ) {
-                tab.addEventListener( 'load', function () { URL.revokeObjectURL( url ); } );
+                setTimeout( function () { URL.revokeObjectURL( url ); }, 10000 );
             } else {
                 // Popup blocked; still revoke to avoid leak.
                 URL.revokeObjectURL( url );
