@@ -9,3 +9,6 @@ span.wpo-warning{display:inline-block;border:1px solid red;border-left:4px solid
 .preview-document .preview-data-wrapper .preview-order-data p.order-search:hover,
 .preview-document .preview-data-wrapper .woi-preview-download.button:hover{border-color:#8c8f94;background:#f6f7f7;color:#2c3338}
 .preview-document .preview-data-wrapper .arrow-down{color:#50575e;font-size:.7em;margin-left:8px}
+/* Force the Download button to match the selectors even in its disabled state (WP's disabled-button styles use !important). */
+.preview-document .preview-data-wrapper .woi-preview-download.button,.preview-document .preview-data-wrapper .woi-preview-download.button:disabled,.preview-document .preview-data-wrapper .woi-preview-download.button[disabled]{height:34px!important;min-height:34px!important;line-height:32px!important;padding:0 14px!important;border:1px solid #c3c4c7!important;border-radius:4px!important;background:#fff!important;color:#2c3338!important}
+.preview-document .preview-data-wrapper .woi-preview-download.button[disabled]{color:#8c8f94!important;cursor:default}
