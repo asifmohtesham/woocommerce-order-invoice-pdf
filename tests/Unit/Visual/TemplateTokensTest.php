@@ -48,13 +48,14 @@ class TemplateTokensTest extends TestCase {
     }
 
     public function test_scalar_tokens_resolve_and_escape(): void {
-        // Block-token helpers must be stubbed so map() does not pull in WooCommerce internals.
-        Functions\when( 'woi_pdf_templates_get_table_headers' )->justReturn( array() );
-        Functions\when( 'woi_pdf_templates_get_table_body' )->justReturn( array() );
-        Functions\when( 'woi_pdf_templates_get_totals' )->justReturn( array() );
-
-        $tokens = new TemplateTokens();
-        $map    = $tokens->map( $this->stub_document() );
+        // Use an anonymous subclass that overrides the protected fetch_* seams
+        // so we never touch the real woi_pdf_templates_* globals (avoids Patchwork DefinedTooEarly).
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $map = $tokens->map( $this->stub_document() );
 
         $this->assertSame( 'Acme Co', $map['{{shop_name}}'] );
         $this->assertSame( '1 Main St', $map['{{shop_address}}'] );
@@ -67,14 +68,14 @@ class TemplateTokensTest extends TestCase {
     }
 
     public function test_merge_replaces_known_and_strips_unknown_tokens(): void {
-        // Block-token helpers must be stubbed so merge() -> map() does not pull in WooCommerce internals.
-        Functions\when( 'woi_pdf_templates_get_table_headers' )->justReturn( array() );
-        Functions\when( 'woi_pdf_templates_get_table_body' )->justReturn( array() );
-        Functions\when( 'woi_pdf_templates_get_totals' )->justReturn( array() );
-
-        $tokens = new TemplateTokens();
-        $html   = '<h1>{{document_title}}</h1><p>{{shop_name}}</p><i>{{bogus}}</i>';
-        $out    = $tokens->merge( $html, $this->stub_document() );
+        // Anonymous subclass with empty fetch_* seams — no Patchwork stubs needed.
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $html = '<h1>{{document_title}}</h1><p>{{shop_name}}</p><i>{{bogus}}</i>';
+        $out  = $tokens->merge( $html, $this->stub_document() );
 
         $this->assertStringContainsString( '<h1>Tax Invoice</h1>', $out );
         $this->assertStringContainsString( '<p>Acme Co</p>', $out );
@@ -83,18 +84,19 @@ class TemplateTokensTest extends TestCase {
     }
 
     public function test_block_tokens_render_tables(): void {
-        Functions\when( 'woi_pdf_templates_get_table_headers' )->justReturn( array(
-            array( 'class' => 'sku', 'title' => 'SKU' ),
-        ) );
-        Functions\when( 'woi_pdf_templates_get_table_body' )->justReturn( array(
-            array( array( 'class' => 'sku', 'data' => 'A-1' ) ),
-        ) );
-        Functions\when( 'woi_pdf_templates_get_totals' )->justReturn( array(
-            array( 'class' => 'total', 'label' => 'Total', 'value' => 'AED 10' ),
-        ) );
-
-        $tokens = new TemplateTokens();
-        $map    = $tokens->map( $this->stub_document() );
+        // Anonymous subclass returning fixture data via the protected seams.
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array {
+                return array( array( 'class' => 'sku', 'title' => 'SKU' ) );
+            }
+            protected function fetch_table_body( $d ): array {
+                return array( array( array( 'class' => 'sku', 'data' => 'A-1' ) ) );
+            }
+            protected function fetch_totals( $d ): array {
+                return array( array( 'class' => 'total', 'label' => 'Total', 'value' => 'AED 10' ) );
+            }
+        };
+        $map = $tokens->map( $this->stub_document() );
 
         $this->assertStringContainsString( '<table class="order-details">', $map['{{line_items}}'] );
         $this->assertStringContainsString( 'A-1', $map['{{line_items}}'] );

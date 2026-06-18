@@ -1,7 +1,7 @@
 <?php
 namespace WOI\PDF\Visual;
 
-if ( ! defined( 'ABSPATH' ) ) exit;
+if ( ! defined( 'ABSPATH' ) ) { return; }
 
 /**
  * Whether the visual template path should be used for a given document.

@@ -63,10 +63,19 @@ class TemplateTokens {
         return (string) ob_get_clean();
     }
 
+    /** Overridable seam: fetch table headers (testable without Patchwork). */
+    protected function fetch_table_headers( $document ): array { return (array) woi_pdf_templates_get_table_headers( $document ); }
+
+    /** Overridable seam: fetch table body rows (testable without Patchwork). */
+    protected function fetch_table_body( $document ): array { return (array) woi_pdf_templates_get_table_body( $document ); }
+
+    /** Overridable seam: fetch totals rows (testable without Patchwork). */
+    protected function fetch_totals( $document ): array { return (array) woi_pdf_templates_get_totals( $document ); }
+
     /** Build the line-items table, mirroring the Standard UAE invoice markup. */
     private function render_line_items( $document ): string {
-        $headers = (array) woi_pdf_templates_get_table_headers( $document );
-        $body    = (array) woi_pdf_templates_get_table_body( $document );
+        $headers = $this->fetch_table_headers( $document );
+        $body    = $this->fetch_table_body( $document );
 
         $html = '<table class="order-details"><thead><tr>';
         foreach ( $headers as $header_data ) {
@@ -89,7 +98,7 @@ class TemplateTokens {
 
     /** Build the totals table, mirroring the Standard UAE invoice markup. */
     private function render_totals( $document ): string {
-        $totals = (array) woi_pdf_templates_get_totals( $document );
+        $totals = $this->fetch_totals( $document );
 
         $html = '<table class="totals-table">';
         foreach ( $totals as $total_data ) {
