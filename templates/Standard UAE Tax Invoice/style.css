@@ -148,6 +148,18 @@ td.header {
 	text-align: center; /* centre the logo within the header cell (#12) */
 }
 
+/* Logo sits in its own full-width row above the shop info, so it is centred
+   across the whole page rather than pinned to a side column (#12). */
+td.header.logo-cell {
+	text-align: center;
+	padding-bottom: 4mm;
+}
+
+.logo-row td.header img {
+	display: inline-block;
+	margin: 0 auto;
+}
+
 .header-stretcher {
 	height: 3cm;
 	display: block;

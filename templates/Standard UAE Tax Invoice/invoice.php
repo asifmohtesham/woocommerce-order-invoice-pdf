@@ -8,6 +8,17 @@
 </table>
 <?php else : ?>
 <table class="head container">
+	<?php if ( $this->has_header_logo() ) : ?>
+	<tr class="logo-row">
+		<td class="header logo-cell" colspan="2">
+			<div class="header-stretcher">
+				<?php do_action( 'woi_pdf_before_shop_logo', $this->get_type(), $this->order ); ?>
+				<?php $this->header_logo(); ?>
+				<?php do_action( 'woi_pdf_after_shop_logo', $this->get_type(), $this->order ); ?>
+			</div>
+		</td>
+	</tr>
+	<?php endif; ?>
 	<tr class="underline">
 		<td class="shop-info">
 			<div class="shop-address">
@@ -30,15 +41,6 @@
 		<td class="shop-info">
 			<div class="shop-contact">
 				<?php $this->extra_1(); ?>
-			</div>
-		</td>
-		<td class="header">
-			<div class="header-stretcher">
-				<?php if ( $this->has_header_logo() ) : ?>
-					<?php do_action( 'woi_pdf_before_shop_logo', $this->get_type(), $this->order ); ?>
-					<?php $this->header_logo(); ?>
-					<?php do_action( 'woi_pdf_after_shop_logo', $this->get_type(), $this->order ); ?>
-				<?php endif; ?>
 			</div>
 		</td>
 	</tr>
