@@ -1,6 +1,11 @@
 <?php
+// This file is eagerly loaded via Composer's autoload.files, including during
+// build tooling (e.g. Strauss) that bootstraps the Composer autoloader outside
+// WordPress. Use `return` rather than `exit` so loading it in a non-WP context
+// (no ABSPATH) just skips the function definitions instead of killing the whole
+// process. Direct web access is still a no-op (nothing runs, no output).
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+	return;
 }
 
 /*
