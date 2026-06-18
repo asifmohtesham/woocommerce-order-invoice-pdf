@@ -1769,10 +1769,15 @@ abstract class OrderDocument implements DocumentInterface {
 		);
 		$pdf_maker = woi_pdf_get_pdf_maker( $this->get_html(), $pdf_settings, $this );
 
-		// Stamp a "SAMPLE" watermark onto the preview only.
+		// Stamp a "SAMPLE" watermark onto the preview only. The finally guard
+		// guarantees the filter is detached even if output() throws, so it can
+		// never leak onto a real (non-preview) PDF later in the same request.
 		PreviewWatermark::register();
-		$pdf = $pdf_maker->output();
-		PreviewWatermark::unregister();
+		try {
+			$pdf = $pdf_maker->output();
+		} finally {
+			PreviewWatermark::unregister();
+		}
 
 		return $pdf;
 	}
