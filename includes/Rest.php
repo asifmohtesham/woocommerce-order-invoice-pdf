@@ -86,6 +86,19 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 					'permission_callback' => array( $this, 'permissions_check' ),
 				),
 			) );
+
+			// Save visual invoice template.
+			register_rest_route( 'woi-pdf/v1', '/visual-template', array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'handle_visual_template_save' ),
+				'permission_callback' => function () {
+					return current_user_can( 'manage_woocommerce' );
+				},
+				'args'                => array(
+					'doc_type' => array( 'type' => 'string', 'required' => true ),
+					'html'     => array( 'type' => 'string', 'required' => true ),
+				),
+			) );
 		}
 
 		/**
@@ -475,6 +488,25 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 
 			// Return data which are not empty.
 			return array_filter( $document_data );
+		}
+
+		/**
+		 * Handles saving a visual invoice template via the REST API.
+		 *
+		 * @param object $request Request object with get_param().
+		 *
+		 * @return array|\WP_Error
+		 */
+		public function handle_visual_template_save( $request ) {
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				return new \WP_Error( 'forbidden', 'Insufficient permissions', array( 'status' => 403 ) );
+			}
+			$doc_type = (string) $request->get_param( 'doc_type' );
+			$html     = (string) $request->get_param( 'html' );
+
+			( new \WOI\PDF\Visual\VisualTemplateStore() )->save( $doc_type, $html );
+
+			return array( 'saved' => true );
 		}
 
 	}
