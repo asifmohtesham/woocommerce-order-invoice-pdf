@@ -36,8 +36,9 @@ class VisualEditorPage {
         wp_localize_script( 'woi-visual-editor', 'woiVisual', array(
             'restUrl'    => esc_url_raw( rest_url( 'woi-pdf/v1/visual-template' ) ),
             'previewUrl' => esc_url_raw( admin_url( 'admin-ajax.php?action=woi_pdf_preview' ) ),
-            'nonce'      => wp_create_nonce( 'wp_rest' ),
-            'docType'    => 'invoice',
+            'nonce'        => wp_create_nonce( 'wp_rest' ),
+            'previewNonce' => wp_create_nonce( 'woi_pdf_preview' ),
+            'docType'      => 'invoice',
             'stored'     => $store->get( 'invoice' ),
             'starter'    => $this->starter_html(),
             'sampleData' => $this->sample_data(),
@@ -46,7 +47,7 @@ class VisualEditorPage {
 
     public function render_page(): void {
         echo '<div class="wrap"><h1>' . esc_html__( 'Visual Invoice Template', 'woocommerce-orders-invoice-pdf' ) . '</h1>';
-        echo '<p>' . esc_html__( 'Design with table/block layout for best mPDF fidelity. Use "Preview real PDF" to verify Arabic and pagination.', 'woocommerce-orders-invoice-pdf' ) . '</p>';
+        echo '<p>' . esc_html__( 'Design with table/block layout for best mPDF fidelity. Use "Preview real PDF" to verify Arabic and pagination. Note: real-PDF preview reflects the saved design and only renders the visual template when "Visual template (invoice)" is enabled in Invoice Settings.', 'woocommerce-orders-invoice-pdf' ) . '</p>';
         echo '<div id="woi-visual-editor"></div></div>';
     }
 
