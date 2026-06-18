@@ -44,8 +44,9 @@
     },
     "scripts": {
         "strauss": "vendor/bin/strauss",
-        "post-install-cmd": ["@strauss"],
-        "post-update-cmd": ["@strauss"],
+        "mpdf-assets": "@php bin/strauss-mpdf-assets.php",
+        "post-install-cmd": ["@strauss", "@mpdf-assets"],
+        "post-update-cmd": ["@strauss", "@mpdf-assets"],
         "test": "vendor/bin/phpunit"
     },
     "config": {
