@@ -1358,6 +1358,26 @@ function woi_pdf_get_recipient_trn( $order ): string {
  * @param string $label
  * @return string
  */
+/**
+ * Normalise a user-entered CSS length, defaulting a unit-less number to cm.
+ *
+ * The "Max height" logo/letterhead fields accept values like "3cm" or "25mm".
+ * A bare number ("3") is not a valid CSS length: Dompdf silently dropped it
+ * (falling back to the template default), but mPDF keeps the invalid declaration
+ * and stops constraining the image — making the logo render at full size. Append
+ * "cm" (matching the field's primary example) so a bare number works as expected.
+ *
+ * @param string $value Raw value (already space-stripped).
+ * @return string
+ */
+function woi_pdf_normalize_css_length( string $value ): string {
+	$value = trim( $value );
+	if ( '' !== $value && preg_match( '/^\d*\.?\d+$/', $value ) ) {
+		$value .= 'cm';
+	}
+	return $value;
+}
+
 function woi_pdf_format_trn_line( string $value, string $label ): string {
 	$value = trim( $value );
 	if ( '' === $value ) {

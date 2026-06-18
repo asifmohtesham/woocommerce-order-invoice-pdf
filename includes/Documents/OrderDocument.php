@@ -1344,7 +1344,8 @@ abstract class OrderDocument implements DocumentInterface {
 	 */
 	public function get_header_logo_height() {
 		if ( ! empty( $this->settings['header_logo_height'] ) ) {
-			return apply_filters( 'woi_pdf_header_logo_height', str_replace( ' ', '', $this->settings['header_logo_height'] ), $this );
+			$value = woi_pdf_normalize_css_length( str_replace( ' ', '', $this->settings['header_logo_height'] ) );
+			return apply_filters( 'woi_pdf_header_logo_height', $value, $this );
 		}
 	}
 
@@ -1365,7 +1366,8 @@ abstract class OrderDocument implements DocumentInterface {
 	 */
 	public function get_letterhead_height() {
 		if ( ! empty( $this->settings['letterhead_logo_height'] ) ) {
-			return apply_filters( 'woi_pdf_letterhead_height', str_replace( ' ', '', $this->settings['letterhead_logo_height'] ), $this );
+			$value = woi_pdf_normalize_css_length( str_replace( ' ', '', $this->settings['letterhead_logo_height'] ) );
+			return apply_filters( 'woi_pdf_letterhead_height', $value, $this );
 		}
 	}
 
