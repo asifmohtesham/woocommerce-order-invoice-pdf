@@ -73,6 +73,10 @@ class Main {
 		// apply header logo height
 		add_action( 'woi_pdf_custom_styles', array( $this, 'set_header_logo_height' ), 9, 2 );
 
+		// mPDF ignores `max-height` set via a `td.header img` descendant selector,
+		// so also constrain the logo inline on the <img> element (which mPDF honours).
+		add_filter( 'woi_pdf_header_logo_img_element', array( $this, 'constrain_header_logo_height' ), 10, 3 );
+
 		// inject bilingual font CSS into document head
 		add_action( 'woi_pdf_custom_styles', 'woi_pdf_print_bilingual_styles', 20, 2 );
 
@@ -1260,6 +1264,40 @@ class Main {
 			}
 			<?php
 		}
+	}
+
+	/**
+	 * Constrain the header logo by injecting max-height inline on the <img>.
+	 *
+	 * mPDF honours `max-height` on an inline style but ignores it when set via a
+	 * `td.header img` descendant selector (so set_header_logo_height's CSS alone
+	 * leaves the logo at full size). Resolve the configured height, falling back
+	 * to a 3cm default, and add it inline.
+	 *
+	 * @param string $img_element   The <img> markup.
+	 * @param int    $attachment_id Attachment ID (unused).
+	 * @param object $document      The order document.
+	 * @return string
+	 */
+	public function constrain_header_logo_height( $img_element, $attachment_id, $document ) {
+		$height = '';
+		if ( is_object( $document ) && is_callable( array( $document, 'get_header_logo_height' ) ) ) {
+			$height = (string) $document->get_header_logo_height();
+		}
+		if ( '' === $height ) {
+			$height = '3cm';
+		}
+		$height = (string) apply_filters( 'woi_pdf_header_logo_max_height', $height, $document );
+
+		if ( '' === $height || false === strpos( $img_element, '<img' ) ) {
+			return $img_element;
+		}
+
+		// Merge into an existing style attribute if present, else add one.
+		if ( preg_match( '/<img\b[^>]*\bstyle\s*=\s*"/', $img_element ) ) {
+			return preg_replace( '/(<img\b[^>]*\bstyle\s*=\s*")/', '$1max-height:' . esc_attr( $height ) . ';', $img_element, 1 );
+		}
+		return preg_replace( '/<img\b/', '<img style="max-height:' . esc_attr( $height ) . '"', $img_element, 1 );
 	}
 
 	/**
