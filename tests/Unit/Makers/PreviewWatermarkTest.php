@@ -3,10 +3,15 @@ namespace WOI\PDF\Tests\Unit\Makers;
 
 use Brain\Monkey;
 use Brain\Monkey\Functions;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use WOI\PDF\Makers\PreviewWatermark;
 
 class PreviewWatermarkTest extends TestCase {
+
+	// Bridges Brain Monkey / Mockery expectations into PHPUnit so that
+	// Functions\expect(...) is verified and counted (no "risky" no-assertion tests).
+	use MockeryPHPUnitIntegration;
 
 	protected function setUp(): void {
 		parent::setUp();
