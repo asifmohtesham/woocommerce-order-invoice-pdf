@@ -189,6 +189,12 @@ if ( empty( $breadcrumb ) ) {
 								<?php endforeach; ?>
 							</ul>
 						</div>
+						<div class="preview-data preview-download">
+							<button type="button" class="button woi-preview-download" disabled
+								title="<?php esc_attr_e( 'Download the preview as a watermarked sample PDF.', 'woocommerce-orders-invoice-pdf' ); ?>">
+								<?php esc_html_e( 'Download', 'woocommerce-orders-invoice-pdf' ); ?>
+							</button>
+						</div>
 					</div>
 					<input type="hidden" name="document_type" data-default="<?php echo esc_attr( $preview_document_type ); ?>" value="<?php echo esc_attr( $preview_document_type ); ?>">
 					<input type="hidden" name="output_format" value="pdf">
