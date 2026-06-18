@@ -118,6 +118,8 @@ jQuery( function( $ ) {
 	let $previewOrderIdInput      = $( '#woi-pdf-preview-wrapper input[name="order_id"]' );
 	let $previewDocumentTypeInput = $( '#woi-pdf-preview-wrapper input[name="document_type"]' );
 	let $previewOutputFormatInput = $( '#woi-pdf-preview-wrapper input[name="output_format"]' );
+	let $previewDownloadBtn       = $( '#woi-pdf-preview-wrapper .woi-preview-download' );
+	let lastPreviewPdfBase64      = null;
 	let $previewNonceInput        = $( '#woi-pdf-preview-wrapper input[name="nonce"]' );
 	let $previewSettingsForm      = $( '#woi-pdf-settings' );
 	let previewXhr                = null;
@@ -604,6 +606,7 @@ jQuery( function( $ ) {
 				} ).addClass( 'active' );
 			}
 
+			updateDownloadButton();
 			triggerPreview();
 		}
 	} ).trigger( 'change' );
@@ -613,9 +616,42 @@ jQuery( function( $ ) {
 		triggerPreview();
 	} ).trigger( 'change' );
 
+	// Save the cached preview PDF as a watermarked sample file.
+	$previewDownloadBtn.on( 'click', function() {
+		if ( ! lastPreviewPdfBase64 ) {
+			return;
+		}
+
+		let binary = window.atob( lastPreviewPdfBase64 );
+		let bytes  = new Uint8Array( binary.length );
+		for ( let i = 0; i < binary.length; i++ ) {
+			bytes[ i ] = binary.charCodeAt( i );
+		}
+
+		let blob = new Blob( [ bytes ], { type: 'application/pdf' } );
+		let url  = window.URL.createObjectURL( blob );
+		let $a   = $( '<a>', {
+			href:     url,
+			download: previewDocumentType + '-preview-sample.pdf'
+		} ).appendTo( 'body' );
+
+		$a[0].click();
+		$a.remove();
+		window.URL.revokeObjectURL( url );
+	} );
+
+	// Enable the Download button only when a PDF preview is loaded and PDF is the active format.
+	function updateDownloadButton() {
+		let isPdf = ( previewOutputFormat === 'pdf' );
+		$previewDownloadBtn.toggle( isPdf );
+		$previewDownloadBtn.prop( 'disabled', ! ( isPdf && lastPreviewPdfBase64 ) );
+	}
+
 	// Load the Preview with AJAX
 	function ajaxLoadPreview() {
 		console.log( 'Loading preview...' );
+		lastPreviewPdfBase64 = null;
+		updateDownloadButton();
 		let worker   = woi_pdf_admin.pdfjs_worker;
 		let canvasId = 'preview-canvas';
 		let data     = {
@@ -660,6 +696,8 @@ jQuery( function( $ ) {
 						case 'pdf':
 							$preview.append( '<canvas id="' + canvasId + '" style="width:100%;"></canvas>' );
 							renderPdf( worker, canvasId, response.data.preview_data );
+							lastPreviewPdfBase64 = response.data.preview_data;
+							updateDownloadButton();
 							break;
 						case 'xml': {
 							const rawXml = response.data.preview_data;
@@ -673,6 +711,8 @@ jQuery( function( $ ) {
 
 							// highlight just this element
 							Prism.highlightElement( $code[0] );
+							lastPreviewPdfBase64 = null;
+							updateDownloadButton();
 							break;
 						}
 					}
