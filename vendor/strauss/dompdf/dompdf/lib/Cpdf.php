@@ -7,7 +7,7 @@
  * @license http://creativecommons.org/licenses/publicdomain/ Public Domain
  * @package Cpdf
  *
- * Modified by wpo on 09-June-2026 using {@see https://github.com/BrianHenryIE/strauss}.
+ * Modified by wpo on 18-June-2026 using {@see https://github.com/BrianHenryIE/strauss}.
  */
 namespace WOI\PDF\Vendor\Dompdf;
 

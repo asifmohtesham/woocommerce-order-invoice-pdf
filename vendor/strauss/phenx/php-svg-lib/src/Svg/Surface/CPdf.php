@@ -15,7 +15,7 @@
  * @license Public Domain http://creativecommons.org/licenses/publicdomain/
  * @package Cpdf
  *
- * Modified by wpo on 09-June-2026 using {@see https://github.com/BrianHenryIE/strauss}.
+ * Modified by wpo on 18-June-2026 using {@see https://github.com/BrianHenryIE/strauss}.
  */
 
 namespace WOI\PDF\Vendor\Svg\Surface;

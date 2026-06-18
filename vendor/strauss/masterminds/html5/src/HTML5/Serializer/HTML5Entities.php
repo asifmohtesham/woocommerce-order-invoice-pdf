@@ -9,7 +9,7 @@
  * a fallback for PHP versions prior to PHP 5.4 when dealing with encoding.
  *
  * @license MIT
- * Modified by wpo on 09-June-2026 using {@see https://github.com/BrianHenryIE/strauss}.
+ * Modified by wpo on 18-June-2026 using {@see https://github.com/BrianHenryIE/strauss}.
  */
 
 namespace WOI\PDF\Vendor\Masterminds\HTML5\Serializer;

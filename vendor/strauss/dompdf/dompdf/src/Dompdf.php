@@ -4,7 +4,7 @@
  * @link    https://github.com/dompdf/dompdf
  * @license http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License
  *
- * Modified by wpo on 09-June-2026 using {@see https://github.com/BrianHenryIE/strauss}.
+ * Modified by wpo on 18-June-2026 using {@see https://github.com/BrianHenryIE/strauss}.
  */
 namespace WOI\PDF\Vendor\Dompdf;
 

@@ -9,8 +9,6 @@ return array(
     'Attribute' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
     'CURLStringFile' => $vendorDir . '/symfony/polyfill-php81/Resources/stubs/CURLStringFile.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
-    'DeepClone\\ClassNotFoundException' => $vendorDir . '/symfony/polyfill-deepclone/Resources/stubs/ClassNotFoundException.php',
-    'DeepClone\\NotInstantiableException' => $vendorDir . '/symfony/polyfill-deepclone/Resources/stubs/NotInstantiableException.php',
     'Deprecated' => $vendorDir . '/symfony/polyfill-php84/Resources/stubs/Deprecated.php',
     'Dompdf\\Cpdf' => $vendorDir . '/dompdf/dompdf/lib/Cpdf.php',
     'Hamcrest\\Arrays\\IsArray' => $vendorDir . '/hamcrest/hamcrest-php/hamcrest/Hamcrest/Arrays/IsArray.php',

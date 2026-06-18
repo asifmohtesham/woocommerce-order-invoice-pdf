@@ -2,7 +2,7 @@
 /**
  * @license MIT
  *
- * Modified by wpo on 09-June-2026 using {@see https://github.com/BrianHenryIE/strauss}.
+ * Modified by wpo on 18-June-2026 using {@see https://github.com/BrianHenryIE/strauss}.
  */
 
 namespace WOI\PDF\Vendor\Masterminds\HTML5\Serializer;

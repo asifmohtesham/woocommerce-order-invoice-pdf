@@ -6,7 +6,7 @@
  * @license http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License
  * @version $Id: Font_Table_glyf.php 46 2012-04-02 20:22:38Z fabien.menager $
  *
- * Modified by wpo on 09-June-2026 using {@see https://github.com/BrianHenryIE/strauss}.
+ * Modified by wpo on 18-June-2026 using {@see https://github.com/BrianHenryIE/strauss}.
  */
 namespace WOI\PDF\Vendor\FontLib\Glyph;
 

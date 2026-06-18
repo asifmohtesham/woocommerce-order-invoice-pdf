@@ -2,7 +2,7 @@
 /**
  * @license LGPL-3.0-or-later
  *
- * Modified by wpo on 09-June-2026 using {@see https://github.com/BrianHenryIE/strauss}.
+ * Modified by wpo on 18-June-2026 using {@see https://github.com/BrianHenryIE/strauss}.
  */
 
 namespace WOI\PDF\Vendor\Svg;
