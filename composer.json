@@ -6,6 +6,7 @@
     "require": {
         "php": ">=7.4",
         "dompdf/dompdf": "^2.0",
+        "mpdf/mpdf": "^8.3",
         "composer/installers": "^1.0 || ^2.0"
     },
     "require-dev": {
@@ -33,7 +34,8 @@
             "classmap_prefix": "WOI_PDF_",
             "constant_prefix": "WOI_PDF_",
             "packages": [
-                "dompdf/dompdf"
+                "dompdf/dompdf",
+                "mpdf/mpdf"
             ],
             "exclude_from_copy": {
                 "file_patterns": ["/.*\\.txt/"]
