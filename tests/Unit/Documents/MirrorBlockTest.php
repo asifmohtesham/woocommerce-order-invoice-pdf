@@ -96,4 +96,49 @@ class MirrorBlockTest extends TestCase {
 		$out = ob_get_clean();
 		$this->assertSame( '', $out );
 	}
+
+	// ---- three-column header helpers (English | logo | Arabic) ----
+
+	/** Stub with configurable secondary shop name/address. */
+	private function doc_sec( bool $enabled, string $name, string $addr ) {
+		return new class( $enabled, $name, $addr ) {
+			use \WOI\PDF\Documents\BilingualLabelTrait;
+			public $enabled; public $sname; public $saddr;
+			public function __construct( $e, $n, $a ) { $this->enabled = $e; $this->sname = $n; $this->saddr = $a; }
+			protected function bilingual_enabled(): bool { return $this->enabled; }
+			protected function bilingual_rtl(): bool { return true; }
+			protected function secondary_shop_name(): string { return $this->sname; }
+			protected function secondary_shop_address(): string { return $this->saddr; }
+			public function shop_name() { echo 'MILANO'; }
+			public function shop_address() { echo 'Dubai'; }
+		};
+	}
+
+	public function test_has_secondary_shop_true_when_translation_present(): void {
+		$this->assertTrue( $this->doc_sec( true, 'ميلانو', '' )->has_secondary_shop() );
+		$this->assertTrue( $this->doc_sec( true, '', 'دبي' )->has_secondary_shop() );
+	}
+
+	public function test_has_secondary_shop_false_when_disabled_or_empty(): void {
+		$this->assertFalse( $this->doc_sec( false, 'ميلانو', 'دبي' )->has_secondary_shop() );
+		$this->assertFalse( $this->doc_sec( true, '', '' )->has_secondary_shop() );
+	}
+
+	public function test_shop_block_primary_emits_only_latin(): void {
+		ob_start();
+		$this->doc_sec( true, 'ميلانو', 'دبي' )->shop_block_primary();
+		$out = ob_get_clean();
+		$this->assertStringContainsString( 'MILANO', $out );
+		$this->assertStringContainsString( 'Dubai', $out );
+		$this->assertStringNotContainsString( 'ميلانو', $out );
+	}
+
+	public function test_shop_block_secondary_uses_translation_then_falls_back(): void {
+		ob_start();
+		$this->doc_sec( true, 'ميلانو', '' )->shop_block_secondary();
+		$out = ob_get_clean();
+		$this->assertStringContainsString( 'ميلانو', $out ); // translated name
+		$this->assertStringContainsString( 'Dubai', $out );   // address falls back to Latin
+		$this->assertStringNotContainsString( 'MILANO', $out ); // Latin name not used
+	}
 }

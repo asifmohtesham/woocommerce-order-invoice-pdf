@@ -83,6 +83,51 @@ trait BilingualLabelTrait {
 	}
 
 	/**
+	 * Whether a distinct secondary (e.g. Arabic) shop block is available.
+	 *
+	 * True only when bilingual mode is on AND a secondary shop name or address
+	 * has been configured — so templates can lay out a three-column
+	 * "primary | logo | secondary" header without echoing a duplicate Latin
+	 * block when no translation exists.
+	 */
+	public function has_secondary_shop(): bool {
+		return $this->bilingual_enabled()
+			&& ( '' !== $this->secondary_shop_name() || '' !== $this->secondary_shop_address() );
+	}
+
+	/**
+	 * Echo the PRIMARY (e.g. English) shop name + address only.
+	 *
+	 * Unlike bilingual_shop_block() this does not mirror the secondary column —
+	 * it is meant for layouts that place the secondary block in a separate cell.
+	 */
+	public function shop_block_primary(): void {
+		echo '<div class="shop-name"><h3>'; $this->shop_name(); echo '</h3></div>';
+		$this->shop_address();
+	}
+
+	/**
+	 * Echo the SECONDARY (e.g. Arabic) shop name + address only.
+	 *
+	 * Falls back to the primary value for whichever of name/address has no
+	 * configured translation. Arabic is shaped downstream in PDFMaker.
+	 */
+	public function shop_block_secondary(): void {
+		$sec_name = $this->secondary_shop_name();
+		$sec_addr = $this->secondary_shop_address();
+		if ( '' !== $sec_name ) {
+			echo '<div class="shop-name"><h3>' . esc_html( $sec_name ) . '</h3></div>';
+		} else {
+			echo '<div class="shop-name"><h3>'; $this->shop_name(); echo '</h3></div>';
+		}
+		if ( '' !== $sec_addr ) {
+			echo nl2br( esc_html( $sec_addr ) );
+		} else {
+			$this->shop_address();
+		}
+	}
+
+	/**
 	 * Emit the shop-NAME slot.
 	 *
 	 * DISABLED: emits only the shop-name div — identical to the original markup.

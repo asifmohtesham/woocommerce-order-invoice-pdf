@@ -6,6 +6,44 @@
 <table class="head container letterhead">
 	<tr><td class="header letterhead"><?php $this->letterhead(); ?></td></tr>
 </table>
+<?php elseif ( $this->has_secondary_shop() ) : ?>
+<?php // Bilingual header: English address | logo (centred) | Arabic address — one row. ?>
+<table class="head container bilingual-head">
+	<tr class="underline">
+		<td class="shop-info shop-info-primary">
+			<div class="shop-address">
+				<?php do_action( 'woi_pdf_before_shop_name', $this->get_type(), $this->order ); ?>
+				<?php do_action( 'woi_pdf_after_shop_name', $this->get_type(), $this->order ); ?>
+				<?php do_action( 'woi_pdf_before_shop_address', $this->get_type(), $this->order ); ?>
+				<?php $this->shop_block_primary(); ?>
+				<?php do_action( 'woi_pdf_after_shop_address', $this->get_type(), $this->order ); ?>
+				<?php do_action( 'woi_pdf_before_shop_phone_number', $this->get_type(), $this->order ); ?>
+				<?php if ( ! empty( $this->get_shop_phone_number() ) ) : ?>
+					<div class="shop-phone-number"><?php $this->shop_phone_number(); ?></div>
+				<?php endif; ?>
+				<?php do_action( 'woi_pdf_after_shop_phone_number', $this->get_type(), $this->order ); ?>
+				<?php if ( ! empty( $this->get_shop_email_address() ) ) : ?>
+					<div class="shop-email-address"><?php $this->shop_email_address(); ?></div>
+				<?php endif; ?>
+				<?php do_action( 'woi_pdf_after_shop_email_address', $this->get_type(), $this->order ); ?>
+			</div>
+		</td>
+		<td class="header logo-cell">
+			<div class="header-stretcher">
+				<?php if ( $this->has_header_logo() ) : ?>
+					<?php do_action( 'woi_pdf_before_shop_logo', $this->get_type(), $this->order ); ?>
+					<?php $this->header_logo(); ?>
+					<?php do_action( 'woi_pdf_after_shop_logo', $this->get_type(), $this->order ); ?>
+				<?php endif; ?>
+			</div>
+		</td>
+		<td class="shop-info shop-info-secondary woi-bilingual-secondary" dir="rtl">
+			<div class="shop-address">
+				<?php $this->shop_block_secondary(); ?>
+			</div>
+		</td>
+	</tr>
+</table>
 <?php else : ?>
 <table class="head container">
 	<?php if ( $this->has_header_logo() ) : ?>

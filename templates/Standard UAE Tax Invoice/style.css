@@ -148,16 +148,33 @@ td.header {
 	text-align: center; /* centre the logo within the header cell (#12) */
 }
 
-/* Logo sits in its own full-width row above the shop info, so it is centred
-   across the whole page rather than pinned to a side column (#12). */
+/* Logo cell — centred, whether it is the middle column of the bilingual
+   header or the full-width banner of the single-language fallback (#12). */
 td.header.logo-cell {
 	text-align: center;
+	vertical-align: middle;
 	padding-bottom: 4mm;
 }
 
-.logo-row td.header img {
+td.header.logo-cell img {
 	display: inline-block;
 	margin: 0 auto;
+}
+
+/* Bilingual header: English address | logo | Arabic address, one row. */
+table.bilingual-head td.shop-info-primary,
+table.bilingual-head td.shop-info-secondary {
+	width: 38%;
+	vertical-align: top;
+}
+
+table.bilingual-head td.header.logo-cell {
+	width: 24%;
+}
+
+table.bilingual-head td.shop-info-secondary {
+	text-align: right;
+	direction: rtl;
 }
 
 .header-stretcher {
