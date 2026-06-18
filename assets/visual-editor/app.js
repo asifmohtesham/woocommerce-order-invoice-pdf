@@ -73,12 +73,21 @@
     } );
 
     /**
-     * Preview real PDF: save first, then open the preview URL.
-     * Appends woiVisual.previewNonce as ?security=… so the admin-ajax handler
-     * (which validates a 'woi_pdf_preview' nonce, not the wp_rest nonce) accepts
-     * the request.
+     * Preview real PDF: save first, then POST to admin-ajax (same fields as
+     * admin.js ajaxLoadPreview), decode the base64 PDF from the JSON response,
+     * and open it as a Blob URL — matching the proven POST+Blob mechanism used
+     * by the settings-page preview (assets/js/admin.js lines 653-695).
+     *
+     * Fields replicated from admin.js:
+     *   action        = 'woi_pdf_preview'
+     *   security      = woiVisual.previewNonce  (woi_pdf_preview nonce)
+     *   document_type = woiVisual.docType        (e.g. 'invoice')
+     *   order_id      omitted → handler defaults to the last order (Settings.php ~271)
+     *   output_format omitted → handler defaults to 'pdf'
+     *   data          omitted → no live-settings override needed in the visual editor
+     *
      * Note: the PDF renders the visual template only when "Visual template (invoice)"
-     * is enabled in Invoice Settings — it reflects the last saved design.
+     * is enabled in Invoice Settings — it reflects the last SAVED design.
      */
     editor.Panels.addButton( 'options', {
         id: 'woi-preview-pdf',
@@ -86,10 +95,45 @@
         attributes: { title: 'Preview real PDF' },
         command: function () {
             save().then( function () {
-                var url = woiVisual.previewUrl +
-                    '&security=' + encodeURIComponent( woiVisual.previewNonce );
-                window.open( url, '_blank' );
-            } ).catch( function ( e ) { alert( 'Save failed, preview not opened: ' + ( e && e.message ? e.message : e ) ); } );
+                // Build form-encoded body mirroring admin.js ajaxLoadPreview.
+                var body = 'action=woi_pdf_preview' +
+                    '&security=' + encodeURIComponent( woiVisual.previewNonce ) +
+                    '&document_type=' + encodeURIComponent( woiVisual.docType );
+
+                return fetch( woiVisual.ajaxUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    credentials: 'same-origin',
+                    body: body
+                } );
+            } ).then( function ( r ) {
+                if ( ! r.ok ) { throw new Error( 'HTTP ' + r.status ); }
+                return r.json();
+            } ).then( function ( response ) {
+                if ( ! response.success || ! response.data || ! response.data.preview_data ) {
+                    var msg = ( response.data && response.data.error ) ? response.data.error : 'Preview failed.';
+                    alert( 'PDF preview error: ' + msg );
+                    return;
+                }
+                if ( response.data.output_format !== 'pdf' ) {
+                    alert( 'PDF preview returned unexpected format: ' + response.data.output_format );
+                    return;
+                }
+                // Decode base64 → Uint8Array → Blob → object URL (same as admin.js).
+                var b64    = response.data.preview_data;
+                var binary = window.atob( b64 );
+                var bytes  = new Uint8Array( binary.length );
+                for ( var i = 0; i < binary.length; i++ ) {
+                    bytes[ i ] = binary.charCodeAt( i );
+                }
+                var blob    = new Blob( [ bytes ], { type: 'application/pdf' } );
+                var blobUrl = URL.createObjectURL( blob );
+                window.open( blobUrl, '_blank' );
+                // Revoke after 10 s — enough time for the tab to load the blob.
+                setTimeout( function () { URL.revokeObjectURL( blobUrl ); }, 10000 );
+            } ).catch( function ( e ) {
+                alert( 'Preview failed: ' + ( e && e.message ? e.message : e ) );
+            } );
         }
     } );
 

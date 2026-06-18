@@ -103,4 +103,28 @@ class TemplateTokensTest extends TestCase {
         $this->assertStringContainsString( '<table class="totals-table">', $map['{{totals}}'] );
         $this->assertStringContainsString( 'AED 10', $map['{{totals}}'] );
     }
+
+    /**
+     * Fix C: a throwing block renderer must degrade to '' and must not prevent
+     * other tokens from resolving.
+     */
+    public function test_throwing_block_renderer_degrades_to_empty_string(): void {
+        // Subclass that overrides fetch_table_body to throw.
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array {
+                throw new \RuntimeException( 'Simulated renderer failure' );
+            }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $map = $tokens->map( $this->stub_document() );
+
+        // The throwing block must yield empty string, not propagate the exception.
+        $this->assertSame( '', $map['{{line_items}}'], '{{line_items}} must be empty on throw' );
+
+        // Scalar tokens must still resolve despite the block failure.
+        $this->assertSame( 'Acme Co', $map['{{shop_name}}'], 'Scalar tokens must still resolve after a block throw' );
+        // {{totals}} used a non-throwing fetch_totals path and should produce an empty table.
+        $this->assertStringContainsString( 'totals-table', $map['{{totals}}'], '{{totals}} must still render' );
+    }
 }

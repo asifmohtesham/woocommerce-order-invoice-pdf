@@ -56,10 +56,19 @@ class TemplateTokens {
         return (string) preg_replace( '/\{\{[^}]*\}\}/', '', $html );
     }
 
-    /** Capture the output of an echo-style callback. */
+    /**
+     * Capture the output of an echo-style callback.
+     * Returns '' and cleans the buffer if the callback throws, so one broken
+     * renderer cannot fatal the whole PDF.
+     */
     private function capture( callable $callback ): string {
         ob_start();
-        $callback();
+        try {
+            $callback();
+        } catch ( \Throwable $e ) {
+            ob_end_clean();
+            return '';
+        }
         return (string) ob_get_clean();
     }
 
@@ -72,46 +81,60 @@ class TemplateTokens {
     /** Overridable seam: fetch totals rows (testable without Patchwork). */
     protected function fetch_totals( $document ): array { return (array) woi_pdf_templates_get_totals( $document ); }
 
-    /** Build the line-items table, mirroring the Standard UAE invoice markup. */
+    /**
+     * Build the line-items table, mirroring the Standard UAE invoice markup.
+     * Returns '' if any renderer throws so one error cannot fatal the whole PDF.
+     */
     private function render_line_items( $document ): string {
-        $headers = $this->fetch_table_headers( $document );
-        $body    = $this->fetch_table_body( $document );
+        try {
+            $headers = $this->fetch_table_headers( $document );
+            $body    = $this->fetch_table_body( $document );
 
-        $html = '<table class="order-details"><thead><tr>';
-        foreach ( $headers as $header_data ) {
-            $html .= '<th class="' . esc_attr( $header_data['class'] ?? '' ) . '">' . esc_html( $header_data['title'] ?? '' );
-            if ( ! empty( $header_data['secondary'] ) ) {
-                $html .= '<span class="woi-lbl-secondary" dir="rtl">' . esc_html( $header_data['secondary'] ) . '</span>';
+            $html = '<table class="order-details"><thead><tr>';
+            foreach ( $headers as $header_data ) {
+                $html .= '<th class="' . esc_attr( $header_data['class'] ?? '' ) . '">' . esc_html( $header_data['title'] ?? '' );
+                if ( ! empty( $header_data['secondary'] ) ) {
+                    $html .= '<span class="woi-lbl-secondary" dir="rtl">' . esc_html( $header_data['secondary'] ) . '</span>';
+                }
+                $html .= '</th>';
             }
-            $html .= '</th>';
-        }
-        $html .= '</tr></thead><tbody>';
-        foreach ( $body as $item_columns ) {
-            $html .= '<tr>';
-            foreach ( (array) $item_columns as $column_data ) {
-                $html .= '<td class="' . esc_attr( $column_data['class'] ?? '' ) . '"><span>' . esc_html( $column_data['data'] ?? '' ) . '</span></td>';
+            $html .= '</tr></thead><tbody>';
+            foreach ( $body as $item_columns ) {
+                $html .= '<tr>';
+                foreach ( (array) $item_columns as $column_data ) {
+                    $html .= '<td class="' . esc_attr( $column_data['class'] ?? '' ) . '"><span>' . esc_html( $column_data['data'] ?? '' ) . '</span></td>';
+                }
+                $html .= '</tr>';
             }
-            $html .= '</tr>';
+            return $html . '</tbody></table>';
+        } catch ( \Throwable $e ) {
+            return '';
         }
-        return $html . '</tbody></table>';
     }
 
-    /** Build the totals table, mirroring the Standard UAE invoice markup. */
+    /**
+     * Build the totals table, mirroring the Standard UAE invoice markup.
+     * Returns '' if any renderer throws so one error cannot fatal the whole PDF.
+     */
     private function render_totals( $document ): string {
-        $totals = $this->fetch_totals( $document );
+        try {
+            $totals = $this->fetch_totals( $document );
 
-        $html = '<table class="totals-table">';
-        foreach ( $totals as $total_data ) {
-            $html .= '<tr class="' . esc_attr( $total_data['class'] ?? '' ) . '">';
-            $html .= '<th class="description"><span>' . esc_html( $total_data['label'] ?? '' );
-            if ( ! empty( $total_data['secondary'] ) ) {
-                $html .= '<span class="woi-lbl-secondary" dir="rtl">' . esc_html( $total_data['secondary'] ) . '</span>';
+            $html = '<table class="totals-table">';
+            foreach ( $totals as $total_data ) {
+                $html .= '<tr class="' . esc_attr( $total_data['class'] ?? '' ) . '">';
+                $html .= '<th class="description"><span>' . esc_html( $total_data['label'] ?? '' );
+                if ( ! empty( $total_data['secondary'] ) ) {
+                    $html .= '<span class="woi-lbl-secondary" dir="rtl">' . esc_html( $total_data['secondary'] ) . '</span>';
+                }
+                $html .= '</span></th>';
+                $html .= '<td class="price"><span class="totals-price">' . esc_html( $total_data['value'] ?? '' ) . '</span></td>';
+                $html .= '</tr>';
             }
-            $html .= '</span></th>';
-            $html .= '<td class="price"><span class="totals-price">' . esc_html( $total_data['value'] ?? '' ) . '</span></td>';
-            $html .= '</tr>';
+            return $html . '</table>';
+        } catch ( \Throwable $e ) {
+            return '';
         }
-        return $html . '</table>';
     }
 }
 

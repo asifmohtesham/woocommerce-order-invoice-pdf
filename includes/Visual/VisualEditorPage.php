@@ -35,6 +35,7 @@ class VisualEditorPage {
         $store = new VisualTemplateStore();
         wp_localize_script( 'woi-visual-editor', 'woiVisual', array(
             'restUrl'    => esc_url_raw( rest_url( 'woi-pdf/v1/visual-template' ) ),
+            'ajaxUrl'    => esc_url_raw( admin_url( 'admin-ajax.php' ) ),
             'previewUrl' => esc_url_raw( admin_url( 'admin-ajax.php?action=woi_pdf_preview' ) ),
             'nonce'        => wp_create_nonce( 'wp_rest' ),
             'previewNonce' => wp_create_nonce( 'woi_pdf_preview' ),
