@@ -219,7 +219,11 @@
 	max-width: none;
 }
 .woi-pdf-shell.woi-preview-overlay-open #woi-pdf-preview-wrapper .preview-document {
-	display: block;
+	/* flex column so the inner .preview scrolls while the panel itself stays
+	   overflow:visible — otherwise the panel's clip cuts off the absolutely-
+	   positioned header document-switcher dropdown (no z-index can escape it) */
+	display: flex;
+	flex-direction: column;
 	position: fixed;
 	top: 88px;          /* JS tracks the live header bottom; this is the no-JS fallback */
 	right: 0;
@@ -231,7 +235,7 @@
 	border-radius: 0;
 	box-shadow: -4px 0 20px rgba(0,0,0,.12);
 	z-index: 99;
-	overflow: auto;
+	overflow: visible;
 	padding: 10px;
 	/* neutralize legacy split-view rules (settings-styles.min.css) that still match the
 	   wrapper's inert data-preview-state attributes — notably margin-right:-60% on the
@@ -249,6 +253,17 @@
 }
 .woi-pdf-shell.woi-preview-overlay-open #woi-pdf-preview-wrapper .preview {
 	padding-right: 0;
+	/* scroll the PDF here instead of on the panel, so the panel can stay
+	   overflow:visible and the header dropdown is no longer clipped */
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+/* keep the header (dropdowns + save button) at its natural height so the
+   flex column gives all remaining space to the scrollable .preview */
+.woi-pdf-shell.woi-preview-overlay-open #woi-pdf-preview-wrapper .preview-data-wrapper {
+	flex: none;
 }
 
 /* Reserve room for the fixed overlay so content (e.g. Item Columns) reflows left of it
