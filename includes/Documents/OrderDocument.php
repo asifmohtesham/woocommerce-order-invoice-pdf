@@ -1808,12 +1808,18 @@ abstract class OrderDocument implements DocumentInterface {
 
 		// Visual template path: when the toggle is on and a stored template exists
 		// for an invoice, render from the GrapesJS-designed HTML instead.
-		$store   = new \WOI\PDF\Visual\VisualTemplateStore();
-		$stored  = $store->get( $this->get_type() );
-		$toggle  = (bool) $this->get_setting( 'enable_visual_template_invoice' );
+		if ( 'invoice' === $this->get_type() ) {
+			$store   = new \WOI\PDF\Visual\VisualTemplateStore();
+			$stored  = $store->get( $this->get_type() );
+			$toggle  = (bool) $this->get_setting( 'enable_visual_template_invoice' );
+		} else {
+			$stored = '';
+			$toggle = false;
+		}
 
 		if ( \WOI\PDF\Visual\visual_template_active( $this->get_type(), $toggle, $stored ) ) {
 			$merged  = ( new \WOI\PDF\Visual\TemplateTokens() )->merge( $stored, $this );
+			$merged  = apply_filters( 'woi_pdf_html_content', $merged );
 			$html    = $this->render_template(
 				WOI_PDF()->plugin_path() . '/templates/_visual/visual-document-wrapper.php',
 				array( 'content' => $merged )

@@ -766,6 +766,7 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 						'mark_printed',
 						'unmark_printed',
 						'disable_free',
+						'enable_visual_template_invoice',
 						'use_latest_settings',
 					)
 				),

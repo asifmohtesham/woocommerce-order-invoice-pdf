@@ -2,7 +2,6 @@
 namespace WOI\PDF\Tests\Unit\Visual;
 
 use Brain\Monkey;
-use Brain\Monkey\Functions;
 use PHPUnit\Framework\TestCase;
 
 class VisualRenderPathTest extends TestCase {
