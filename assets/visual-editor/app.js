@@ -32,6 +32,79 @@
         components: woiVisual.stored || woiVisual.starter || ''
     } );
 
+    // --- Native editable tables (#2): make td editable + droppable, add row/col commands ---
+    editor.DomComponents.addType( 'woi-cell', {
+        isComponent: function ( el ) { return el.tagName === 'TD' || el.tagName === 'TH'; },
+        model: { defaults: {
+            tagName: 'td',
+            draggable: 'tr',
+            droppable: true,
+            editable: true,
+            highlightable: true,
+            selectable: true
+        } }
+    } );
+    editor.DomComponents.addType( 'woi-trow', {
+        isComponent: function ( el ) { return el.tagName === 'TR'; },
+        model: { defaults: { tagName: 'tr', draggable: false, droppable: 'td, th' } }
+    } );
+    editor.DomComponents.addType( 'woi-table', {
+        isComponent: function ( el ) { return el.tagName === 'TABLE'; },
+        model: { defaults: {
+            tagName: 'table',
+            droppable: false,
+            toolbar: [
+                { attributes: { class: 'fa fa-plus', title: 'Add row' },    command: 'woi-add-row' },
+                { attributes: { class: 'fa fa-minus', title: 'Delete row' }, command: 'woi-del-row' },
+                { attributes: { class: 'fa fa-plus-square-o', title: 'Add column' },  command: 'woi-add-col' },
+                { attributes: { class: 'fa fa-minus-square-o', title: 'Delete column' }, command: 'woi-del-col' },
+                { attributes: { class: 'fa fa-arrows', title: 'Move' }, command: 'tlb-move' },
+                { attributes: { class: 'fa fa-trash-o', title: 'Delete' }, command: 'tlb-delete' }
+            ]
+        } }
+    } );
+
+    // Walk up to the nearest table component from any selection.
+    function woiClosestTable( cmp ) {
+        while ( cmp ) {
+            if ( cmp.get && cmp.get( 'tagName' ) === 'table' ) { return cmp; }
+            cmp = cmp.parent && cmp.parent();
+        }
+        return null;
+    }
+    function woiTableRows( table ) {
+        return table.find( 'tr' );
+    }
+    editor.Commands.add( 'woi-add-row', { run: function ( ed ) {
+        var table = woiClosestTable( ed.getSelected() );
+        if ( ! table ) { return; }
+        var rows = woiTableRows( table );
+        if ( ! rows.length ) { return; }
+        var cols = rows[ rows.length - 1 ].components().length || 1;
+        var tds = '';
+        for ( var i = 0; i < cols; i++ ) { tds += '<td>Cell</td>'; }
+        rows[ rows.length - 1 ].parent().append( '<tr>' + tds + '</tr>' );
+    } } );
+    editor.Commands.add( 'woi-del-row', { run: function ( ed ) {
+        var table = woiClosestTable( ed.getSelected() );
+        if ( ! table ) { return; }
+        var rows = woiTableRows( table );
+        if ( rows.length > 1 ) { rows[ rows.length - 1 ].remove(); }
+    } } );
+    editor.Commands.add( 'woi-add-col', { run: function ( ed ) {
+        var table = woiClosestTable( ed.getSelected() );
+        if ( ! table ) { return; }
+        woiTableRows( table ).forEach( function ( row ) { row.append( '<td>Cell</td>' ); } );
+    } } );
+    editor.Commands.add( 'woi-del-col', { run: function ( ed ) {
+        var table = woiClosestTable( ed.getSelected() );
+        if ( ! table ) { return; }
+        woiTableRows( table ).forEach( function ( row ) {
+            var cells = row.components();
+            if ( cells.length > 1 ) { cells.at( cells.length - 1 ).remove(); }
+        } );
+    } } );
+
     // Register one draggable block per token, grouped by category.
     TOKEN_META.forEach( function ( m ) {
         var token = m[ 0 ];
@@ -45,9 +118,9 @@
 
     // Layout building blocks (non-token). Tables (not flex/grid) for mPDF safety.
     editor.BlockManager.add( 'row-2col', {
-        label: '2-column row', category: 'Layout',
-        attributes: { title: 'Two side-by-side columns' },
-        content: '<table class="woi-row"><tr><td>Column one</td><td>Column two</td></tr></table>'
+        label: 'Table (2 columns)', category: 'Layout',
+        attributes: { title: 'Editable table — edit cells, add/remove rows & columns' },
+        content: '<table class="woi-row"><tr><td>Cell</td><td>Cell</td></tr></table>'
     } );
     editor.BlockManager.add( 'spacer', {
         label: 'Spacer', category: 'Layout',

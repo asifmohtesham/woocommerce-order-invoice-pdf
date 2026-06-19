@@ -1,2 +1,5 @@
 /* Hide the GrapesJS device switcher — an invoice is a fixed A4 print template. */
 .gjs-pn-devices-c { display: none !important; }
+
+/* Make empty table cells visible/clickable in the editor canvas. */
+.gjs-frame .woi-row td, .gjs-frame .woi-row th { min-width: 24px; min-height: 1.4em; border: 1px dashed #c8c8c8; }
