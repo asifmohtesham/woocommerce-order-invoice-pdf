@@ -160,7 +160,10 @@
         { label: 'Spacer',            blockId: 'spacer',   description: 'Vertical space' },
         { label: 'Page break',        blockId: 'pagebreak', description: 'Force a new page' }
     ];
-    var WOI_BLOCK_TOKENS = { logo: 1, line_items: 1, totals: 1, billing_address: 1 };
+    // Tokens whose preview shows a type hint ([image]/[table]) instead of text.
+    // billing_address is intentionally NOT here: it's a line-break address block,
+    // so it previews better as decoded text via the scalar path below.
+    var WOI_BLOCK_TOKENS = { logo: 1, line_items: 1, totals: 1 };
 
     // Build the unified catalog: tokens (inline) + layout blocks.
     function woiBuildCatalog() {
