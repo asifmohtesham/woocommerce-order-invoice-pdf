@@ -12,9 +12,12 @@ class VisualEditorPage {
 
     public function __construct() {
         add_action( 'admin_menu', array( $this, 'register_page' ), 20 );
-        // Hide the standalone sidebar entry — the editor is reached via the
-        // "Visual Template" tab in the PDF Invoices nav. The page stays routable.
-        add_action( 'admin_menu', array( $this, 'hide_standalone_menu_item' ), 999 );
+        // Visually hide the standalone sidebar link — the editor is reached via
+        // the "Visual Template" tab in the PDF Invoices nav. The page MUST stay
+        // registered under 'woocommerce' (removing it via remove_submenu_page
+        // breaks WP's parent resolution and 403s the page), so we hide only the
+        // menu link with CSS, which never touches access control.
+        add_action( 'admin_head', array( $this, 'hide_standalone_menu_item_css' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
         // Add the tab to the PDF Invoices settings shell; it links to this page.
         add_filter( 'woi_pdf_settings_tabs', array( $this, 'add_settings_tab' ) );
@@ -32,11 +35,15 @@ class VisualEditorPage {
     }
 
     /**
-     * Remove the standalone WooCommerce submenu entry while keeping the page
-     * registered and reachable at admin.php?page=woi-pdf-visual.
+     * Hide the standalone WooCommerce submenu LINK with CSS (the page stays
+     * registered and accessible). Targets the link by its href so it works
+     * regardless of how WordPress renders the submenu markup.
      */
-    public function hide_standalone_menu_item(): void {
-        remove_submenu_page( 'woocommerce', self::PAGE_SLUG );
+    public function hide_standalone_menu_item_css(): void {
+        echo '<style id="woi-hide-visual-menu">'
+            . '#adminmenu .wp-submenu a[href$="page=' . esc_attr( self::PAGE_SLUG ) . '"]{display:none}'
+            . '#adminmenu .wp-submenu li:has(> a[href$="page=' . esc_attr( self::PAGE_SLUG ) . '"]){display:none}'
+            . '</style>';
     }
 
     /**
