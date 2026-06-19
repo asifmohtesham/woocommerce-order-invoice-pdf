@@ -183,7 +183,12 @@
             var rows = ( String( raw ).match( /<tr/gi ) || [] ).length;
             return rows ? '[table · ' + rows + ' rows]' : '[table]';
         }
-        var text = String( raw ).replace( /<[^>]*>/g, ' ' ).replace( /\s+/g, ' ' ).trim();
+        // The server token value is esc_html'd, so markup like <br/> arrives as
+        // entities (&lt;br/&gt;). Decode entities first (via a textarea), then
+        // strip any real tags and collapse whitespace, for a clean preview.
+        var ta = document.createElement( 'textarea' );
+        ta.innerHTML = String( raw );
+        var text = ta.value.replace( /<[^>]*>/g, ' ' ).replace( /\s+/g, ' ' ).trim();
         return text.length > 40 ? text.slice( 0, 40 ) + '…' : text;
     }
 
