@@ -188,20 +188,6 @@
         } );
     }
 
-    /**
-     * Merge woiVisual.sampleData keys into html and strip any remaining {{…}}
-     * for the in-browser sample-data preview.
-     */
-    function mergeSample( html ) {
-        var out = html;
-        Object.keys( woiVisual.sampleData ).forEach( function ( k ) {
-            // Split/join to replace all occurrences without a regex.
-            out = out.split( k ).join( woiVisual.sampleData[ k ] );
-        } );
-        // Strip any leftover unresolved tokens.
-        return out.replace( /\{\{\s*[a-z0-9_]+\s*\}\}/gi, '' );
-    }
-
     // --- Toolbar buttons ---
 
     /** Save the current design to the database. */
@@ -224,100 +210,12 @@
         }
     } );
 
-    /**
-     * Preview real PDF: save first, then POST to admin-ajax (same fields as
-     * admin.js ajaxLoadPreview), decode the base64 PDF from the JSON response,
-     * and open it as a Blob URL — matching the proven POST+Blob mechanism used
-     * by the settings-page preview (assets/js/admin.js lines 653-695).
-     *
-     * Fields replicated from admin.js:
-     *   action        = 'woi_pdf_preview'
-     *   security      = woiVisual.previewNonce  (woi_pdf_preview nonce)
-     *   document_type = woiVisual.docType        (e.g. 'invoice')
-     *   order_id      omitted → handler defaults to the last order (Settings.php ~271)
-     *   output_format omitted → handler defaults to 'pdf'
-     *   data          omitted → no live-settings override needed in the visual editor
-     *
-     * Note: the PDF renders the visual template only when "Visual template (invoice)"
-     * is enabled in Invoice Settings — it reflects the last SAVED design.
-     */
-    editor.Panels.addButton( 'options', {
-        id: 'woi-preview-pdf',
-        className: 'fa fa-file-pdf-o',
-        attributes: { title: 'Preview real PDF' },
-        command: function () {
-            save().then( function () {
-                // Build form-encoded body mirroring admin.js ajaxLoadPreview.
-                var body = 'action=woi_pdf_preview' +
-                    '&security=' + encodeURIComponent( woiVisual.previewNonce ) +
-                    '&document_type=' + encodeURIComponent( woiVisual.docType );
-
-                return fetch( woiVisual.ajaxUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    credentials: 'same-origin',
-                    body: body
-                } );
-            } ).then( function ( r ) {
-                if ( ! r.ok ) { throw new Error( 'HTTP ' + r.status ); }
-                return r.json();
-            } ).then( function ( response ) {
-                if ( ! response.success || ! response.data || ! response.data.preview_data ) {
-                    var msg = ( response.data && response.data.error ) ? response.data.error : 'Preview failed.';
-                    alert( 'PDF preview error: ' + msg );
-                    return;
-                }
-                if ( response.data.output_format !== 'pdf' ) {
-                    alert( 'PDF preview returned unexpected format: ' + response.data.output_format );
-                    return;
-                }
-                // Decode base64 → Uint8Array → Blob → object URL (same as admin.js).
-                var b64    = response.data.preview_data;
-                var binary = window.atob( b64 );
-                var bytes  = new Uint8Array( binary.length );
-                for ( var i = 0; i < binary.length; i++ ) {
-                    bytes[ i ] = binary.charCodeAt( i );
-                }
-                var blob    = new Blob( [ bytes ], { type: 'application/pdf' } );
-                var blobUrl = URL.createObjectURL( blob );
-                window.open( blobUrl, '_blank' );
-                // Revoke after 10 s — enough time for the tab to load the blob.
-                setTimeout( function () { URL.revokeObjectURL( blobUrl ); }, 10000 );
-            } ).catch( function ( e ) {
-                alert( 'Preview failed: ' + ( e && e.message ? e.message : e ) );
-            } );
-        }
-    } );
-
-    /**
-     * In-browser sample-data preview: merge tokens then open via a Blob URL.
-     * Using a Blob avoids document.write() (XSS risk) and srcdoc attribute-encoding
-     * issues. The blob URL is revoked after the tab loads to free memory.
-     */
-    editor.Panels.addButton( 'options', {
-        id: 'woi-preview-sample',
-        className: 'fa fa-eye',
-        attributes: { title: 'Preview sample data' },
-        command: function () {
-            var merged = mergeSample( getHtml() );
-            var blob = new Blob( [ merged ], { type: 'text/html; charset=utf-8' } );
-            var url  = URL.createObjectURL( blob );
-            var tab  = window.open( url, '_blank' );
-            // Revoke after 10 s — enough time for the tab to load the blob.
-            // (The 'load' event does not reliably fire for blob-navigated tabs.)
-            if ( tab ) {
-                setTimeout( function () { URL.revokeObjectURL( url ); }, 10000 );
-            } else {
-                // Popup blocked; still revoke to avoid leak.
-                URL.revokeObjectURL( url );
-            }
-        }
-    } );
     // --- Real-order preview (control bar rendered by VisualEditorPage) ---
     var selectedOrderId = null;
 
     function setCurrentOrder( id, label ) {
         selectedOrderId = id;
+        woiSelectedOrderId = id;            // keep PDF engine in sync
         var el = document.getElementById( 'woi-order-current' );
         if ( el ) { el.textContent = label ? ( 'Selected: ' + label ) : ''; }
     }
@@ -356,35 +254,14 @@
         } ).catch( function ( e ) { alert( 'Order search failed: ' + ( e && e.message ? e.message : e ) ); } );
     }
 
-    function previewRealOrder() {
-        var url = woiVisual.previewDataUrl + '?doc_type=' + encodeURIComponent( woiVisual.docType );
-        if ( selectedOrderId ) { url += '&order_id=' + encodeURIComponent( selectedOrderId ); }
-
-        fetch( url, { headers: { 'X-WP-Nonce': woiVisual.nonce }, credentials: 'same-origin' } )
-            .then( function ( r ) {
-                if ( ! r.ok ) { throw new Error( r.status === 404 ? 'No order found to preview.' : ( 'HTTP ' + r.status ) ); }
-                return r.json();
-            } ).then( function ( res ) {
-                var html = getHtml();
-                Object.keys( res.tokens ).forEach( function ( k ) {
-                    html = html.split( k ).join( res.tokens[ k ] );
-                } );
-                html = html.replace( /\{\{\s*[a-z0-9_]+\s*\}\}/gi, '' );
-                var blob = new Blob( [ html ], { type: 'text/html; charset=utf-8' } );
-                var blobUrl = URL.createObjectURL( blob );
-                window.open( blobUrl, '_blank' );
-                setTimeout( function () { URL.revokeObjectURL( blobUrl ); }, 10000 );
-                setCurrentOrder( res.order_id, res.order_label );
-            } ).catch( function ( e ) { alert( 'Real-order preview failed: ' + ( e && e.message ? e.message : e ) ); } );
-    }
-
     ( function bindOrderBar() {
         var searchBtn  = document.getElementById( 'woi-order-search-btn' );
-        var previewBtn = document.getElementById( 'woi-preview-real-order' );
         var sel        = document.getElementById( 'woi-order-results' );
         if ( searchBtn ) { searchBtn.addEventListener( 'click', orderSearch ); }
-        if ( previewBtn ) { previewBtn.addEventListener( 'click', previewRealOrder ); }
         if ( sel ) { sel.addEventListener( 'change', function () {
+            woiSelectedOrderId = sel.value;
+            var cur = document.getElementById( 'woi-order-current' );
+            if ( cur && sel.options[ sel.selectedIndex ] ) { cur.textContent = 'Selected: ' + sel.options[ sel.selectedIndex ].textContent; }
             woiFetchOrderTokens( sel.value ).then( function () { woiRefreshLiveHtml(); if ( typeof woiMaybeRefreshPdf === 'function' ) { woiMaybeRefreshPdf(); } } );
         } ); }
     }() );
@@ -480,4 +357,53 @@
     // Re-render live preview on edits (debounced) and once on init for the last order.
     editor.on( 'update', woiDebounce( woiRefreshLiveHtml, 400 ) );
     woiFetchOrderTokens( null ).then( function () { woiRefreshLiveHtml(); } );
+
+    // --- PDF preview tab (#6): save current design, render real mPDF, embed in-place ---
+    var woiSelectedOrderId = null;          // set by the order bar / select
+    var woiPdfBlobUrl = null;
+
+    function woiPdfTabActive() {
+        var pdf = document.getElementById( 'woi-preview-pdf' );
+        return pdf && ! pdf.hasAttribute( 'hidden' );
+    }
+    function woiRenderPdf() {
+        var status = document.getElementById( 'woi-render-pdf-status' );
+        var frame  = document.getElementById( 'woi-preview-pdf-frame' );
+        if ( ! frame ) { return; }
+        if ( status ) { status.textContent = 'Rendering…'; }
+        save().then( function () {
+            var body = 'action=woi_pdf_preview' +
+                '&security=' + encodeURIComponent( woiVisual.previewNonce ) +
+                '&document_type=' + encodeURIComponent( woiVisual.docType );
+            if ( woiSelectedOrderId ) { body += '&order_id=' + encodeURIComponent( woiSelectedOrderId ); }
+            return fetch( woiVisual.ajaxUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                credentials: 'same-origin',
+                body: body
+            } );
+        } ).then( function ( r ) { if ( ! r.ok ) { throw new Error( 'HTTP ' + r.status ); } return r.json(); } )
+        .then( function ( res ) {
+            if ( ! res.success || ! res.data || ! res.data.preview_data || res.data.output_format !== 'pdf' ) {
+                throw new Error( ( res.data && res.data.error ) ? res.data.error : 'Preview failed.' );
+            }
+            var binary = window.atob( res.data.preview_data );
+            var bytes  = new Uint8Array( binary.length );
+            for ( var i = 0; i < binary.length; i++ ) { bytes[ i ] = binary.charCodeAt( i ); }
+            if ( woiPdfBlobUrl ) { URL.revokeObjectURL( woiPdfBlobUrl ); }
+            woiPdfBlobUrl = URL.createObjectURL( new Blob( [ bytes ], { type: 'application/pdf' } ) );
+            frame.src = woiPdfBlobUrl;
+            if ( status ) { status.textContent = ''; }
+        } ).catch( function ( e ) {
+            if ( status ) { status.textContent = 'Error: ' + ( e && e.message ? e.message : e ); }
+        } );
+    }
+    // Re-render the PDF only when its tab is active (avoid a save+round-trip on every edit).
+    function woiMaybeRefreshPdf() { if ( woiPaneOpen() && woiPdfTabActive() ) { woiRenderPdf(); } }
+
+    ( function bindPdfTab() {
+        var btn = document.getElementById( 'woi-render-pdf' );
+        if ( btn ) { btn.addEventListener( 'click', woiRenderPdf ); }
+    }() );
+    window.addEventListener( 'beforeunload', function () { if ( woiPdfBlobUrl ) { URL.revokeObjectURL( woiPdfBlobUrl ); } } );
 }() );
