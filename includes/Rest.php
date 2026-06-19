@@ -59,7 +59,19 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 					'html'     => array( 'type' => 'string', 'required' => true ),
 				),
 			) );
-		}
+
+		register_rest_route( 'woi-pdf/v1', '/visual-preview-data', array(
+			'methods'             => 'GET',
+			'callback'            => array( $this, 'handle_visual_preview_data' ),
+			'permission_callback' => function () {
+				return current_user_can( 'manage_woocommerce' );
+			},
+			'args'                => array(
+				'order_id' => array( 'type' => 'integer', 'required' => false ),
+				'doc_type' => array( 'type' => 'string', 'required' => false ),
+			),
+		) );
+	}
 
 		/**
 		 * Registers REST API routes for handling order documents.
@@ -497,6 +509,75 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 
 			// Return data which are not empty.
 			return array_filter( $document_data );
+		}
+
+		/**
+		 * Returns a token→value map for an order so the visual editor can show a live preview.
+		 *
+		 * @param object $request Request object with get_param().
+		 *
+		 * @return array|\WP_Error
+		 */
+		public function handle_visual_preview_data( $request ) {
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				return new \WP_Error( 'forbidden', 'Insufficient permissions', array( 'status' => 403 ) );
+			}
+
+			$doc_type = $request->get_param( 'doc_type' );
+			$doc_type = $doc_type ? (string) $doc_type : 'invoice';
+
+			$order_id = (int) $request->get_param( 'order_id' );
+			if ( ! $order_id ) {
+				$ids      = wc_get_orders( array( 'limit' => 1, 'return' => 'ids', 'type' => 'shop_order' ) );
+				$order_id = ! empty( $ids ) ? (int) reset( $ids ) : 0;
+			}
+
+			$order = $order_id ? wc_get_order( $order_id ) : false;
+			if ( ! $order ) {
+				return new \WP_Error( 'no_order', 'No order found to preview.', array( 'status' => 404 ) );
+			}
+
+			// Preview mode: reflect live settings, treat doc as enabled (read-only — no number reservation).
+			add_filter( 'woi_pdf_document_use_historical_settings', '__return_false', 99 );
+			add_filter( 'woi_pdf_document_is_enabled', '__return_true', 99 );
+			$document = $this->get_document( $doc_type, $order );
+			remove_filter( 'woi_pdf_document_is_enabled', '__return_true', 99 );
+
+			if ( ! $document ) {
+				return new \WP_Error( 'no_document', 'Could not build the document for this order.', array( 'status' => 404 ) );
+			}
+			if ( is_callable( array( $document, 'initiate_date' ) ) ) {
+				$document->initiate_date();
+			}
+
+			$label = '#' . $order->get_order_number();
+			$name  = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
+			if ( '' !== $name ) {
+				$label .= ' — ' . $name;
+			}
+
+			return array(
+				'order_id'    => $order_id,
+				'order_label' => $label,
+				'tokens'      => $this->token_map( $document ),
+			);
+		}
+
+		/**
+		 * Seam over woi_pdf_get_document so the handler is unit-testable.
+		 *
+		 * @param string $doc_type
+		 * @param mixed  $order
+		 *
+		 * @return mixed
+		 */
+		protected function get_document( string $doc_type, $order ) {
+			return woi_pdf_get_document( $doc_type, $order );
+		}
+
+		/** Seam over TemplateTokens::map so the handler is unit-testable. */
+		protected function token_map( $document ): array {
+			return ( new \WOI\PDF\Visual\TemplateTokens() )->map( $document );
 		}
 
 		/**
