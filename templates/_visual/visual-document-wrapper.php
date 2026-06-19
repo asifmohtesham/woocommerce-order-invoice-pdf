@@ -41,6 +41,12 @@ tr.grand-total td, tr.grand-total th { border-top: 1px solid #000; border-bottom
 .woi-row { width: 100%; }
 .woi-row td { vertical-align: top; }
 .totals-table { page-break-inside: avoid; }
+
+/* --- Document title (added by visual editor Task 6) --- */
+.woi-doc-title { text-align: center; margin: 4mm 0; }
+.woi-doc-title .title-en,
+.woi-doc-title .title-ar { font-size: 16pt; font-weight: bold; }
+.woi-doc-title .title-ar { margin-left: 6mm; }
 </style>
 </head>
 <body>
