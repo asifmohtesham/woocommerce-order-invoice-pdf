@@ -34,6 +34,11 @@
 
     // --- Native editable tables (#2): make td editable + droppable, add row/col commands ---
     editor.DomComponents.addType( 'woi-cell', {
+        // Extend the built-in 'text' type so cells are rich-text-editable on
+        // double-click. The default component view binds dblclick->onDblClick
+        // (layer/select logic) and never enters RTE; only the text view binds
+        // dblclick->onActive. Without this, preloaded cells can't be edited.
+        extend: 'text',
         isComponent: function ( el ) { return el.tagName === 'TD' || el.tagName === 'TH'; },
         model: { defaults: {
             tagName: 'td',
