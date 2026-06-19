@@ -18,6 +18,7 @@ class VisualEditorPage {
         // breaks WP's parent resolution and 403s the page), so we hide only the
         // menu link with CSS, which never touches access control.
         add_action( 'admin_head', array( $this, 'hide_standalone_menu_item_css' ) );
+        add_action( 'admin_head', array( $this, 'suppress_admin_notices' ), 1 );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
         // Add the tab to the PDF Invoices settings shell; it links to this page.
         add_filter( 'woi_pdf_settings_tabs', array( $this, 'add_settings_tab' ) );
@@ -132,6 +133,21 @@ class VisualEditorPage {
             '{{totals}}'            => '<table class="totals-table"><tr><th>Total</th><td>AED 100</td></tr></table>',
         );
     }
+	/** True only on the dedicated Visual Template editor screen. */
+	public function is_visual_editor_screen(): bool {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		return $screen && isset( $screen->id ) && false !== strpos( (string) $screen->id, self::PAGE_SLUG );
+	}
+
+	/** Remove third-party admin notices on the editor screen (they clutter the full-screen editor). */
+	public function suppress_admin_notices(): void {
+		if ( ! $this->is_visual_editor_screen() ) {
+			return;
+		}
+		remove_all_actions( 'admin_notices' );
+		remove_all_actions( 'all_admin_notices' );
+		remove_all_actions( 'user_admin_notices' );
+	}
 }
 
 endif;
