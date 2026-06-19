@@ -36,9 +36,8 @@
 body.woi-fullscreen { overflow: hidden; }
 #woi-editor-shell[data-layout="full"] {
     position: fixed; inset: 0; z-index: 100000; margin: 0; padding: 8px;
-    background: #f0f0f1; overflow: hidden;
+    background: #f0f0f1;
 }
-#woi-editor-shell[data-layout="full"] .woi-editor-row { flex: 1 1 auto; min-height: 0; }
 #woi-editor-shell[data-layout="full"] #woi-visual-editor { height: 100%; }
 #woi-editor-shell[data-layout="full"] .gjs-editor { height: 100% !important; }
 #woi-editor-shell[data-layout="full"] #woi-preview-pane { flex: 0 0 40%; }
