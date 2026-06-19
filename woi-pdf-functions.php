@@ -1755,13 +1755,15 @@ function woi_pdf_format_address( array $address ): string {
 		$formatted_address .= "\n" . $address['additional'];
 	}
 
-	// Convert to HTML line breaks.
-	$formatted_address = nl2br( ltrim( $formatted_address, "\r\n" ) );
+	// Escape the address content BEFORE converting newlines to <br/>, otherwise
+	// nl2br()'s <br/> tags get escaped into visible "&lt;br /&gt;" text.
+	$formatted_address = esc_html( ltrim( $formatted_address, "\r\n" ) );
 
-	// Remove any new lines.
-	$formatted_address = str_replace( "\n", '', $formatted_address );
+	// Convert to HTML line breaks, then drop the residual newline characters.
+	$formatted_address = nl2br( $formatted_address );
+	$formatted_address = str_replace( array( "\r\n", "\n" ), '', $formatted_address );
 
-	return esc_html( $formatted_address );
+	return $formatted_address;
 }
 
 /**
