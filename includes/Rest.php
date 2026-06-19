@@ -523,6 +523,10 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 				return new \WP_Error( 'forbidden', 'Insufficient permissions', array( 'status' => 403 ) );
 			}
 
+			// Live preview must always reflect the latest design + settings, so the
+			// response must never be cached (browser, proxy, or LiteSpeed/page cache).
+			$this->disable_response_cache();
+
 			$doc_type = $request->get_param( 'doc_type' );
 			$doc_type = $doc_type ? (string) $doc_type : 'invoice';
 
@@ -586,6 +590,18 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 		/** Seam over TemplateTokens::map so the handler is unit-testable. */
 		protected function token_map( $document ): array {
 			return ( new \WOI\PDF\Visual\TemplateTokens() )->map( $document );
+		}
+
+		/**
+		 * Send no-store cache headers for the preview response.
+		 *
+		 * nocache_headers() covers browsers/proxies; the LiteSpeed action opts
+		 * this response out of the page cache (a no-op when LiteSpeed is absent).
+		 * A seam so the handler stays unit-testable without emitting headers.
+		 */
+		protected function disable_response_cache(): void {
+			nocache_headers();
+			do_action( 'litespeed_control_set_nocache', 'woi-pdf visual preview data' );
 		}
 
 		/**
