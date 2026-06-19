@@ -17,6 +17,9 @@ class VisualPreviewDataTest extends TestCase {
 		Functions\when( 'add_filter' )->justReturn( true );
 		Functions\when( 'remove_filter' )->justReturn( true );
 		Functions\when( 'apply_filters' )->returnArg( 2 );
+		// Preview response sends no-store headers; stub so no real headers emit.
+		Functions\when( 'nocache_headers' )->justReturn( null );
+		Functions\when( 'do_action' )->justReturn( null );
 	}
 
 	protected function tearDown(): void {
@@ -115,6 +118,24 @@ class VisualPreviewDataTest extends TestCase {
 			$rest->use_path_false_at_map,
 			'Browser preview must force woi_pdf_use_path false during token_map so thumbnails/logo use web URLs, not mPDF filesystem paths.'
 		);
+	}
+
+	public function test_disables_response_cache_for_successful_preview(): void {
+		Functions\when( 'current_user_can' )->justReturn( true );
+		Functions\when( 'wc_get_order' )->justReturn( $this->stub_order( 7 ) );
+
+		$rest = new class( array() ) extends Rest {
+			public bool $cache_disabled = false;
+			private array $map;
+			public function __construct( array $map ) { $this->map = $map; parent::__construct(); }
+			protected function get_document( string $doc_type, $order ) { return new \stdClass(); }
+			protected function token_map( $document ): array { return $this->map; }
+			protected function disable_response_cache(): void { $this->cache_disabled = true; }
+		};
+
+		$rest->handle_visual_preview_data( $this->request( array( 'order_id' => 7 ) ) );
+
+		$this->assertTrue( $rest->cache_disabled, 'Preview response must disable caching so deploys/edits show immediately.' );
 	}
 
 	public function test_defaults_to_last_order_when_no_id(): void {

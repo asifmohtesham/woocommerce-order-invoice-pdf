@@ -678,7 +678,7 @@
     function woiFetchOrderTokens( orderId ) {
         var url = woiVisual.previewDataUrl + '?doc_type=' + encodeURIComponent( woiVisual.docType );
         if ( orderId ) { url += '&order_id=' + encodeURIComponent( orderId ); }
-        return fetch( url, { headers: { 'X-WP-Nonce': woiVisual.nonce }, credentials: 'same-origin' } )
+        return fetch( url, { headers: { 'X-WP-Nonce': woiVisual.nonce }, credentials: 'same-origin', cache: 'no-store' } )
             .then( function ( r ) { return r.ok ? r.json() : null; } )
             .then( function ( res ) {
                 if ( res && res.tokens ) {
