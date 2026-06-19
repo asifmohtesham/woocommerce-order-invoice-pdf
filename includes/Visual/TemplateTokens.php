@@ -20,11 +20,13 @@ class TemplateTokens {
      *
      * Plain-text scalar tokens (shop name, labels, titles, numbers) are
      * esc_html()'d. Block tokens carry trusted HTML produced by existing
-     * renderers: the shop address joins lines with <br/>, the logo/billing
-     * address are full markup, and line-item / totals cells embed product
-     * markup (item name, thumbnail, meta) and wc_price() spans. Those are
-     * passed through wp_kses_post() so the markup renders (not shown as raw
-     * text) while scripts/unsafe attributes are still stripped.
+     * renderers: the shop address already carries <br/> line breaks, the
+     * logo/billing address are full markup, and line-item / totals cells embed
+     * product markup (item name, thumbnail, meta) and wc_price() spans. Those
+     * are passed through wp_kses_post() so the markup renders (not shown as raw
+     * text) while scripts/unsafe attributes are still stripped. The raw
+     * secondary (Arabic) shop address is esc_html()'d then nl2br()'d so its
+     * line breaks render without trusting arbitrary markup.
      *
      * @param object $document An OrderDocument (or compatible stub).
      * @return array<string,string>
@@ -37,7 +39,7 @@ class TemplateTokens {
             '{{shop_name}}'        => esc_html( (string) $document->get_shop_name() ),
             '{{shop_address}}'     => wp_kses_post( (string) $document->get_shop_address() ),
             '{{shop_name_ar}}'     => esc_html( $engine->secondary_shop_name() ),
-            '{{shop_address_ar}}'  => wp_kses_post( (string) $engine->secondary_shop_address() ),
+            '{{shop_address_ar}}'  => nl2br( esc_html( (string) $engine->secondary_shop_address() ) ),
             '{{document_title}}'   => esc_html( $document->get_title() ),
             '{{document_title_ar}}'=> esc_html( $engine->secondary_label( 'document', $document ) ),
             '{{trn}}'              => esc_html( (string) $document->get_shop_vat_number() ),

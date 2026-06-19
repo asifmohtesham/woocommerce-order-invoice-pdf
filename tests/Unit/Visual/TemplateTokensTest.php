@@ -115,6 +115,11 @@ class TemplateTokensTest extends TestCase {
     public function test_block_tokens_preserve_html_scalars_stay_escaped(): void {
         Functions\when( 'esc_html' )->alias( fn( $s ) => htmlspecialchars( (string) $s, ENT_QUOTES ) );
         Functions\when( 'wp_kses_post' )->returnArg( 1 );
+        // Secondary (Arabic) shop address is raw multi-line admin text.
+        Functions\when( 'get_option' )->justReturn( array(
+            'shop_name_ar'    => 'متجر',
+            'shop_address_ar' => "دبي\n<X>",
+        ) );
 
         $doc = new class {
             public function get_type() { return 'invoice'; }
@@ -149,6 +154,11 @@ class TemplateTokensTest extends TestCase {
         $this->assertStringContainsString( 'Al Buteen<br />Dubai', $map['{{shop_address}}'] );
         $this->assertStringContainsString( '<span class="item-name">Belt</span>', $map['{{line_items}}'] );
         $this->assertStringContainsString( '<bdi>AED 10</bdi>', $map['{{totals}}'] );
+
+        // Secondary address: newlines become <br/>, content stays escaped.
+        $this->assertStringContainsString( '<br />', $map['{{shop_address_ar}}'] );
+        $this->assertStringContainsString( '&lt;X&gt;', $map['{{shop_address_ar}}'] );
+        $this->assertStringNotContainsString( '<X>', $map['{{shop_address_ar}}'] );
 
         // Plain-text scalar is still escaped.
         $this->assertSame( 'Acme &amp; Co', $map['{{shop_name}}'] );
