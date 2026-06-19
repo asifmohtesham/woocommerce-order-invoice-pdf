@@ -583,6 +583,7 @@
             var tab = b.getAttribute( 'data-woi-tab' );
             woiSetTab( tab );
             if ( 'html' === tab && typeof woiRefreshLiveHtml === 'function' ) { woiRefreshLiveHtml(); }
+            if ( 'pdf' === tab && typeof woiMaybeRefreshPdf === 'function' ) { woiMaybeRefreshPdf(); }
         } );
     } );
 
@@ -671,6 +672,7 @@
 
     // Re-render live preview on edits (debounced) and once on init for the last order.
     editor.on( 'update', woiDebounce( woiRefreshLiveHtml, 400 ) );
+    editor.on( 'update', woiDebounce( woiMaybeRefreshPdf, 1000 ) );
     woiFetchOrderTokens( null ).then( function () { woiRefreshLiveHtml(); } );
 
     // --- PDF preview tab (#6): save current design, render real mPDF as A4 canvases ---
