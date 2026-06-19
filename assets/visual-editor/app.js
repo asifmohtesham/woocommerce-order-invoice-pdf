@@ -28,6 +28,7 @@
         height: '80vh',
         fromElement: false,
         storageManager: false,
+        deviceManager: { devices: [] },
         components: woiVisual.stored || woiVisual.starter || ''
     } );
 

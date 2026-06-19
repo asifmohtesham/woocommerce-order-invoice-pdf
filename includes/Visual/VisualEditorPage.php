@@ -74,6 +74,7 @@ class VisualEditorPage {
         wp_enqueue_style( 'woi-grapesjs', $base . '/grapesjs/grapes.min.css', array(), WOI_PDF_VERSION );
         wp_enqueue_script( 'woi-grapesjs', $base . '/grapesjs/grapes.min.js', array(), WOI_PDF_VERSION, true );
         wp_enqueue_script( 'woi-visual-editor', $base . '/app.js', array( 'woi-grapesjs' ), WOI_PDF_VERSION, true );
+        wp_enqueue_style( 'woi-visual-editor-css', $base . '/editor.css', array( 'woi-grapesjs' ), WOI_PDF_VERSION );
 
         $store = new VisualTemplateStore();
         wp_localize_script( 'woi-visual-editor', 'woiVisual', array(

@@ -1,0 +1,2 @@
+/* Hide the GrapesJS device switcher — an invoice is a fixed A4 print template. */
+.gjs-pn-devices-c { display: none !important; }
