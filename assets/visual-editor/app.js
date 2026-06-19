@@ -29,7 +29,7 @@
         fromElement: false,
         storageManager: false,
         deviceManager: { devices: [] },
-        components: woiVisual.stored || woiVisual.starter || ''
+        components: ''
     } );
 
     // --- Native editable tables (#2): make td editable + droppable, add row/col commands ---
@@ -145,6 +145,12 @@
         attributes: { title: 'Force a new page at this point' },
         content: '<div class="woi-pagebreak"></div>'
     } );
+
+    // Load the stored design (or starter) AFTER the custom component types are
+    // registered, so loaded <td>/<table> resolve to the editable woi-cell/woi-table
+    // types (registering types AFTER init left loaded cells as the built-in,
+    // non-editable 'cell' type — the cause of "preloaded fields not editable").
+    editor.setComponents( woiVisual.stored || woiVisual.starter || '' );
 
     // "Print" style sector: keep a block together across page breaks (mPDF).
     editor.StyleManager.addSector( 'print', {
