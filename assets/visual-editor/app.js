@@ -605,7 +605,10 @@
             if ( typeof woiRefreshLiveHtml === 'function' ) { woiRefreshLiveHtml(); }
         }
         try { window.localStorage.setItem( 'woiEditorLayout', mode ); } catch ( e ) {}
-        editor.refresh();
+        // Guard: woiApplyLayout runs at init too, possibly before the canvas
+        // iframe has mounted, where refresh() can throw. A failed refresh must
+        // not abort the rest of the IIFE (live-HTML / PDF preview wiring below).
+        try { editor.refresh(); } catch ( e ) {}
     }
 
     ( function woiInitLayout() {
