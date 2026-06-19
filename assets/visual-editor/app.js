@@ -352,6 +352,7 @@
             sel.style.display = 'inline-block';
             sel.selectedIndex = 0;
             setCurrentOrder( sel.value, sel.options[ 0 ].textContent );
+            woiFetchOrderTokens( sel.value ).then( function () { woiRefreshLiveHtml(); if ( typeof woiMaybeRefreshPdf === 'function' ) { woiMaybeRefreshPdf(); } } );
         } ).catch( function ( e ) { alert( 'Order search failed: ' + ( e && e.message ? e.message : e ) ); } );
     }
 
@@ -383,7 +384,9 @@
         var sel        = document.getElementById( 'woi-order-results' );
         if ( searchBtn ) { searchBtn.addEventListener( 'click', orderSearch ); }
         if ( previewBtn ) { previewBtn.addEventListener( 'click', previewRealOrder ); }
-        if ( sel ) { sel.addEventListener( 'change', function () { setCurrentOrder( sel.value, sel.options[ sel.selectedIndex ].textContent ); } ); }
+        if ( sel ) { sel.addEventListener( 'change', function () {
+            woiFetchOrderTokens( sel.value ).then( function () { woiRefreshLiveHtml(); if ( typeof woiMaybeRefreshPdf === 'function' ) { woiMaybeRefreshPdf(); } } );
+        } ); }
     }() );
 
     // --- Preview pane (#4/#5): toggle + tab switching ---
@@ -424,4 +427,57 @@
             if ( 'html' === tab && typeof woiRefreshLiveHtml === 'function' ) { woiRefreshLiveHtml(); }
         } );
     } );
+
+    // --- Live HTML preview engine (#5) ---
+    var currentOrderTokens = null; // cached token map for the selected order
+    var PREVIEW_CSS =
+        'body{font-family:dejavusans,sans-serif;font-size:11pt;color:#222;padding:8mm}' +
+        'table{border-collapse:collapse;width:100%}' +
+        '.order-details th,.order-details td{border:0.5pt solid #000;padding:2px 4px}' +
+        '.totals-table td.price{text-align:right}.totals-table th.description{text-align:inherit}' +
+        '.woi-lbl-secondary{display:block;direction:rtl}' +
+        '.woi-doc-title{text-align:center;margin:4mm 0}.woi-doc-title .title-en,.woi-doc-title .title-ar{font-size:16pt;font-weight:bold}.woi-doc-title .title-ar{margin-left:6mm}' +
+        '.woi-pagebreak{border-top:1px dashed #999;margin:4mm 0}.woi-row td{vertical-align:top}' +
+        '[dir="rtl"],.woi-bilingual-secondary{direction:rtl}';
+
+    function woiDebounce( fn, ms ) {
+        var t; return function () { clearTimeout( t ); t = setTimeout( fn, ms ); };
+    }
+    function woiMergeTokens( html, tokens ) {
+        var out = html;
+        if ( tokens ) {
+            Object.keys( tokens ).forEach( function ( k ) { out = out.split( k ).join( tokens[ k ] ); } );
+        }
+        return out.replace( /\{\{\s*[a-z0-9_]+\s*\}\}/gi, '' );
+    }
+    function woiWrapForPreview( bodyHtml ) {
+        return '<!DOCTYPE html><html><head><meta charset="utf-8"><style>' + PREVIEW_CSS + '</style></head><body>' + bodyHtml + '</body></html>';
+    }
+    function woiRefreshLiveHtml() {
+        var frame = document.getElementById( 'woi-preview-html' );
+        if ( ! frame || ! woiPaneOpen() ) { return; }
+        var tokens = currentOrderTokens || woiVisual.sampleData;
+        frame.srcdoc = woiWrapForPreview( woiMergeTokens( getHtml(), tokens ) );
+    }
+
+    // Fetch + cache an order's token map; falls back silently to sample data.
+    function woiFetchOrderTokens( orderId ) {
+        var url = woiVisual.previewDataUrl + '?doc_type=' + encodeURIComponent( woiVisual.docType );
+        if ( orderId ) { url += '&order_id=' + encodeURIComponent( orderId ); }
+        return fetch( url, { headers: { 'X-WP-Nonce': woiVisual.nonce }, credentials: 'same-origin' } )
+            .then( function ( r ) { return r.ok ? r.json() : null; } )
+            .then( function ( res ) {
+                if ( res && res.tokens ) {
+                    currentOrderTokens = res.tokens;
+                    var cur = document.getElementById( 'woi-order-current' );
+                    if ( cur && res.order_label ) { cur.textContent = 'Order: ' + res.order_label; }
+                }
+                return res;
+            } )
+            .catch( function () { return null; } );
+    }
+
+    // Re-render live preview on edits (debounced) and once on init for the last order.
+    editor.on( 'update', woiDebounce( woiRefreshLiveHtml, 400 ) );
+    woiFetchOrderTokens( null ).then( function () { woiRefreshLiveHtml(); } );
 }() );
