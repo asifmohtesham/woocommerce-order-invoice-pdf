@@ -130,7 +130,7 @@ class VisualEditorPage {
         echo '<iframe id="woi-preview-html" title="' . esc_attr__( 'Live preview', 'woocommerce-orders-invoice-pdf' ) . '"></iframe>';
         echo '<div id="woi-preview-pdf" hidden>';
         echo '<p><button type="button" class="button button-primary" id="woi-render-pdf">' . esc_html__( 'Render PDF', 'woocommerce-orders-invoice-pdf' ) . '</button> <span id="woi-render-pdf-status"></span></p>';
-        echo '<iframe id="woi-preview-pdf-frame" title="' . esc_attr__( 'PDF preview', 'woocommerce-orders-invoice-pdf' ) . '"></iframe>';
+        echo '<div class="woi-a4-scroll"><div class="woi-a4-stage" id="woi-pdf-stage"></div></div>';
         echo '</div>'; // #woi-preview-pdf
         echo '</div>'; // #woi-preview-pane
         echo '</div>'; // .woi-editor-row
