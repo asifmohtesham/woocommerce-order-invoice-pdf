@@ -90,6 +90,15 @@
         return editor.getHtml() + '<style>' + editor.getCss() + '</style>';
     }
 
+    var REQUIRED_TOKENS = [ 'line_items', 'totals', 'invoice_number', 'invoice_date', 'billing_address' ];
+
+    /** Return the required tokens NOT present in the given design HTML. */
+    function missingRequiredTokens( html ) {
+        return REQUIRED_TOKENS.filter( function ( t ) {
+            return html.indexOf( '{{' + t + '}}' ) === -1;
+        } );
+    }
+
     /** POST current design to REST endpoint; returns the fetch Promise. */
     function save() {
         return fetch( woiVisual.restUrl, {
@@ -127,7 +136,17 @@
         className: 'fa fa-floppy-o',
         attributes: { title: 'Save' },
         command: function () {
-            save().then( function () { alert( 'Saved' ); } ).catch( function ( e ) { alert( 'Save failed: ' + ( e && e.message ? e.message : e ) ); } );
+            var missing = missingRequiredTokens( getHtml() );
+            save().then( function () {
+                if ( missing.length ) {
+                    alert( 'Saved — heads up, these required tokens are missing: ' +
+                        missing.map( function ( t ) { return '{{' + t + '}}'; } ).join( ', ' ) );
+                } else {
+                    alert( 'Saved' );
+                }
+            } ).catch( function ( e ) {
+                alert( 'Save failed: ' + ( e && e.message ? e.message : e ) );
+            } );
         }
     } );
 
