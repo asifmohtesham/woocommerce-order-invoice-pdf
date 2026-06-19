@@ -305,6 +305,45 @@
     }
     function woiCloseInsertMenu() { if ( woiMenuEl ) { woiMenuEl.hidden = true; } }
 
+    // --- Insertion (#4) ---
+    function woiInsertTextAtCaret( doc, text ) {
+        var sel = doc.getSelection ? doc.getSelection() : null;
+        if ( ! sel || ! sel.rangeCount ) { return false; }
+        var range = sel.getRangeAt( 0 );
+        range.deleteContents();
+        var node = doc.createTextNode( text );
+        range.insertNode( node );
+        range.setStartAfter( node ); range.setEndAfter( node );
+        sel.removeAllRanges(); sel.addRange( range );
+        return true;
+    }
+
+    function woiInsertSelect( entry ) {
+        var doc = editor.Canvas.getDocument();
+        var active = doc ? doc.activeElement : null;
+        if ( entry.kind === 'token' ) {
+            if ( active && active.isContentEditable && woiInsertTextAtCaret( doc, entry.value ) ) {
+                // RTE syncs the component's HTML on blur; force a sync trigger.
+                active.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+            } else {
+                var target = editor.getSelected() || editor.getWrapper();
+                target.append( { type: 'text', content: entry.value } );
+            }
+        } else { // layout block
+            var block = editor.BlockManager.get( entry.blockId );
+            var content = block ? block.get( 'content' ) : '';
+            var selc = editor.getSelected();
+            if ( selc && selc.parent && selc.parent() ) {
+                var parent = selc.parent();
+                var idx = parent.components().indexOf( selc );
+                parent.append( content, { at: idx + 1 } );
+            } else {
+                editor.getWrapper().append( content );
+            }
+        }
+        woiPushRecent( entry );
+    }
+
     // "Print" style sector: keep a block together across page breaks (mPDF).
     editor.StyleManager.addSector( 'print', {
         name: 'Print',
@@ -465,6 +504,13 @@
             woiSetPaneOpen( open );
             if ( open && typeof woiRefreshLiveHtml === 'function' ) { woiRefreshLiveHtml(); }
         }
+    } );
+
+    editor.Panels.addButton( 'options', {
+        id: 'woi-insert-var',
+        className: 'fa fa-plus-circle',
+        attributes: { title: 'Insert variable or block' },
+        command: function () { woiOpenInsertMenu(); }
     } );
 
     Array.prototype.forEach.call( document.querySelectorAll( '.woi-preview-tab' ), function ( b ) {
