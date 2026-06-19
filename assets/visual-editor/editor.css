@@ -48,7 +48,7 @@ body.woi-fullscreen { overflow: hidden; }
 
 /* --- STACK: preview docked below the editor --- */
 #woi-editor-shell[data-layout="stack"] .woi-editor-row { flex-direction: column; }
-#woi-editor-shell[data-layout="stack"] #woi-preview-pane { flex: 0 0 auto; height: 40vh; }
+#woi-editor-shell[data-layout="stack"] #woi-preview-pane { flex: 0 0 auto; height: 70vh; }
 #woi-editor-shell[data-layout="stack"] #woi-preview-html,
 #woi-editor-shell[data-layout="stack"] .woi-a4-scroll { min-height: 0; }
 #woi-editor-shell[data-layout="stack"] .gjs-editor { height: 60vh !important; }
