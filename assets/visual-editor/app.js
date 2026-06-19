@@ -586,6 +586,37 @@
         } );
     } );
 
+    // --- Editor layout modes (full / stack / overlay) ---
+    var WOI_LAYOUTS = { full: 1, stack: 1, overlay: 1 };
+    function woiApplyLayout( mode ) {
+        if ( ! WOI_LAYOUTS[ mode ] ) { mode = 'full'; }
+        var shell = document.getElementById( 'woi-editor-shell' );
+        if ( ! shell ) { return; }
+        shell.setAttribute( 'data-layout', mode );
+        document.body.classList.toggle( 'woi-fullscreen', 'full' === mode );
+        Array.prototype.forEach.call( document.querySelectorAll( '.woi-layout-btn' ), function ( b ) {
+            b.classList.toggle( 'is-active', b.getAttribute( 'data-woi-layout' ) === mode );
+        } );
+        // Preview docking default: open for full/stack, closed for overlay until toggled.
+        if ( 'overlay' === mode ) {
+            woiSetPaneOpen( false );
+        } else {
+            woiSetPaneOpen( true );
+            if ( typeof woiRefreshLiveHtml === 'function' ) { woiRefreshLiveHtml(); }
+        }
+        try { window.localStorage.setItem( 'woiEditorLayout', mode ); } catch ( e ) {}
+        editor.refresh();
+    }
+
+    ( function woiInitLayout() {
+        var saved = 'full';
+        try { saved = window.localStorage.getItem( 'woiEditorLayout' ) || 'full'; } catch ( e ) {}
+        woiApplyLayout( saved );
+        Array.prototype.forEach.call( document.querySelectorAll( '.woi-layout-btn' ), function ( b ) {
+            b.addEventListener( 'click', function () { woiApplyLayout( b.getAttribute( 'data-woi-layout' ) ); } );
+        } );
+    }() );
+
     // --- Live HTML preview engine (#5) ---
     var currentOrderTokens = null; // cached token map for the selected order
     var PREVIEW_CSS =
