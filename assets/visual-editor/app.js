@@ -81,9 +81,12 @@
         var rows = woiTableRows( table );
         if ( ! rows.length ) { return; }
         var cols = rows[ rows.length - 1 ].components().length || 1;
-        var tds = '';
-        for ( var i = 0; i < cols; i++ ) { tds += '<td>Cell</td>'; }
-        rows[ rows.length - 1 ].parent().append( '<tr>' + tds + '</tr>' );
+        // Append a component-definition OBJECT, not an HTML string: a bare
+        // '<tr>'/'<td>' fragment is dropped by the HTML parser (invalid outside
+        // a table context), so the row would silently never be added.
+        var cells = [];
+        for ( var i = 0; i < cols; i++ ) { cells.push( { tagName: 'td', type: 'woi-cell', content: 'Cell' } ); }
+        rows[ rows.length - 1 ].parent().append( { tagName: 'tr', type: 'woi-trow', components: cells } );
     } } );
     editor.Commands.add( 'woi-del-row', { run: function ( ed ) {
         var table = woiClosestTable( ed.getSelected() );
@@ -94,7 +97,7 @@
     editor.Commands.add( 'woi-add-col', { run: function ( ed ) {
         var table = woiClosestTable( ed.getSelected() );
         if ( ! table ) { return; }
-        woiTableRows( table ).forEach( function ( row ) { row.append( '<td>Cell</td>' ); } );
+        woiTableRows( table ).forEach( function ( row ) { row.append( { tagName: 'td', type: 'woi-cell', content: 'Cell' } ); } );
     } } );
     editor.Commands.add( 'woi-del-col', { run: function ( ed ) {
         var table = woiClosestTable( ed.getSelected() );
