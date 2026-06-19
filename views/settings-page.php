@@ -26,6 +26,7 @@ $nav_icons = array(
 	'documents' => 'dashicons-media-document',
 	'editor'    => 'dashicons-admin-customizer',
 	'visual'    => 'dashicons-layout',
+	'status'    => 'dashicons-info-outline',
 	'debug'     => 'dashicons-admin-tools',
 );
 
@@ -135,9 +136,9 @@ if ( empty( $breadcrumb ) ) {
 		<hr class="wp-header-end">
 
 		<main class="woi-shell-content">
-		<?php if ( 'home' === $current_tab ) : ?>
+		<?php if ( in_array( $current_tab, apply_filters( 'woi_pdf_fullwidth_tabs', array( 'home' ) ), true ) ) : ?>
 
-			<?php do_action( 'woi_pdf_settings_output_home', $current_section, $nonce ); ?>
+			<?php do_action( "woi_pdf_settings_output_{$current_tab}", $current_section, $nonce ); ?>
 
 		<?php else : ?>
 
