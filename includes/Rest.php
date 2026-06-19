@@ -557,10 +557,17 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 				$label .= ' — ' . $name;
 			}
 
+			// Browser preview is HTML, not mPDF: thumbnails and the logo must use
+			// web URLs, not server filesystem paths. Mirror the HTML-output path
+			// (see Main::handle_document_request) which forces this filter false.
+			add_filter( 'woi_pdf_use_path', '__return_false', 99 );
+			$tokens = $this->token_map( $document );
+			remove_filter( 'woi_pdf_use_path', '__return_false', 99 );
+
 			return array(
 				'order_id'    => $order_id,
 				'order_label' => $label,
-				'tokens'      => $this->token_map( $document ),
+				'tokens'      => $tokens,
 			);
 		}
 

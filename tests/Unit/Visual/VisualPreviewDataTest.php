@@ -78,6 +78,45 @@ class VisualPreviewDataTest extends TestCase {
 		$this->assertSame( '<table></table>', $result['tokens']['{{line_items}}'] );
 	}
 
+	public function test_forces_web_url_thumbnails_during_token_map(): void {
+		Functions\when( 'current_user_can' )->justReturn( true );
+		Functions\when( 'wc_get_order' )->justReturn( $this->stub_order( 88 ) );
+
+		// Record every add_filter call so the token_map seam can check the
+		// use-path filter is registered false while tokens are built.
+		$filters = array();
+		Functions\when( 'add_filter' )->alias( function ( $hook, $cb, $prio = 10 ) use ( &$filters ) {
+			$filters[] = array( $hook, $cb );
+			return true;
+		} );
+
+		$rest = new class( $filters ) extends Rest {
+			public bool $use_path_false_at_map = false;
+			/** @var array */
+			private $filters_ref;
+			public function __construct( array &$filters ) {
+				$this->filters_ref = &$filters;
+				parent::__construct();
+			}
+			protected function get_document( string $doc_type, $order ) { return new \stdClass(); }
+			protected function token_map( $document ): array {
+				foreach ( $this->filters_ref as $f ) {
+					if ( 'woi_pdf_use_path' === $f[0] && '__return_false' === $f[1] ) {
+						$this->use_path_false_at_map = true;
+					}
+				}
+				return array();
+			}
+		};
+
+		$rest->handle_visual_preview_data( $this->request( array( 'order_id' => 88 ) ) );
+
+		$this->assertTrue(
+			$rest->use_path_false_at_map,
+			'Browser preview must force woi_pdf_use_path false during token_map so thumbnails/logo use web URLs, not mPDF filesystem paths.'
+		);
+	}
+
 	public function test_defaults_to_last_order_when_no_id(): void {
 		Functions\when( 'current_user_can' )->justReturn( true );
 		Functions\when( 'wc_get_orders' )->justReturn( array( 512 ) );
