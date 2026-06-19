@@ -16,3 +16,15 @@
 #woi-preview-pdf { flex: 1 1 auto; display: flex; flex-direction: column; padding: 6px; }
 #woi-preview-pdf[hidden] { display: none; }
 #woi-preview-pdf-frame { flex: 1 1 auto; min-height: 65vh; }
+
+/* --- Insert-menu popup (#4) --- */
+#woi-insert-menu { position: fixed; z-index: 100000; width: 300px; max-height: 360px; overflow: auto; background: #fff; border: 1px solid #c3c4c7; box-shadow: 0 6px 24px rgba(0,0,0,.18); border-radius: 4px; padding: 6px; }
+#woi-insert-menu[hidden] { display: none; }
+#woi-insert-search { width: 100%; box-sizing: border-box; margin-bottom: 6px; }
+.woi-insert-group { font-size: 11px; text-transform: uppercase; color: #777; padding: 6px 6px 2px; }
+.woi-insert-item { display: flex; justify-content: space-between; gap: 8px; padding: 5px 6px; border-radius: 3px; cursor: pointer; }
+.woi-insert-item.is-active, .woi-insert-item:hover { background: #2271b1; color: #fff; }
+.woi-insert-label { white-space: nowrap; }
+.woi-insert-val, .woi-insert-desc { color: #777; font-size: 12px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.woi-insert-item.is-active .woi-insert-val, .woi-insert-item.is-active .woi-insert-desc { color: #dbeafe; }
+.woi-insert-empty { padding: 8px; color: #777; }

@@ -199,6 +199,112 @@
         } catch ( e ) {}
     }
 
+    // --- Insert-menu popup (#4) ---
+    var woiMenuEl = null, woiMenuItems = [], woiMenuActive = -1;
+
+    function woiEnsureMenu() {
+        if ( woiMenuEl ) { return woiMenuEl; }
+        woiMenuEl = document.createElement( 'div' );
+        woiMenuEl.id = 'woi-insert-menu';
+        woiMenuEl.hidden = true;
+        woiMenuEl.innerHTML = '<input type="text" id="woi-insert-search" placeholder="Search variables…" autocomplete="off"><div id="woi-insert-list"></div>';
+        document.body.appendChild( woiMenuEl );
+
+        var search = woiMenuEl.querySelector( '#woi-insert-search' );
+        search.addEventListener( 'input', function () { woiRenderMenu( search.value ); } );
+        search.addEventListener( 'keydown', function ( e ) {
+            if ( e.key === 'ArrowDown' ) { e.preventDefault(); woiMoveMenu( 1 ); }
+            else if ( e.key === 'ArrowUp' ) { e.preventDefault(); woiMoveMenu( -1 ); }
+            else if ( e.key === 'Enter' ) { e.preventDefault(); woiChooseMenu( woiMenuActive ); }
+            else if ( e.key === 'Escape' ) { e.preventDefault(); woiCloseInsertMenu(); }
+        } );
+        document.addEventListener( 'mousedown', function ( e ) {
+            if ( woiMenuEl && ! woiMenuEl.hidden && ! woiMenuEl.contains( e.target ) ) { woiCloseInsertMenu(); }
+        } );
+        return woiMenuEl;
+    }
+
+    function woiRenderMenu( filter ) {
+        var list = woiMenuEl.querySelector( '#woi-insert-list' );
+        var f = ( filter || '' ).toLowerCase();
+        var catalog = woiBuildCatalog();
+        var byId = {};
+        catalog.forEach( function ( it ) { byId[ it.id ] = it; } );
+
+        // Recent group first (only when no active filter).
+        var groups = [];
+        if ( ! f ) {
+            var recent = woiGetRecent().map( function ( id ) { return byId[ id ]; } ).filter( Boolean );
+            if ( recent.length ) { groups.push( { name: 'Recent', items: recent } ); }
+        }
+        var order = [ 'Shop', 'Document', 'Customer', 'Items & Totals', 'Layout' ];
+        order.forEach( function ( cat ) {
+            var items = catalog.filter( function ( it ) {
+                return it.category === cat && ( ! f || it.label.toLowerCase().indexOf( f ) !== -1 || ( it.token || '' ).indexOf( f ) !== -1 );
+            } );
+            if ( items.length ) { groups.push( { name: cat, items: items } ); }
+        } );
+
+        woiMenuItems = [];
+        var html = '';
+        groups.forEach( function ( g ) {
+            html += '<div class="woi-insert-group">' + g.name + '</div>';
+            g.items.forEach( function ( it ) {
+                var idx = woiMenuItems.length;
+                woiMenuItems.push( it );
+                var right = it.kind === 'token'
+                    ? '<span class="woi-insert-val">' + woiEsc( woiTokenPreview( it.token ) ) + '</span>'
+                    : '<span class="woi-insert-desc">' + woiEsc( it.description ) + '</span>';
+                html += '<div class="woi-insert-item" data-idx="' + idx + '">' +
+                    '<span class="woi-insert-label">' + woiEsc( it.label ) + '</span>' + right + '</div>';
+            } );
+        } );
+        list.innerHTML = html || '<div class="woi-insert-empty">No matches</div>';
+        woiMenuActive = woiMenuItems.length ? 0 : -1;
+        woiHighlightMenu();
+        Array.prototype.forEach.call( list.querySelectorAll( '.woi-insert-item' ), function ( el ) {
+            el.addEventListener( 'mousedown', function ( e ) { e.preventDefault(); woiChooseMenu( parseInt( el.getAttribute( 'data-idx' ), 10 ) ); } );
+        } );
+    }
+
+    function woiEsc( s ) { return String( s == null ? '' : s ).replace( /&/g, '&amp;' ).replace( /</g, '&lt;' ).replace( />/g, '&gt;' ); }
+
+    function woiHighlightMenu() {
+        var els = woiMenuEl.querySelectorAll( '.woi-insert-item' );
+        Array.prototype.forEach.call( els, function ( el ) {
+            el.classList.toggle( 'is-active', parseInt( el.getAttribute( 'data-idx' ), 10 ) === woiMenuActive );
+        } );
+        var active = woiMenuEl.querySelector( '.woi-insert-item.is-active' );
+        if ( active && active.scrollIntoView ) { active.scrollIntoView( { block: 'nearest' } ); }
+    }
+    function woiMoveMenu( dir ) {
+        if ( ! woiMenuItems.length ) { return; }
+        woiMenuActive = ( woiMenuActive + dir + woiMenuItems.length ) % woiMenuItems.length;
+        woiHighlightMenu();
+    }
+    function woiChooseMenu( idx ) {
+        var entry = woiMenuItems[ idx ];
+        if ( entry && typeof woiInsertSelect === 'function' ) { woiInsertSelect( entry ); }
+        woiCloseInsertMenu();
+    }
+
+    function woiOpenInsertMenu( x, y ) {
+        woiEnsureMenu();
+        woiMenuEl.hidden = false;
+        if ( typeof x === 'number' && typeof y === 'number' ) {
+            woiMenuEl.style.left = Math.max( 8, Math.min( x, window.innerWidth - 320 ) ) + 'px';
+            woiMenuEl.style.top = ( y + 6 ) + 'px';
+        } else {
+            woiMenuEl.style.left = ( window.innerWidth / 2 - 150 ) + 'px';
+            woiMenuEl.style.top = '120px';
+        }
+        var search = woiMenuEl.querySelector( '#woi-insert-search' );
+        search.value = '';
+        woiRenderMenu( '' );
+        search.focus();
+    }
+    function woiCloseInsertMenu() { if ( woiMenuEl ) { woiMenuEl.hidden = true; } }
+
     // "Print" style sector: keep a block together across page breaks (mPDF).
     editor.StyleManager.addSector( 'print', {
         name: 'Print',
