@@ -385,4 +385,43 @@
         if ( previewBtn ) { previewBtn.addEventListener( 'click', previewRealOrder ); }
         if ( sel ) { sel.addEventListener( 'change', function () { setCurrentOrder( sel.value, sel.options[ sel.selectedIndex ].textContent ); } ); }
     }() );
+
+    // --- Preview pane (#4/#5): toggle + tab switching ---
+    function woiSetPaneOpen( open ) {
+        var pane = document.getElementById( 'woi-preview-pane' );
+        if ( ! pane ) { return; }
+        if ( open ) { pane.removeAttribute( 'hidden' ); } else { pane.setAttribute( 'hidden', '' ); }
+    }
+    function woiPaneOpen() {
+        var pane = document.getElementById( 'woi-preview-pane' );
+        return pane && ! pane.hasAttribute( 'hidden' );
+    }
+    function woiSetTab( tab ) {
+        var html = document.getElementById( 'woi-preview-html' );
+        var pdf  = document.getElementById( 'woi-preview-pdf' );
+        Array.prototype.forEach.call( document.querySelectorAll( '.woi-preview-tab' ), function ( b ) {
+            b.classList.toggle( 'is-active', b.getAttribute( 'data-woi-tab' ) === tab );
+        } );
+        if ( 'pdf' === tab ) { if ( html ) html.style.display = 'none'; if ( pdf ) pdf.removeAttribute( 'hidden' ); }
+        else { if ( html ) html.style.display = ''; if ( pdf ) pdf.setAttribute( 'hidden', '' ); }
+    }
+
+    editor.Panels.addButton( 'options', {
+        id: 'woi-preview-toggle',
+        className: 'fa fa-columns',
+        attributes: { title: 'Toggle preview pane' },
+        command: function () {
+            var open = ! woiPaneOpen();
+            woiSetPaneOpen( open );
+            if ( open && typeof woiRefreshLiveHtml === 'function' ) { woiRefreshLiveHtml(); }
+        }
+    } );
+
+    Array.prototype.forEach.call( document.querySelectorAll( '.woi-preview-tab' ), function ( b ) {
+        b.addEventListener( 'click', function () {
+            var tab = b.getAttribute( 'data-woi-tab' );
+            woiSetTab( tab );
+            if ( 'html' === tab && typeof woiRefreshLiveHtml === 'function' ) { woiRefreshLiveHtml(); }
+        } );
+    } );
 }() );

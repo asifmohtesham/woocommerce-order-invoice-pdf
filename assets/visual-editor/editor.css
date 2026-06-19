@@ -3,3 +3,16 @@
 
 /* Make empty table cells visible/clickable in the editor canvas. */
 .gjs-frame .woi-row td, .gjs-frame .woi-row th { min-width: 24px; min-height: 1.4em; border: 1px dashed #c8c8c8; }
+
+/* --- Preview pane layout (#4) --- */
+.woi-editor-row { display: flex; align-items: stretch; gap: 8px; }
+#woi-visual-editor { flex: 1 1 auto; min-width: 0; }
+#woi-preview-pane { flex: 0 0 42%; display: flex; flex-direction: column; border: 1px solid #c3c4c7; background: #fff; min-width: 0; }
+#woi-preview-pane[hidden] { display: none; }
+.woi-preview-tabs { display: flex; gap: 4px; padding: 6px; border-bottom: 1px solid #e2e4e7; }
+.woi-preview-tab.is-active { background: #2271b1; color: #fff; border-color: #2271b1; }
+#woi-preview-html, #woi-preview-pdf-frame { width: 100%; border: 0; background: #fff; }
+#woi-preview-html { flex: 1 1 auto; min-height: 70vh; }
+#woi-preview-pdf { flex: 1 1 auto; display: flex; flex-direction: column; padding: 6px; }
+#woi-preview-pdf[hidden] { display: none; }
+#woi-preview-pdf-frame { flex: 1 1 auto; min-height: 65vh; }

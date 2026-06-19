@@ -104,7 +104,21 @@ class VisualEditorPage {
         echo '<button type="button" class="button button-primary" id="woi-preview-real-order">' . esc_html__( 'Preview real order', 'woocommerce-orders-invoice-pdf' ) . '</button>';
         echo '<span id="woi-order-current" style="color:#555"></span>';
         echo '</div>';
-        echo '<div id="woi-visual-editor"></div></div>';
+        echo '<div class="woi-editor-row">';
+        echo '<div id="woi-visual-editor"></div>';
+        echo '<div id="woi-preview-pane" hidden>';
+        echo '<div class="woi-preview-tabs">';
+        echo '<button type="button" class="button woi-preview-tab is-active" data-woi-tab="html">' . esc_html__( 'Live HTML', 'woocommerce-orders-invoice-pdf' ) . '</button>';
+        echo '<button type="button" class="button woi-preview-tab" data-woi-tab="pdf">' . esc_html__( 'PDF', 'woocommerce-orders-invoice-pdf' ) . '</button>';
+        echo '</div>';
+        echo '<iframe id="woi-preview-html" title="' . esc_attr__( 'Live preview', 'woocommerce-orders-invoice-pdf' ) . '"></iframe>';
+        echo '<div id="woi-preview-pdf" hidden>';
+        echo '<p><button type="button" class="button button-primary" id="woi-render-pdf">' . esc_html__( 'Render PDF', 'woocommerce-orders-invoice-pdf' ) . '</button> <span id="woi-render-pdf-status"></span></p>';
+        echo '<iframe id="woi-preview-pdf-frame" title="' . esc_attr__( 'PDF preview', 'woocommerce-orders-invoice-pdf' ) . '"></iframe>';
+        echo '</div>'; // #woi-preview-pdf
+        echo '</div>'; // #woi-preview-pane
+        echo '</div>'; // .woi-editor-row
+        echo '</div>'; // .wrap
     }
 
     private function starter_html(): string {
