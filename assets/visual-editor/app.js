@@ -225,7 +225,15 @@
         var sel   = document.getElementById( 'woi-order-results' );
         if ( ! input || ! sel ) { return; }
         var term = input.value.trim();
-        if ( '' === term ) { setCurrentOrder( null, 'last order' ); sel.style.display = 'none'; return; }
+        if ( '' === term ) {
+            setCurrentOrder( null, 'last order' );
+            sel.style.display = 'none';
+            woiFetchOrderTokens( null ).then( function () {
+                woiRefreshLiveHtml();
+                if ( typeof woiMaybeRefreshPdf === 'function' ) { woiMaybeRefreshPdf(); }
+            } );
+            return;
+        }
 
         var body = 'action=' + encodeURIComponent( woiVisual.orderSearchAction ) +
             '&security=' + encodeURIComponent( woiVisual.previewNonce ) +
