@@ -542,6 +542,7 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			add_filter( 'woi_pdf_document_is_enabled', '__return_true', 99 );
 			$document = $this->get_document( $doc_type, $order );
 			remove_filter( 'woi_pdf_document_is_enabled', '__return_true', 99 );
+			remove_filter( 'woi_pdf_document_use_historical_settings', '__return_false', 99 );
 
 			if ( ! $document ) {
 				return new \WP_Error( 'no_document', 'Could not build the document for this order.', array( 'status' => 404 ) );

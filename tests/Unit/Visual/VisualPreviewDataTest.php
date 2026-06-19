@@ -31,12 +31,13 @@ class VisualPreviewDataTest extends TestCase {
 	 * so it cannot be stubbed via Brain\Monkey. The protected get_document() seam is used
 	 * instead, keeping tests hermetic without touching the bootstrap load order.
 	 */
-	private function rest_with_map( array $map, $document = null ): Rest {
-		$doc = $document ?? new \stdClass();
+	private function rest_with_map( array $map, bool $null_document = false ): Rest {
+		$doc = $null_document ? false : new \stdClass();
 		return new class( $map, $doc ) extends Rest {
 			private array $map;
-			private object $doc;
-			public function __construct( array $map, object $doc ) {
+			/** @var object|false */
+			private $doc;
+			public function __construct( array $map, $doc ) {
 				$this->map = $map;
 				$this->doc = $doc;
 				parent::__construct();
@@ -108,5 +109,16 @@ class VisualPreviewDataTest extends TestCase {
 
 		$this->assertInstanceOf( \WP_Error::class, $result );
 		$this->assertSame( 403, $result->get_error_data()['status'] );
+	}
+
+	public function test_404_when_no_document_built(): void {
+		Functions\when( 'current_user_can' )->justReturn( true );
+		Functions\when( 'wc_get_order' )->justReturn( $this->stub_order( 7 ) );
+
+		$rest   = $this->rest_with_map( array(), true );
+		$result = $rest->handle_visual_preview_data( $this->request( array( 'order_id' => 7 ) ) );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 404, $result->get_error_data()['status'] );
 	}
 }
