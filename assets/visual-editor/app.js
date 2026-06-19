@@ -319,6 +319,7 @@
     }
 
     function woiInsertSelect( entry ) {
+        woiClearSlashQuery();
         var doc = editor.Canvas.getDocument();
         var active = doc ? doc.activeElement : null;
         if ( entry.kind === 'token' ) {
@@ -342,6 +343,57 @@
             }
         }
         woiPushRecent( entry );
+    }
+
+    // --- "/" trigger (#4): open the insert menu while editing a field ---
+    var woiSlash = null; // { node, offset } of the "/" character
+
+    function woiCaretPageXY() {
+        var doc = editor.Canvas.getDocument();
+        var frame = editor.Canvas.getFrameEl();
+        var sel = doc.getSelection && doc.getSelection();
+        if ( ! sel || ! sel.rangeCount || ! frame ) { return null; }
+        var rect = sel.getRangeAt( 0 ).getBoundingClientRect();
+        var fr = frame.getBoundingClientRect();
+        return { x: fr.left + rect.left, y: fr.top + rect.bottom };
+    }
+
+    function woiBindSlash() {
+        var doc = editor.Canvas.getDocument();
+        if ( ! doc ) { return; }
+        doc.addEventListener( 'keyup', function ( e ) {
+            var el = doc.activeElement;
+            if ( ! el || ! el.isContentEditable ) { return; }
+            if ( e.key === '/' ) {
+                var sel = doc.getSelection();
+                if ( sel && sel.rangeCount ) {
+                    var r = sel.getRangeAt( 0 );
+                    // The "/" sits just before the caret.
+                    woiSlash = { node: r.startContainer, offset: Math.max( 0, r.startOffset - 1 ) };
+                    var xy = woiCaretPageXY();
+                    if ( xy ) { woiOpenInsertMenu( xy.x, xy.y ); } else { woiOpenInsertMenu(); }
+                }
+            }
+        } );
+    }
+    // The canvas iframe may not be ready immediately; bind on load and on each component load.
+    editor.on( 'load', woiBindSlash );
+    editor.on( 'canvas:frame:load', woiBindSlash );
+
+    function woiClearSlashQuery() {
+        if ( ! woiSlash ) { return; }
+        var doc = editor.Canvas.getDocument();
+        var sel = doc.getSelection && doc.getSelection();
+        try {
+            if ( sel && sel.rangeCount && woiSlash.node ) {
+                var range = doc.createRange();
+                range.setStart( woiSlash.node, Math.min( woiSlash.offset, ( woiSlash.node.length || 0 ) ) );
+                range.setEnd( sel.getRangeAt( 0 ).endContainer, sel.getRangeAt( 0 ).endOffset );
+                range.deleteContents();
+                sel.removeAllRanges(); sel.addRange( range );
+            }
+        } catch ( e ) {}
+        woiSlash = null;
     }
 
     // "Print" style sector: keep a block together across page breaks (mPDF).
