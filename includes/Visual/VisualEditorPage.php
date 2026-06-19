@@ -95,7 +95,7 @@ class VisualEditorPage {
     public function render_page(): void {
         echo '<div class="wrap"><h1>' . esc_html__( 'Visual Invoice Template', 'woocommerce-orders-invoice-pdf' ) . '</h1>';
         echo '<p><a href="' . esc_url( admin_url( 'admin.php?page=woi_pdf_options_page' ) ) . '">&larr; ' . esc_html__( 'Back to PDF Invoices', 'woocommerce-orders-invoice-pdf' ) . '</a></p>';
-        echo '<p>' . esc_html__( 'Design with table/block layout for best mPDF fidelity. Use "Preview real PDF" to verify Arabic and pagination. Note: real-PDF preview reflects the saved design and only renders the visual template when "Visual template (invoice)" is enabled in Invoice Settings.', 'woocommerce-orders-invoice-pdf' ) . '</p>';
+        echo '<p>' . esc_html__( 'Design with table/block layout for best mPDF fidelity. Use the PDF tab in the preview pane to verify Arabic rendering and pagination. Note: PDF preview reflects the saved design and only renders the visual template when "Visual template (invoice)" is enabled in Invoice Settings.', 'woocommerce-orders-invoice-pdf' ) . '</p>';
         echo '<div class="woi-order-bar" style="margin:8px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">';
         echo '<label for="woi-order-search"><strong>' . esc_html__( 'Preview order:', 'woocommerce-orders-invoice-pdf' ) . '</strong></label>';
         echo '<input type="text" id="woi-order-search" class="regular-text" placeholder="' . esc_attr__( 'Order #, email or name (blank = last order)', 'woocommerce-orders-invoice-pdf' ) . '" style="max-width:280px">';
