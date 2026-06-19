@@ -716,6 +716,9 @@
                 stage.appendChild( frag );
                 task.destroy();
             } );
+        } ).catch( function ( e ) {
+            task.destroy();
+            return Promise.reject( e );
         } );
     }
 
