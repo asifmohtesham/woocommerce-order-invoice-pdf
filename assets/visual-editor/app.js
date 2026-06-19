@@ -152,6 +152,53 @@
     // non-editable 'cell' type — the cause of "preloaded fields not editable").
     editor.setComponents( woiVisual.stored || woiVisual.starter || '' );
 
+    // --- Insert-menu catalog + previews + recent (#4) ---
+    var WOI_LAYOUT_ITEMS = [
+        { label: 'Table (2 columns)', blockId: 'row-2col', description: 'Editable 2-column table' },
+        { label: 'Heading',           blockId: 'heading',  description: 'Section heading' },
+        { label: 'Divider',           blockId: 'divider',  description: 'Horizontal rule' },
+        { label: 'Spacer',            blockId: 'spacer',   description: 'Vertical space' },
+        { label: 'Page break',        blockId: 'pagebreak', description: 'Force a new page' }
+    ];
+    var WOI_BLOCK_TOKENS = { logo: 1, line_items: 1, totals: 1, billing_address: 1 };
+
+    // Build the unified catalog: tokens (inline) + layout blocks.
+    function woiBuildCatalog() {
+        var items = TOKEN_META.map( function ( m ) {
+            return { id: 'token-' + m[0], label: m[1], kind: 'token', token: m[0], value: '{{' + m[0] + '}}', category: m[2] };
+        } );
+        WOI_LAYOUT_ITEMS.forEach( function ( l ) {
+            items.push( { id: 'block-' + l.blockId, label: l.label, kind: 'block', blockId: l.blockId, description: l.description, category: 'Layout' } );
+        } );
+        return items;
+    }
+
+    // Live value/hint for a token, from the selected order (or sample data).
+    function woiTokenPreview( token ) {
+        var map = currentOrderTokens || woiVisual.sampleData || {};
+        var raw = map[ '{{' + token + '}}' ];
+        if ( raw == null || raw === '' ) { return ''; }
+        if ( WOI_BLOCK_TOKENS[ token ] ) {
+            if ( token === 'logo' ) { return '[image]'; }
+            var rows = ( String( raw ).match( /<tr/gi ) || [] ).length;
+            return rows ? '[table · ' + rows + ' rows]' : '[table]';
+        }
+        var text = String( raw ).replace( /<[^>]*>/g, ' ' ).replace( /\s+/g, ' ' ).trim();
+        return text.length > 40 ? text.slice( 0, 40 ) + '…' : text;
+    }
+
+    function woiGetRecent() {
+        try { return JSON.parse( window.localStorage.getItem( 'woiInsertRecent' ) || '[]' ); }
+        catch ( e ) { return []; }
+    }
+    function woiPushRecent( entry ) {
+        try {
+            var list = woiGetRecent().filter( function ( id ) { return id !== entry.id; } );
+            list.unshift( entry.id );
+            window.localStorage.setItem( 'woiInsertRecent', JSON.stringify( list.slice( 0, 6 ) ) );
+        } catch ( e ) {}
+    }
+
     // "Print" style sector: keep a block together across page breaks (mPDF).
     editor.StyleManager.addSector( 'print', {
         name: 'Print',
