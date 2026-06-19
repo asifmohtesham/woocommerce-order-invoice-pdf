@@ -42,6 +42,49 @@
         } );
     } );
 
+    // Layout building blocks (non-token). Tables (not flex/grid) for mPDF safety.
+    editor.BlockManager.add( 'row-2col', {
+        label: '2-column row', category: 'Layout',
+        attributes: { title: 'Two side-by-side columns' },
+        content: '<table class="woi-row"><tr><td>Column one</td><td>Column two</td></tr></table>'
+    } );
+    editor.BlockManager.add( 'spacer', {
+        label: 'Spacer', category: 'Layout',
+        attributes: { title: 'Vertical empty space' },
+        content: '<div class="woi-spacer"></div>'
+    } );
+    editor.BlockManager.add( 'divider', {
+        label: 'Divider', category: 'Layout',
+        attributes: { title: 'Horizontal rule' },
+        content: '<hr>'
+    } );
+    editor.BlockManager.add( 'heading', {
+        label: 'Heading', category: 'Layout',
+        attributes: { title: 'Section heading' },
+        content: '<h2>Section heading</h2>'
+    } );
+    editor.BlockManager.add( 'pagebreak', {
+        label: 'Page break', category: 'Layout',
+        attributes: { title: 'Force a new page at this point' },
+        content: '<div class="woi-pagebreak"></div>'
+    } );
+
+    // "Print" style sector: keep a block together across page breaks (mPDF).
+    editor.StyleManager.addSector( 'print', {
+        name: 'Print',
+        open: false,
+        properties: [ {
+            name: 'Keep together',
+            property: 'page-break-inside',
+            type: 'select',
+            defaults: 'auto',
+            list: [
+                { value: 'auto',  name: 'Allow break' },
+                { value: 'avoid', name: 'Keep together' }
+            ]
+        } ]
+    } );
+
     /** Return full editor HTML + embedded CSS. */
     function getHtml() {
         return editor.getHtml() + '<style>' + editor.getCss() + '</style>';

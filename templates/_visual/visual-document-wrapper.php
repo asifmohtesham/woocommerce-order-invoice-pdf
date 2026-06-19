@@ -34,6 +34,13 @@ tr.grand-total td, tr.grand-total th { border-top: 1px solid #000; border-bottom
 
 /* Bilingual secondary labels (Arabic column headers / totals labels) */
 .woi-lbl-secondary { display: block; direction: rtl; }
+
+/* --- Layout blocks (added by visual editor Task 3) --- */
+.woi-pagebreak { page-break-after: always; height: 0; }
+.woi-spacer { height: 12mm; }
+.woi-row { width: 100%; }
+.woi-row td { vertical-align: top; }
+.totals-table { page-break-inside: avoid; }
 </style>
 </head>
 <body>
