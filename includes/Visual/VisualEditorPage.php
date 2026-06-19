@@ -115,6 +115,7 @@ class VisualEditorPage {
         echo '<label for="woi-order-search"><strong>' . esc_html__( 'Preview order:', 'woocommerce-orders-invoice-pdf' ) . '</strong></label>';
         echo '<input type="text" id="woi-order-search" class="regular-text" placeholder="' . esc_attr__( 'Order #, email or name (blank = last order)', 'woocommerce-orders-invoice-pdf' ) . '" style="max-width:280px">';
         echo '<button type="button" class="button" id="woi-order-search-btn">' . esc_html__( 'Find', 'woocommerce-orders-invoice-pdf' ) . '</button>';
+        echo '<span class="spinner woi-order-spinner" style="float:none;margin:0;visibility:hidden"></span>';
         echo '<select id="woi-order-results" style="display:none;max-width:320px"></select>';
         echo '<span id="woi-order-current" style="color:#555"></span>';
         echo '</div>';
