@@ -583,6 +583,7 @@
             var tab = b.getAttribute( 'data-woi-tab' );
             woiSetTab( tab );
             if ( 'html' === tab && typeof woiRefreshLiveHtml === 'function' ) { woiRefreshLiveHtml(); }
+            if ( 'pdf' === tab && typeof woiMaybeRefreshPdf === 'function' ) { woiMaybeRefreshPdf(); }
         } );
     } );
 
@@ -671,20 +672,63 @@
 
     // Re-render live preview on edits (debounced) and once on init for the last order.
     editor.on( 'update', woiDebounce( woiRefreshLiveHtml, 400 ) );
+    editor.on( 'update', woiDebounce( woiMaybeRefreshPdf, 1000 ) );
     woiFetchOrderTokens( null ).then( function () { woiRefreshLiveHtml(); } );
 
-    // --- PDF preview tab (#6): save current design, render real mPDF, embed in-place ---
+    // --- PDF preview tab (#6): save current design, render real mPDF as A4 canvases ---
     var woiSelectedOrderId = null;          // set by the order bar / select
-    var woiPdfBlobUrl = null;
+    var woiPdfRenderGen = 0;                // monotonic guard: a newer render supersedes older ones
 
     function woiPdfTabActive() {
         var pdf = document.getElementById( 'woi-preview-pdf' );
         return pdf && ! pdf.hasAttribute( 'hidden' );
     }
+
+    // Render every page of the decoded PDF into A4 canvases in a detached fragment,
+    // then swap into the stage only if this render is still the latest (gen check).
+    function woiRenderPdfPages( bytes, gen ) {
+        var stage = document.getElementById( 'woi-pdf-stage' );
+        if ( ! stage ) { return Promise.resolve(); }
+        if ( ! window.pdfjsLib ) { return Promise.reject( new Error( 'PDF.js not loaded' ) ); }
+        pdfjsLib.GlobalWorkerOptions.workerSrc = woiVisual.pdfWorkerUrl;
+        var task = pdfjsLib.getDocument( { data: bytes } );
+        return task.promise.then( function ( pdf ) {
+            var frag = document.createDocumentFragment();
+            var dpr  = window.devicePixelRatio || 1;
+            var chain = Promise.resolve();
+            for ( var n = 1; n <= pdf.numPages; n++ ) {
+                ( function ( pageNum ) {
+                    chain = chain.then( function () {
+                        if ( gen !== woiPdfRenderGen ) { return; } // superseded mid-render
+                        return pdf.getPage( pageNum ).then( function ( page ) {
+                            var canvas = document.createElement( 'canvas' );
+                            var vp     = page.getViewport( { scale: dpr } );
+                            canvas.className = 'woi-a4-page';
+                            canvas.width  = Math.floor( vp.width );
+                            canvas.height = Math.floor( vp.height );
+                            frag.appendChild( canvas );
+                            return page.render( { canvasContext: canvas.getContext( '2d' ), viewport: vp } ).promise;
+                        } );
+                    } );
+                }( n ) );
+            }
+            return chain.then( function () {
+                if ( gen !== woiPdfRenderGen ) { task.destroy(); return; }
+                stage.innerHTML = '';
+                stage.appendChild( frag );
+                task.destroy();
+            } );
+        } ).catch( function ( e ) {
+            task.destroy();
+            return Promise.reject( e );
+        } );
+    }
+
     function woiRenderPdf() {
         var status = document.getElementById( 'woi-render-pdf-status' );
-        var frame  = document.getElementById( 'woi-preview-pdf-frame' );
-        if ( ! frame ) { return; }
+        var stage  = document.getElementById( 'woi-pdf-stage' );
+        if ( ! stage ) { return; }
+        var gen = ++woiPdfRenderGen;
         if ( status ) { status.textContent = 'Rendering…'; }
         save().then( function () {
             var body = 'action=woi_pdf_preview' +
@@ -699,18 +743,18 @@
             } );
         } ).then( function ( r ) { if ( ! r.ok ) { throw new Error( 'HTTP ' + r.status ); } return r.json(); } )
         .then( function ( res ) {
+            if ( gen !== woiPdfRenderGen ) { return; } // a newer render started during the round-trip
             if ( ! res.success || ! res.data || ! res.data.preview_data || res.data.output_format !== 'pdf' ) {
                 throw new Error( ( res.data && res.data.error ) ? res.data.error : 'Preview failed.' );
             }
             var binary = window.atob( res.data.preview_data );
             var bytes  = new Uint8Array( binary.length );
             for ( var i = 0; i < binary.length; i++ ) { bytes[ i ] = binary.charCodeAt( i ); }
-            if ( woiPdfBlobUrl ) { URL.revokeObjectURL( woiPdfBlobUrl ); }
-            woiPdfBlobUrl = URL.createObjectURL( new Blob( [ bytes ], { type: 'application/pdf' } ) );
-            frame.src = woiPdfBlobUrl;
-            if ( status ) { status.textContent = ''; }
+            return woiRenderPdfPages( bytes, gen ).then( function () {
+                if ( gen === woiPdfRenderGen && status ) { status.textContent = ''; }
+            } );
         } ).catch( function ( e ) {
-            if ( status ) { status.textContent = 'Error: ' + ( e && e.message ? e.message : e ); }
+            if ( gen === woiPdfRenderGen && status ) { status.textContent = 'Error: ' + ( e && e.message ? e.message : e ); }
         } );
     }
     // Re-render the PDF only when its tab is active (avoid a save+round-trip on every edit).
@@ -720,5 +764,4 @@
         var btn = document.getElementById( 'woi-render-pdf' );
         if ( btn ) { btn.addEventListener( 'click', woiRenderPdf ); }
     }() );
-    window.addEventListener( 'beforeunload', function () { if ( woiPdfBlobUrl ) { URL.revokeObjectURL( woiPdfBlobUrl ); } } );
 }() );

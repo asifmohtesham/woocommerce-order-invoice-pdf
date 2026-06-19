@@ -73,7 +73,8 @@ class VisualEditorPage {
         $base = WOI_PDF()->plugin_url() . '/assets/visual-editor';
         wp_enqueue_style( 'woi-grapesjs', $base . '/grapesjs/grapes.min.css', array(), WOI_PDF_VERSION );
         wp_enqueue_script( 'woi-grapesjs', $base . '/grapesjs/grapes.min.js', array(), WOI_PDF_VERSION, true );
-        wp_enqueue_script( 'woi-visual-editor', $base . '/app.js', array( 'woi-grapesjs' ), WOI_PDF_VERSION, true );
+        wp_enqueue_script( 'woi-pdfjs', WOI_PDF()->plugin_url() . '/assets/js/pdf_js/pdf.min.js', array(), WOI_PDF_VERSION, true );
+        wp_enqueue_script( 'woi-visual-editor', $base . '/app.js', array( 'woi-grapesjs', 'woi-pdfjs' ), WOI_PDF_VERSION, true );
         wp_enqueue_style( 'woi-visual-editor-css', $base . '/editor.css', array( 'woi-grapesjs' ), WOI_PDF_VERSION );
 
         $store = new VisualTemplateStore();
@@ -88,6 +89,7 @@ class VisualEditorPage {
             'sampleData'      => $this->sample_data(),
             'previewDataUrl'  => esc_url_raw( rest_url( 'woi-pdf/v1/visual-preview-data' ) ),
             'orderSearchAction' => 'woi_pdf_preview_order_search',
+            'pdfWorkerUrl'      => esc_url_raw( WOI_PDF()->plugin_url() . '/assets/js/pdf_js/pdf.worker.min.js' ),
         ) );
     }
 
@@ -128,7 +130,7 @@ class VisualEditorPage {
         echo '<iframe id="woi-preview-html" title="' . esc_attr__( 'Live preview', 'woocommerce-orders-invoice-pdf' ) . '"></iframe>';
         echo '<div id="woi-preview-pdf" hidden>';
         echo '<p><button type="button" class="button button-primary" id="woi-render-pdf">' . esc_html__( 'Render PDF', 'woocommerce-orders-invoice-pdf' ) . '</button> <span id="woi-render-pdf-status"></span></p>';
-        echo '<iframe id="woi-preview-pdf-frame" title="' . esc_attr__( 'PDF preview', 'woocommerce-orders-invoice-pdf' ) . '"></iframe>';
+        echo '<div class="woi-a4-scroll"><div class="woi-a4-stage" id="woi-pdf-stage"></div></div>';
         echo '</div>'; // #woi-preview-pdf
         echo '</div>'; // #woi-preview-pane
         echo '</div>'; // .woi-editor-row
