@@ -2,11 +2,25 @@
     // Bail if GrapesJS or the localised config is not available.
     if ( typeof grapesjs === 'undefined' || ! window.woiVisual ) { return; }
 
-    var tokens = [
-        'logo', 'shop_name', 'shop_address', 'shop_name_ar', 'shop_address_ar',
-        'document_title', 'document_title_ar', 'trn', 'shop_phone', 'shop_email',
-        'billing_address', 'invoice_number', 'invoice_date', 'order_number',
-        'payment_method', 'line_items', 'totals'
+    // token, friendly label, palette category, tooltip hint
+    var TOKEN_META = [
+        [ 'logo',             'Logo image',            'Shop',           'Shop logo image' ],
+        [ 'shop_name',        'Shop name',             'Shop',           'Company name' ],
+        [ 'shop_address',     'Shop address',          'Shop',           'Company address' ],
+        [ 'shop_name_ar',     'Shop name (AR)',        'Shop',           'Company name, second language' ],
+        [ 'shop_address_ar',  'Shop address (AR)',     'Shop',           'Company address, second language' ],
+        [ 'trn',              'TRN',                   'Shop',           'Tax registration number' ],
+        [ 'shop_phone',       'Shop phone',            'Shop',           'Company phone' ],
+        [ 'shop_email',       'Shop email',            'Shop',           'Company email' ],
+        [ 'document_title',   'Document title',        'Document',       'e.g. Tax Invoice' ],
+        [ 'document_title_ar','Document title (AR)',   'Document',       'Title, second language' ],
+        [ 'invoice_number',   'Invoice number',        'Document',       'Document number' ],
+        [ 'invoice_date',     'Invoice date',          'Document',       'Document date' ],
+        [ 'order_number',     'Order number',          'Document',       'WooCommerce order number' ],
+        [ 'payment_method',   'Payment method',        'Document',       'Order payment method' ],
+        [ 'billing_address',  'Billing address',       'Customer',       'Customer billing block' ],
+        [ 'line_items',       'Line items table',      'Items & Totals', 'Order line-items table' ],
+        [ 'totals',           'Totals table',          'Items & Totals', 'Subtotal / VAT / total table' ]
     ];
 
     var editor = grapesjs.init( {
@@ -17,12 +31,14 @@
         components: woiVisual.stored || woiVisual.starter || ''
     } );
 
-    // Register one draggable block per invoice token.
-    tokens.forEach( function ( t ) {
-        editor.BlockManager.add( 'token-' + t, {
-            label: '{{' + t + '}}',
-            category: 'Invoice tokens',
-            content: '<span data-woi-token="' + t + '">{{' + t + '}}</span>'
+    // Register one draggable block per token, grouped by category.
+    TOKEN_META.forEach( function ( m ) {
+        var token = m[ 0 ];
+        editor.BlockManager.add( 'token-' + token, {
+            label: m[ 1 ],
+            category: m[ 2 ],
+            attributes: { title: m[ 3 ] },
+            content: '<span data-woi-token="' + token + '">{{' + token + '}}</span>'
         } );
     } );
 
