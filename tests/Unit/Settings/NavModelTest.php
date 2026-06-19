@@ -65,11 +65,31 @@ class NavModelTest extends TestCase {
 		$this->assertNull( $by_id['documents']['enabled'] );
 	}
 
-	public function test_items_expose_the_full_seven_key_shape(): void {
-		$nav      = NavModel::build( $this->tabs(), $this->documents(), 'documents', 'invoice' );
-		$expected = array( 'kind', 'id', 'label', 'tab', 'section', 'enabled', 'active' );
-		$this->assertSame( $expected, array_keys( $nav['tabs'][0] ) );
-		$this->assertSame( $expected, array_keys( $nav['documents'][0] ) );
+	public function test_tab_items_expose_the_full_eight_key_shape(): void {
+		$nav = NavModel::build( $this->tabs(), $this->documents(), 'documents', 'invoice' );
+		$this->assertSame(
+			array( 'kind', 'id', 'label', 'tab', 'section', 'enabled', 'active', 'href' ),
+			array_keys( $nav['tabs'][0] )
+		);
+	}
+
+	public function test_document_items_expose_the_seven_key_shape(): void {
+		$nav = NavModel::build( $this->tabs(), $this->documents(), 'documents', 'invoice' );
+		$this->assertSame(
+			array( 'kind', 'id', 'label', 'tab', 'section', 'enabled', 'active' ),
+			array_keys( $nav['documents'][0] )
+		);
+	}
+
+	public function test_tab_href_passes_through_when_set_else_empty(): void {
+		$tabs = array(
+			'general' => array( 'title' => 'General', 'preview_states' => 3 ),
+			'visual'  => array( 'title' => 'Visual Template', 'href' => 'https://example.test/editor' ),
+		);
+		$nav   = NavModel::build( $tabs, array(), 'general', '' );
+		$by_id = array_combine( array_column( $nav['tabs'], 'id' ), $nav['tabs'] );
+		$this->assertSame( 'https://example.test/editor', $by_id['visual']['href'] );
+		$this->assertSame( '', $by_id['general']['href'] );
 	}
 
 	public function test_plain_tab_active(): void {

@@ -7,9 +7,17 @@ if ( ! class_exists( '\\WOI\\PDF\\Visual\\VisualEditorPage' ) ) :
 
 class VisualEditorPage {
 
+    /** Admin page slug for the dedicated full-screen editor. */
+    private const PAGE_SLUG = 'woi-pdf-visual';
+
     public function __construct() {
         add_action( 'admin_menu', array( $this, 'register_page' ), 20 );
+        // Hide the standalone sidebar entry — the editor is reached via the
+        // "Visual Template" tab in the PDF Invoices nav. The page stays routable.
+        add_action( 'admin_menu', array( $this, 'hide_standalone_menu_item' ), 999 );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
+        // Add the tab to the PDF Invoices settings shell; it links to this page.
+        add_filter( 'woi_pdf_settings_tabs', array( $this, 'add_settings_tab' ) );
     }
 
     public function register_page(): void {
@@ -18,9 +26,36 @@ class VisualEditorPage {
             __( 'Visual Template', 'woocommerce-orders-invoice-pdf' ),
             __( 'Visual Template', 'woocommerce-orders-invoice-pdf' ),
             'manage_woocommerce',
-            'woi-pdf-visual',
+            self::PAGE_SLUG,
             array( $this, 'render_page' )
         );
+    }
+
+    /**
+     * Remove the standalone WooCommerce submenu entry while keeping the page
+     * registered and reachable at admin.php?page=woi-pdf-visual.
+     */
+    public function hide_standalone_menu_item(): void {
+        remove_submenu_page( 'woocommerce', self::PAGE_SLUG );
+    }
+
+    /**
+     * Register a "Visual Template" tab in the PDF Invoices settings nav that
+     * links to the dedicated full-screen editor page (rather than rendering
+     * in-shell, which GrapesJS is too wide for).
+     *
+     * @param array $tabs
+     * @return array
+     */
+    public function add_settings_tab( $tabs ) {
+        if ( ! is_array( $tabs ) ) {
+            return $tabs;
+        }
+        $tabs['visual'] = array(
+            'title' => __( 'Visual Template', 'woocommerce-orders-invoice-pdf' ),
+            'href'  => admin_url( 'admin.php?page=' . self::PAGE_SLUG ),
+        );
+        return $tabs;
     }
 
     public function enqueue( string $hook ): void {
@@ -48,6 +83,7 @@ class VisualEditorPage {
 
     public function render_page(): void {
         echo '<div class="wrap"><h1>' . esc_html__( 'Visual Invoice Template', 'woocommerce-orders-invoice-pdf' ) . '</h1>';
+        echo '<p><a href="' . esc_url( admin_url( 'admin.php?page=woi_pdf_options_page' ) ) . '">&larr; ' . esc_html__( 'Back to PDF Invoices', 'woocommerce-orders-invoice-pdf' ) . '</a></p>';
         echo '<p>' . esc_html__( 'Design with table/block layout for best mPDF fidelity. Use "Preview real PDF" to verify Arabic and pagination. Note: real-PDF preview reflects the saved design and only renders the visual template when "Visual template (invoice)" is enabled in Invoice Settings.', 'woocommerce-orders-invoice-pdf' ) . '</p>';
         echo '<div id="woi-visual-editor"></div></div>';
     }

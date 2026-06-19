@@ -38,6 +38,7 @@ class NavModel {
 					'section' => '',
 					'enabled' => null,
 					'active'  => ( 'documents' === $current_tab ),
+					'href'    => '',
 				);
 
 				foreach ( $documents as $document ) {
@@ -63,6 +64,9 @@ class NavModel {
 				'section' => '',
 				'enabled' => null,
 				'active'  => ( $current_tab === $tab_key ),
+				// Optional external link: when set, the view links here instead of
+				// the in-shell ?tab= URL (used by tabs that open a dedicated page).
+				'href'    => is_array( $tab ) ? (string) ( $tab['href'] ?? '' ) : '',
 			);
 		}
 

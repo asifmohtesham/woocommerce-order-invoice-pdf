@@ -25,6 +25,7 @@ $nav_icons = array(
 	'general'   => 'dashicons-admin-settings',
 	'documents' => 'dashicons-media-document',
 	'editor'    => 'dashicons-admin-customizer',
+	'visual'    => 'dashicons-layout',
 	'debug'     => 'dashicons-admin-tools',
 );
 
@@ -77,14 +78,19 @@ if ( empty( $breadcrumb ) ) {
 	<div class="woi-shell-body">
 		<nav class="woi-shell-tabs" aria-label="<?php esc_attr_e( 'PDF Invoices settings', 'woocommerce-orders-invoice-pdf' ); ?>">
 			<?php foreach ( $nav_items['tabs'] as $item ) :
-				$url = add_query_arg(
-					array_filter( array(
-						'page'    => 'woi_pdf_options_page',
-						'tab'     => $item['tab'],
-						'section' => $item['section'],
-					) ),
-					admin_url( 'admin.php' )
-				);
+				if ( ! empty( $item['href'] ) ) {
+					// Tab links to a dedicated page (e.g. the full-screen Visual editor).
+					$url = $item['href'];
+				} else {
+					$url = add_query_arg(
+						array_filter( array(
+							'page'    => 'woi_pdf_options_page',
+							'tab'     => $item['tab'],
+							'section' => $item['section'],
+						) ),
+						admin_url( 'admin.php' )
+					);
+				}
 				$classes = array( 'woi-tab' );
 				if ( $item['active'] ) {
 					$classes[] = 'active';
