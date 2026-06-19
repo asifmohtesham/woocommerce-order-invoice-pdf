@@ -93,8 +93,22 @@ class VisualEditorPage {
 
     public function render_page(): void {
         echo '<div class="wrap"><h1>' . esc_html__( 'Visual Invoice Template', 'woocommerce-orders-invoice-pdf' ) . '</h1>';
-        echo '<p><a href="' . esc_url( admin_url( 'admin.php?page=woi_pdf_options_page' ) ) . '">&larr; ' . esc_html__( 'Back to PDF Invoices', 'woocommerce-orders-invoice-pdf' ) . '</a></p>';
         echo '<p>' . esc_html__( 'Design with table/block layout for best mPDF fidelity. Use the PDF tab in the preview pane to verify Arabic rendering and pagination. Note: PDF preview reflects the saved design and only renders the visual template when "Visual template (invoice)" is enabled in Invoice Settings.', 'woocommerce-orders-invoice-pdf' ) . '</p>';
+
+        echo '<div id="woi-editor-shell" data-layout="full">';
+
+        // Toolbar: back link, title, layout switcher.
+        echo '<div id="woi-editor-toolbar">';
+        echo '<a class="woi-tb-back" href="' . esc_url( admin_url( 'admin.php?page=woi_pdf_options_page' ) ) . '">&larr; ' . esc_html__( 'PDF Invoices', 'woocommerce-orders-invoice-pdf' ) . '</a>';
+        echo '<span class="woi-tb-title">' . esc_html__( 'Visual Invoice Template', 'woocommerce-orders-invoice-pdf' ) . '</span>';
+        echo '<div class="woi-layout-switch" role="group" aria-label="' . esc_attr__( 'Editor layout', 'woocommerce-orders-invoice-pdf' ) . '">';
+        echo '<button type="button" class="button woi-layout-btn" data-woi-layout="full">' . esc_html__( 'Full screen', 'woocommerce-orders-invoice-pdf' ) . '</button>';
+        echo '<button type="button" class="button woi-layout-btn" data-woi-layout="stack">' . esc_html__( 'Split below', 'woocommerce-orders-invoice-pdf' ) . '</button>';
+        echo '<button type="button" class="button woi-layout-btn" data-woi-layout="overlay">' . esc_html__( 'Overlay', 'woocommerce-orders-invoice-pdf' ) . '</button>';
+        echo '</div>'; // .woi-layout-switch
+        echo '</div>'; // #woi-editor-toolbar
+
+        // Order bar.
         echo '<div class="woi-order-bar" style="margin:8px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">';
         echo '<label for="woi-order-search"><strong>' . esc_html__( 'Preview order:', 'woocommerce-orders-invoice-pdf' ) . '</strong></label>';
         echo '<input type="text" id="woi-order-search" class="regular-text" placeholder="' . esc_attr__( 'Order #, email or name (blank = last order)', 'woocommerce-orders-invoice-pdf' ) . '" style="max-width:280px">';
@@ -102,6 +116,8 @@ class VisualEditorPage {
         echo '<select id="woi-order-results" style="display:none;max-width:320px"></select>';
         echo '<span id="woi-order-current" style="color:#555"></span>';
         echo '</div>';
+
+        // Editor + preview row.
         echo '<div class="woi-editor-row">';
         echo '<div id="woi-visual-editor"></div>';
         echo '<div id="woi-preview-pane" hidden>';
@@ -116,6 +132,8 @@ class VisualEditorPage {
         echo '</div>'; // #woi-preview-pdf
         echo '</div>'; // #woi-preview-pane
         echo '</div>'; // .woi-editor-row
+
+        echo '</div>'; // #woi-editor-shell
         echo '</div>'; // .wrap
     }
 

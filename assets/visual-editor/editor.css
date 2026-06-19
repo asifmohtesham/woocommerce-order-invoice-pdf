@@ -4,8 +4,23 @@
 /* Make empty table cells visible/clickable in the editor canvas. */
 .gjs-frame .woi-row td, .gjs-frame .woi-row th { min-width: 24px; min-height: 1.4em; border: 1px dashed #c8c8c8; }
 
-/* --- Preview pane layout (#4) --- */
-.woi-editor-row { display: flex; align-items: stretch; gap: 8px; }
+/* === Editor shell + layout modes (full / stack / overlay) === */
+#woi-editor-shell { display: flex; flex-direction: column; gap: 8px; }
+
+#woi-editor-toolbar {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 10px;
+    padding: 6px 10px; background: #fff; border: 1px solid #c3c4c7; border-radius: 3px;
+}
+.woi-tb-title { font-weight: 600; }
+.woi-tb-back { text-decoration: none; }
+.woi-layout-switch { margin-left: auto; display: inline-flex; }
+.woi-layout-switch .woi-layout-btn { border-radius: 0; margin: 0 0 0 -1px; }
+.woi-layout-switch .woi-layout-btn:first-child { border-radius: 3px 0 0 3px; margin-left: 0; }
+.woi-layout-switch .woi-layout-btn:last-child { border-radius: 0 3px 3px 0; }
+.woi-layout-btn.is-active { background: #2271b1; color: #fff; border-color: #2271b1; }
+
+/* Base editor row: side-by-side (default; also used by overlay since the pane is taken out of flow). */
+.woi-editor-row { display: flex; align-items: stretch; gap: 8px; flex: 1 1 auto; min-height: 0; }
 #woi-visual-editor { flex: 1 1 auto; min-width: 0; }
 #woi-preview-pane { flex: 0 0 42%; display: flex; flex-direction: column; border: 1px solid #c3c4c7; background: #fff; min-width: 0; }
 #woi-preview-pane[hidden] { display: none; }
@@ -17,8 +32,35 @@
 #woi-preview-pdf[hidden] { display: none; }
 #woi-preview-pdf-frame { flex: 1 1 auto; min-height: 65vh; }
 
+/* --- FULL: fixed viewport takeover (covers WP admin bar + menu) --- */
+body.woi-fullscreen { overflow: hidden; }
+#woi-editor-shell[data-layout="full"] {
+    position: fixed; inset: 0; z-index: 100000; margin: 0; padding: 8px;
+    background: #f0f0f1;
+}
+#woi-editor-shell[data-layout="full"] #woi-visual-editor { height: 100%; }
+#woi-editor-shell[data-layout="full"] .gjs-editor { height: 100% !important; }
+#woi-editor-shell[data-layout="full"] #woi-preview-pane { flex: 0 0 40%; }
+#woi-editor-shell[data-layout="full"] #woi-preview-html,
+#woi-editor-shell[data-layout="full"] #woi-preview-pdf-frame { min-height: 0; }
+
+/* --- STACK: preview docked below the editor --- */
+#woi-editor-shell[data-layout="stack"] .woi-editor-row { flex-direction: column; }
+#woi-editor-shell[data-layout="stack"] #woi-preview-pane { flex: 0 0 auto; height: 40vh; }
+#woi-editor-shell[data-layout="stack"] #woi-preview-html,
+#woi-editor-shell[data-layout="stack"] #woi-preview-pdf-frame { min-height: 0; }
+#woi-editor-shell[data-layout="stack"] .gjs-editor { height: 60vh !important; }
+
+/* --- OVERLAY: preview floats over the right edge, on demand --- */
+#woi-editor-shell[data-layout="overlay"] #woi-preview-pane {
+    position: fixed; top: var(--wp-admin--admin-bar--height, 32px); right: 0; bottom: 0;
+    width: 40%; max-width: 640px; z-index: 99980; box-shadow: -8px 0 24px rgba(0,0,0,.18);
+}
+#woi-editor-shell[data-layout="overlay"] #woi-preview-html,
+#woi-editor-shell[data-layout="overlay"] #woi-preview-pdf-frame { min-height: 0; }
+
 /* --- Insert-menu popup (#4) --- */
-#woi-insert-menu { position: fixed; z-index: 100000; width: 300px; max-height: 360px; overflow: auto; background: #fff; border: 1px solid #c3c4c7; box-shadow: 0 6px 24px rgba(0,0,0,.18); border-radius: 4px; padding: 6px; }
+#woi-insert-menu { position: fixed; z-index: 100001; width: 300px; max-height: 360px; overflow: auto; background: #fff; border: 1px solid #c3c4c7; box-shadow: 0 6px 24px rgba(0,0,0,.18); border-radius: 4px; padding: 6px; }
 #woi-insert-menu[hidden] { display: none; }
 #woi-insert-search { width: 100%; box-sizing: border-box; margin-bottom: 6px; }
 .woi-insert-group { font-size: 11px; text-transform: uppercase; color: #777; padding: 6px 6px 2px; }
