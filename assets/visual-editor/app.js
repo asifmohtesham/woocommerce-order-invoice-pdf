@@ -486,18 +486,38 @@
         if ( el ) { el.textContent = label ? ( 'Selected: ' + label ) : ''; }
     }
 
+    // Toggle loading feedback on the order bar (spinner + disabled "Find" button).
+    function setOrderBarBusy( busy ) {
+        var btn     = document.getElementById( 'woi-order-search-btn' );
+        var spinner = document.querySelector( '.woi-order-spinner' );
+        if ( btn ) {
+            btn.disabled = !! busy;
+            if ( busy ) {
+                if ( ! btn.getAttribute( 'data-woi-label' ) ) { btn.setAttribute( 'data-woi-label', btn.textContent ); }
+                btn.textContent = 'Finding…';
+            } else if ( btn.getAttribute( 'data-woi-label' ) ) {
+                btn.textContent = btn.getAttribute( 'data-woi-label' );
+            }
+        }
+        if ( spinner ) {
+            spinner.classList.toggle( 'is-active', !! busy );
+            spinner.style.visibility = busy ? 'visible' : 'hidden';
+        }
+    }
+
     function orderSearch() {
         var input = document.getElementById( 'woi-order-search' );
         var sel   = document.getElementById( 'woi-order-results' );
         if ( ! input || ! sel ) { return; }
         var term = input.value.trim();
+        setOrderBarBusy( true );
         if ( '' === term ) {
             setCurrentOrder( null, 'last order' );
             sel.style.display = 'none';
             woiFetchOrderTokens( null ).then( function () {
                 woiRefreshLiveHtml();
                 if ( typeof woiMaybeRefreshPdf === 'function' ) { woiMaybeRefreshPdf(); }
-            } );
+            } ).catch( function () {} ).then( function () { setOrderBarBusy( false ); } );
             return;
         }
 
@@ -513,7 +533,7 @@
             body: body
         } ).then( function ( r ) { return r.json(); } ).then( function ( res ) {
             sel.innerHTML = '';
-            if ( ! res.success || ! res.data ) { alert( 'No orders found.' ); sel.style.display = 'none'; return; }
+            if ( ! res.success || ! res.data ) { alert( 'No orders found.' ); sel.style.display = 'none'; setOrderBarBusy( false ); return; }
             Object.keys( res.data ).forEach( function ( id ) {
                 var d = res.data[ id ];
                 var opt = document.createElement( 'option' );
@@ -524,8 +544,8 @@
             sel.style.display = 'inline-block';
             sel.selectedIndex = 0;
             setCurrentOrder( sel.value, sel.options[ 0 ].textContent );
-            woiFetchOrderTokens( sel.value ).then( function () { woiRefreshLiveHtml(); if ( typeof woiMaybeRefreshPdf === 'function' ) { woiMaybeRefreshPdf(); } } );
-        } ).catch( function ( e ) { alert( 'Order search failed: ' + ( e && e.message ? e.message : e ) ); } );
+            woiFetchOrderTokens( sel.value ).then( function () { woiRefreshLiveHtml(); if ( typeof woiMaybeRefreshPdf === 'function' ) { woiMaybeRefreshPdf(); } } ).catch( function () {} ).then( function () { setOrderBarBusy( false ); } );
+        } ).catch( function ( e ) { alert( 'Order search failed: ' + ( e && e.message ? e.message : e ) ); setOrderBarBusy( false ); } );
     }
 
     ( function bindOrderBar() {
@@ -536,7 +556,8 @@
             woiSelectedOrderId = sel.value;
             var cur = document.getElementById( 'woi-order-current' );
             if ( cur && sel.options[ sel.selectedIndex ] ) { cur.textContent = 'Selected: ' + sel.options[ sel.selectedIndex ].textContent; }
-            woiFetchOrderTokens( sel.value ).then( function () { woiRefreshLiveHtml(); if ( typeof woiMaybeRefreshPdf === 'function' ) { woiMaybeRefreshPdf(); } } );
+            setOrderBarBusy( true );
+            woiFetchOrderTokens( sel.value ).then( function () { woiRefreshLiveHtml(); if ( typeof woiMaybeRefreshPdf === 'function' ) { woiMaybeRefreshPdf(); } } ).catch( function () {} ).then( function () { setOrderBarBusy( false ); } );
         } ); }
     }() );
 
