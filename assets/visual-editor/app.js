@@ -239,4 +239,76 @@
             }
         }
     } );
+    // --- Real-order preview (control bar rendered by VisualEditorPage) ---
+    var selectedOrderId = null;
+
+    function setCurrentOrder( id, label ) {
+        selectedOrderId = id;
+        var el = document.getElementById( 'woi-order-current' );
+        if ( el ) { el.textContent = label ? ( 'Selected: ' + label ) : ''; }
+    }
+
+    function orderSearch() {
+        var input = document.getElementById( 'woi-order-search' );
+        var sel   = document.getElementById( 'woi-order-results' );
+        if ( ! input || ! sel ) { return; }
+        var term = input.value.trim();
+        if ( '' === term ) { setCurrentOrder( null, 'last order' ); sel.style.display = 'none'; return; }
+
+        var body = 'action=' + encodeURIComponent( woiVisual.orderSearchAction ) +
+            '&security=' + encodeURIComponent( woiVisual.previewNonce ) +
+            '&document_type=' + encodeURIComponent( woiVisual.docType ) +
+            '&search=' + encodeURIComponent( term );
+
+        fetch( woiVisual.ajaxUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            credentials: 'same-origin',
+            body: body
+        } ).then( function ( r ) { return r.json(); } ).then( function ( res ) {
+            sel.innerHTML = '';
+            if ( ! res.success || ! res.data ) { alert( 'No orders found.' ); sel.style.display = 'none'; return; }
+            Object.keys( res.data ).forEach( function ( id ) {
+                var d = res.data[ id ];
+                var opt = document.createElement( 'option' );
+                opt.value = id;
+                opt.textContent = '#' + ( d.order_number || id ) + ' — ' + ( d.billing_first_name || '' ) + ' ' + ( d.billing_last_name || '' );
+                sel.appendChild( opt );
+            } );
+            sel.style.display = 'inline-block';
+            sel.selectedIndex = 0;
+            setCurrentOrder( sel.value, sel.options[ 0 ].textContent );
+        } ).catch( function ( e ) { alert( 'Order search failed: ' + ( e && e.message ? e.message : e ) ); } );
+    }
+
+    function previewRealOrder() {
+        var url = woiVisual.previewDataUrl + '?doc_type=' + encodeURIComponent( woiVisual.docType );
+        if ( selectedOrderId ) { url += '&order_id=' + encodeURIComponent( selectedOrderId ); }
+
+        fetch( url, { headers: { 'X-WP-Nonce': woiVisual.nonce }, credentials: 'same-origin' } )
+            .then( function ( r ) {
+                if ( ! r.ok ) { throw new Error( r.status === 404 ? 'No order found to preview.' : ( 'HTTP ' + r.status ) ); }
+                return r.json();
+            } ).then( function ( res ) {
+                var html = getHtml();
+                Object.keys( res.tokens ).forEach( function ( k ) {
+                    html = html.split( k ).join( res.tokens[ k ] );
+                } );
+                html = html.replace( /\{\{\s*[a-z0-9_]+\s*\}\}/gi, '' );
+                var blob = new Blob( [ html ], { type: 'text/html; charset=utf-8' } );
+                var blobUrl = URL.createObjectURL( blob );
+                window.open( blobUrl, '_blank' );
+                setTimeout( function () { URL.revokeObjectURL( blobUrl ); }, 10000 );
+                setCurrentOrder( res.order_id, res.order_label );
+            } ).catch( function ( e ) { alert( 'Real-order preview failed: ' + ( e && e.message ? e.message : e ) ); } );
+    }
+
+    ( function bindOrderBar() {
+        var searchBtn  = document.getElementById( 'woi-order-search-btn' );
+        var previewBtn = document.getElementById( 'woi-preview-real-order' );
+        var sel        = document.getElementById( 'woi-order-results' );
+        if ( searchBtn ) { searchBtn.addEventListener( 'click', orderSearch ); }
+        if ( previewBtn ) { previewBtn.addEventListener( 'click', previewRealOrder ); }
+        if ( sel ) { sel.addEventListener( 'change', function () { setCurrentOrder( sel.value, sel.options[ sel.selectedIndex ].textContent ); } ); }
+    }() );
 }() );
