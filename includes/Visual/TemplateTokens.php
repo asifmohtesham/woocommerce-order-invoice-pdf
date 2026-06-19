@@ -4,6 +4,7 @@ namespace WOI\PDF\Visual;
 use WOI\PDF\Bilingual\BilingualEngine;
 use function esc_html;
 use function esc_attr;
+use function wp_kses_post;
 use function woi_pdf_templates_get_table_headers;
 use function woi_pdf_templates_get_table_body;
 use function woi_pdf_templates_get_totals;
@@ -17,8 +18,13 @@ class TemplateTokens {
     /**
      * Build the {{token}} => replacement map for a document.
      *
-     * Scalar tokens are esc_html()'d. Block tokens (logo, billing_address,
-     * line_items, totals) are trusted HTML produced by existing renderers.
+     * Plain-text scalar tokens (shop name, labels, titles, numbers) are
+     * esc_html()'d. Block tokens carry trusted HTML produced by existing
+     * renderers: the shop address joins lines with <br/>, the logo/billing
+     * address are full markup, and line-item / totals cells embed product
+     * markup (item name, thumbnail, meta) and wc_price() spans. Those are
+     * passed through wp_kses_post() so the markup renders (not shown as raw
+     * text) while scripts/unsafe attributes are still stripped.
      *
      * @param object $document An OrderDocument (or compatible stub).
      * @return array<string,string>
@@ -29,9 +35,9 @@ class TemplateTokens {
         return array(
             '{{logo}}'             => $document->has_header_logo() ? $this->capture( array( $document, 'header_logo' ) ) : '',
             '{{shop_name}}'        => esc_html( (string) $document->get_shop_name() ),
-            '{{shop_address}}'     => esc_html( (string) $document->get_shop_address() ),
+            '{{shop_address}}'     => wp_kses_post( (string) $document->get_shop_address() ),
             '{{shop_name_ar}}'     => esc_html( $engine->secondary_shop_name() ),
-            '{{shop_address_ar}}'  => esc_html( $engine->secondary_shop_address() ),
+            '{{shop_address_ar}}'  => wp_kses_post( (string) $engine->secondary_shop_address() ),
             '{{document_title}}'   => esc_html( $document->get_title() ),
             '{{document_title_ar}}'=> esc_html( $engine->secondary_label( 'document', $document ) ),
             '{{trn}}'              => esc_html( (string) $document->get_shop_vat_number() ),
@@ -102,7 +108,7 @@ class TemplateTokens {
             foreach ( $body as $item_columns ) {
                 $html .= '<tr>';
                 foreach ( (array) $item_columns as $column_data ) {
-                    $html .= '<td class="' . esc_attr( $column_data['class'] ?? '' ) . '"><span>' . esc_html( $column_data['data'] ?? '' ) . '</span></td>';
+                    $html .= '<td class="' . esc_attr( $column_data['class'] ?? '' ) . '"><span>' . wp_kses_post( (string) ( $column_data['data'] ?? '' ) ) . '</span></td>';
                 }
                 $html .= '</tr>';
             }
@@ -128,7 +134,7 @@ class TemplateTokens {
                     $html .= '<span class="woi-lbl-secondary" dir="rtl">' . esc_html( $total_data['secondary'] ) . '</span>';
                 }
                 $html .= '</span></th>';
-                $html .= '<td class="price"><span class="totals-price">' . esc_html( $total_data['value'] ?? '' ) . '</span></td>';
+                $html .= '<td class="price"><span class="totals-price">' . wp_kses_post( (string) ( $total_data['value'] ?? '' ) ) . '</span></td>';
                 $html .= '</tr>';
             }
             return $html . '</table>';

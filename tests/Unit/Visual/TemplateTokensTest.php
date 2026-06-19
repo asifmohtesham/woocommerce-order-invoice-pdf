@@ -11,9 +11,10 @@ class TemplateTokensTest extends TestCase {
     protected function setUp(): void {
         parent::setUp();
         Monkey\setUp();
-        // esc_html / esc_attr passthrough so assertions are readable.
+        // esc_html / esc_attr / wp_kses_post passthrough so assertions are readable.
         Functions\when( 'esc_html' )->returnArg( 1 );
         Functions\when( 'esc_attr' )->returnArg( 1 );
+        Functions\when( 'wp_kses_post' )->returnArg( 1 );
         Functions\when( 'apply_filters' )->returnArg( 2 );
         // BilingualEngine reads options + dictionary file.
         Functions\when( 'get_option' )->justReturn( array(
@@ -102,6 +103,55 @@ class TemplateTokensTest extends TestCase {
         $this->assertStringContainsString( 'A-1', $map['{{line_items}}'] );
         $this->assertStringContainsString( '<table class="totals-table">', $map['{{totals}}'] );
         $this->assertStringContainsString( 'AED 10', $map['{{totals}}'] );
+    }
+
+    /**
+     * Block tokens carry trusted HTML (shop address <br/>, product markup,
+     * wc_price() spans) and must render that markup — not show it as escaped
+     * text — while plain-text scalars stay escaped. Stub esc_html to actually
+     * escape and wp_kses_post to pass through so a regression to esc_html on a
+     * block token would fail here.
+     */
+    public function test_block_tokens_preserve_html_scalars_stay_escaped(): void {
+        Functions\when( 'esc_html' )->alias( fn( $s ) => htmlspecialchars( (string) $s, ENT_QUOTES ) );
+        Functions\when( 'wp_kses_post' )->returnArg( 1 );
+
+        $doc = new class {
+            public function get_type() { return 'invoice'; }
+            public function get_shop_name() { return 'Acme & Co'; }
+            public function get_shop_address() { return 'Al Buteen<br />Dubai'; }
+            public function get_shop_vat_number() { return '100'; }
+            public function get_shop_phone_number() { return '+971'; }
+            public function get_shop_email_address() { return 'a@b.co'; }
+            public function get_title() { return 'Tax Invoice'; }
+            public function get_order_number() { return '4242'; }
+            public function get_payment_method() { return 'Card'; }
+            public function get_billing_address() { return 'John<br>Dubai'; }
+            public function has_header_logo() { return false; }
+            public function header_logo() {}
+            public function number( $t ) { echo 'INV-7'; }
+            public function date( $t ) { echo '2026-06-18'; }
+            public function get_setting( $k ) { return ''; }
+        };
+
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array {
+                return array( array( array( 'class' => 'description', 'data' => '<span class="item-name">Belt</span>' ) ) );
+            }
+            protected function fetch_totals( $d ): array {
+                return array( array( 'class' => 'total', 'label' => 'Total', 'value' => '<bdi>AED 10</bdi>' ) );
+            }
+        };
+        $map = $tokens->map( $doc );
+
+        // Block tokens keep their markup intact.
+        $this->assertStringContainsString( 'Al Buteen<br />Dubai', $map['{{shop_address}}'] );
+        $this->assertStringContainsString( '<span class="item-name">Belt</span>', $map['{{line_items}}'] );
+        $this->assertStringContainsString( '<bdi>AED 10</bdi>', $map['{{totals}}'] );
+
+        // Plain-text scalar is still escaped.
+        $this->assertSame( 'Acme &amp; Co', $map['{{shop_name}}'] );
     }
 
     /**
