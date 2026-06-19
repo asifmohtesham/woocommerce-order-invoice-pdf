@@ -26,11 +26,13 @@
 #woi-preview-pane[hidden] { display: none; }
 .woi-preview-tabs { display: flex; gap: 4px; padding: 6px; border-bottom: 1px solid #e2e4e7; }
 .woi-preview-tab.is-active { background: #2271b1; color: #fff; border-color: #2271b1; }
-#woi-preview-html, #woi-preview-pdf-frame { width: 100%; border: 0; background: #fff; }
+#woi-preview-html { width: 100%; border: 0; background: #fff; }
 #woi-preview-html { flex: 1 1 auto; min-height: 70vh; }
-#woi-preview-pdf { flex: 1 1 auto; display: flex; flex-direction: column; padding: 6px; }
+#woi-preview-pdf { flex: 1 1 auto; display: flex; flex-direction: column; padding: 6px; min-height: 0; }
 #woi-preview-pdf[hidden] { display: none; }
-#woi-preview-pdf-frame { flex: 1 1 auto; min-height: 65vh; }
+.woi-a4-scroll { flex: 1 1 auto; min-height: 65vh; overflow: auto; background: #525659; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.woi-a4-stage { width: min(100%, 820px); display: flex; flex-direction: column; align-items: stretch; gap: 16px; }
+.woi-a4-page { width: 100%; height: auto; aspect-ratio: 210 / 297; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.45); display: block; }
 
 /* --- FULL: fixed viewport takeover (covers WP admin bar + menu) --- */
 body.woi-fullscreen { overflow: hidden; }
@@ -42,13 +44,13 @@ body.woi-fullscreen { overflow: hidden; }
 #woi-editor-shell[data-layout="full"] .gjs-editor { height: 100% !important; }
 #woi-editor-shell[data-layout="full"] #woi-preview-pane { flex: 0 0 40%; }
 #woi-editor-shell[data-layout="full"] #woi-preview-html,
-#woi-editor-shell[data-layout="full"] #woi-preview-pdf-frame { min-height: 0; }
+#woi-editor-shell[data-layout="full"] .woi-a4-scroll { min-height: 0; }
 
 /* --- STACK: preview docked below the editor --- */
 #woi-editor-shell[data-layout="stack"] .woi-editor-row { flex-direction: column; }
 #woi-editor-shell[data-layout="stack"] #woi-preview-pane { flex: 0 0 auto; height: 40vh; }
 #woi-editor-shell[data-layout="stack"] #woi-preview-html,
-#woi-editor-shell[data-layout="stack"] #woi-preview-pdf-frame { min-height: 0; }
+#woi-editor-shell[data-layout="stack"] .woi-a4-scroll { min-height: 0; }
 #woi-editor-shell[data-layout="stack"] .gjs-editor { height: 60vh !important; }
 
 /* --- OVERLAY: preview floats over the right edge, on demand --- */
@@ -57,7 +59,7 @@ body.woi-fullscreen { overflow: hidden; }
     width: 40%; max-width: 640px; z-index: 99980; box-shadow: -8px 0 24px rgba(0,0,0,.18);
 }
 #woi-editor-shell[data-layout="overlay"] #woi-preview-html,
-#woi-editor-shell[data-layout="overlay"] #woi-preview-pdf-frame { min-height: 0; }
+#woi-editor-shell[data-layout="overlay"] .woi-a4-scroll { min-height: 0; }
 
 /* --- Insert-menu popup (#4) --- */
 #woi-insert-menu { position: fixed; z-index: 100001; width: 300px; max-height: 360px; overflow: auto; background: #fff; border: 1px solid #c3c4c7; box-shadow: 0 6px 24px rgba(0,0,0,.18); border-radius: 4px; padding: 6px; }
