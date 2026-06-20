@@ -1,11 +1,20 @@
 import { registerBlockType, registerBlockVariation, createBlock } from '@wordpress/blocks';
 import { useBlockProps, useInnerBlocksProps, InnerBlocks, InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, RangeControl } from '@wordpress/components';
+import { PanelBody, RangeControl, SelectControl, ColorPalette } from '@wordpress/components';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 
 // Max cells in a Columns (table row) block. Mirrors core/columns' upper bound.
 const MAX_COLUMNS = 12;
+
+// Curated cell-background swatches (custom colour also available). mPDF honours
+// background-color on a <td>.
+const CELL_COLORS = [
+	{ name: __( 'Light grey', 'woocommerce-orders-invoice-pdf' ), color: '#f3f4f5' },
+	{ name: __( 'Grey', 'woocommerce-orders-invoice-pdf' ), color: '#e0e0e0' },
+	{ name: __( 'Black', 'woocommerce-orders-invoice-pdf' ), color: '#000000' },
+	{ name: __( 'White', 'woocommerce-orders-invoice-pdf' ), color: '#ffffff' },
+];
 
 /**
  * Composition blocks. woi/columns renders a single-row table (.woi-row, already
@@ -15,30 +24,36 @@ const MAX_COLUMNS = 12;
  * validates save() markup, so the divergence is intentional and allowed.
  */
 export function registerColumnsBlocks() {
-	// Child: one table cell holding arbitrary blocks. An optional width (%) is
-	// set via a sidebar control; save() bakes it into the <td> as an inline
-	// width style (mPDF honours td width %, and kses allows style on td). An
-	// empty width emits a plain <td>, identical to the pre-width save() — so
-	// existing saved columns stay valid.
+	// Child: one table cell holding arbitrary blocks. Optional width (%),
+	// vertical-align and background colour are set via the sidebar; save() bakes
+	// only the set values into the <td> inline style (mPDF honours td width %,
+	// vertical-align and background-color; kses allows style on td). When ALL are
+	// unset save() emits a plain <td>, identical to the original — so existing
+	// saved columns stay valid (purely additive attributes).
 	registerBlockType( 'woi/column', {
 		apiVersion: 2,
 		title: __( 'Column', 'woocommerce-orders-invoice-pdf' ),
 		category: 'woi-invoice',
 		parent: [ 'woi/columns' ],
 		icon: 'columns',
-		attributes: { width: { type: 'string', default: '' } },
+		attributes: {
+			width: { type: 'string', default: '' },
+			valign: { type: 'string', default: '' },
+			bg: { type: 'string', default: '' },
+		},
 		supports: { html: false, reusable: false, inserter: false },
 		edit( { attributes, setAttributes } ) {
-			const { width } = attributes;
+			const { width, valign, bg } = attributes;
 			const pct = width ? ( parseInt( width, 10 ) || 0 ) : 0;
 			const blockProps = useBlockProps( {
 				style: {
-					// Preview the chosen width as a flex-basis; auto when unset.
+					// Preview the chosen width/alignment/background; auto when unset.
 					flex: width ? '0 0 ' + width : '1',
 					minWidth: '60px',
 					border: '1px dashed #c3c4c7',
 					padding: '8px',
-					verticalAlign: 'top',
+					verticalAlign: valign || 'top',
+					backgroundColor: bg || undefined,
 				},
 			} );
 			const innerProps = useInnerBlocksProps( blockProps, { templateLock: false } );
@@ -53,6 +68,23 @@ export function registerColumnsBlocks() {
 								min={ 0 }
 								max={ 100 }
 							/>
+							<SelectControl
+								label={ __( 'Vertical align', 'woocommerce-orders-invoice-pdf' ) }
+								value={ valign }
+								options={ [
+									{ label: __( 'Default (top)', 'woocommerce-orders-invoice-pdf' ), value: '' },
+									{ label: __( 'Top', 'woocommerce-orders-invoice-pdf' ), value: 'top' },
+									{ label: __( 'Middle', 'woocommerce-orders-invoice-pdf' ), value: 'middle' },
+									{ label: __( 'Bottom', 'woocommerce-orders-invoice-pdf' ), value: 'bottom' },
+								] }
+								onChange={ ( v ) => setAttributes( { valign: v } ) }
+							/>
+							<p style={ { margin: '12px 0 4px' } }>{ __( 'Cell background', 'woocommerce-orders-invoice-pdf' ) }</p>
+							<ColorPalette
+								value={ bg }
+								colors={ CELL_COLORS }
+								onChange={ ( c ) => setAttributes( { bg: c || '' } ) }
+							/>
 						</PanelBody>
 					</InspectorControls>
 					<div { ...innerProps } />
@@ -60,8 +92,12 @@ export function registerColumnsBlocks() {
 			);
 		},
 		save( { attributes } ) {
-			const { width } = attributes;
-			const blockProps = useBlockProps.save( width ? { style: { width } } : {} );
+			const { width, valign, bg } = attributes;
+			const style = {};
+			if ( width ) { style.width = width; }
+			if ( valign ) { style.verticalAlign = valign; }
+			if ( bg ) { style.backgroundColor = bg; }
+			const blockProps = useBlockProps.save( Object.keys( style ).length ? { style } : {} );
 			const innerProps = useInnerBlocksProps.save( blockProps );
 			return <td { ...innerProps } />;
 		},
