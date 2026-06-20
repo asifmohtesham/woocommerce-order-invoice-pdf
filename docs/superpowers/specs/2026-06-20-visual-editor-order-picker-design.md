@@ -123,15 +123,26 @@ Two additive changes:
    Legacy callers (`admin.js`) always send a non-empty `search`, so their
    behaviour is unchanged.
 
-2. **Three new fields per order** in the `$data[$order_id]` array, alongside the
+2. **New fields per order** in the `$data[$order_id]` array, alongside the
    existing keys:
 
    - `payment_method` — `get_payment_method_title()` (human label), sanitised.
    - `line_count` — `count( $order->get_items() )` (distinct product lines).
    - `unit_count` — sum of `$item->get_quantity()` over `get_items()`.
+   - `total_raw` — `wc_price( get_total() )` with **no** `<strong>Total:</strong>`
+     label prefix.
+   - `date_raw` — `get_date_created()->format('Y/m/d')` with **no**
+     `<strong>Date:</strong>` label prefix.
 
+   Raw variants are needed because the existing `total` / `date_created` keys
+   carry label-prefixed HTML that the legacy `admin.js` settings-page search
+   renders verbatim — those must not change. The combobox uses the raw fields.
    All guarded with `is_callable(...)` like the existing fields. Existing keys are
    untouched, so the legacy settings-page search keeps working.
+
+   The per-order row construction is extracted into a protected
+   `build_order_row( $order ): array` seam so it can be unit-tested in isolation
+   (mirrors `Rest::token_map` / `Rest::get_document`).
 
 ### 4. Styling
 
