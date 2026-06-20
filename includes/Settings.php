@@ -435,73 +435,78 @@ class Settings {
 				throw new \Exception( esc_html__( 'You do not have sufficient permissions to access this page.', 'woocommerce-orders-invoice-pdf' ), 403 );
 			}
 
-			if ( ! empty( $_POST['search'] ) && ! empty( $_POST['document_type'] ) ) {
-				$search        = sanitize_text_field( wp_unslash( $_POST['search'] ) );
-				$document_type = sanitize_text_field( wp_unslash( $_POST['document_type'] ) );
-				$results       = array();
-
-				// we have an order ID
-				if ( is_numeric( $search ) && wc_get_order( $search ) ) {
-					$results = [ $search ];
-
-				// no order ID, let's try with customer
-				} else {
-					$default_args = apply_filters( 'woi_pdf_preview_order_search_args', array(
-						'type'     => 'shop_order',
-						'limit'    => 10,
-						'orderby'  => 'date',
-						'order'    => 'DESC',
-						'return'   => 'ids',
-					), $document_type );
-
-					// search by email
-					if ( is_email( $search ) ) {
-						$args    = array( 'customer' => $search );
-						$args    = $args + $default_args;
-						$results = wc_get_orders( $args );
-
-					// search by names
-					} else {
-						$names = array( 'billing_first_name', 'billing_last_name', 'billing_company' );
-						foreach ( $names as $name ) {
-							$args    = array( $name => $search );
-							$args    = $args + $default_args;
-							$results = wc_get_orders( $args );
-							if ( count( $results ) > 0 ) {
-								break;
-							}
-						}
-					}
-				}
-
-				// filter results
-				$results = apply_filters( 'woi_pdf_preview_order_search_results', $results, $search, $document_type );
-
-				// if we got here we have results!
-				if ( ! empty( $results ) ) {
-					$data = array();
-					foreach ( $results as $value ) {
-						$order = wc_get_order( $value );
-						if ( empty( $order ) ) {
-							continue;
-						}
-						$order_id                              = is_callable( array( $order, 'get_id' ) ) ? $order->get_id() : 0;
-						$data[$order_id]['order_number']       = is_callable( array( $order, 'get_order_number' ) ) ? $order->get_order_number() : '';
-						$data[$order_id]['billing_first_name'] = is_callable( array( $order, 'get_billing_first_name' ) ) ? woi_pdf_sanitize_html_content( $order->get_billing_first_name(), 'first_name' ) : '';
-						$data[$order_id]['billing_last_name']  = is_callable( array( $order, 'get_billing_last_name' ) ) ? woi_pdf_sanitize_html_content( $order->get_billing_last_name(), 'last_name' ) : '';
-						$data[$order_id]['billing_company']    = is_callable( array( $order, 'get_billing_company' ) ) ? woi_pdf_sanitize_html_content( $order->get_billing_company(), 'company' ) : '';
-						$data[$order_id]['date_created']       = is_callable( array( $order, 'get_date_created' ) ) ? '<strong>' . esc_attr__( 'Date', 'woocommerce-orders-invoice-pdf' ) . ':</strong> ' . $order->get_date_created()->format( 'Y/m/d' ) : '';
-						$data[$order_id]['total']              = is_callable( array( $order, 'get_total' ) ) ? '<strong>' . esc_attr__( 'Total', 'woocommerce-orders-invoice-pdf' ) . ':</strong> ' . wc_price( $order->get_total() ) : '';
-					}
-
-					$data = apply_filters( 'woi_pdf_preview_order_search_data', $data, $results );
-
-					wp_send_json_success( $data );
-				} else {
-					wp_send_json_error( array( 'error' => esc_html__( 'No order(s) found!', 'woocommerce-orders-invoice-pdf' ) ) );
-				}
-			} else {
+			if ( empty( $_POST['document_type'] ) ) {
 				wp_send_json_error( array( 'error' => esc_html__( 'An error occurred when trying to process your request!', 'woocommerce-orders-invoice-pdf' ) ) );
+				return;
+			}
+
+			$document_type = sanitize_text_field( wp_unslash( $_POST['document_type'] ) );
+			$search        = isset( $_POST['search'] ) ? sanitize_text_field( wp_unslash( $_POST['search'] ) ) : '';
+			$results       = array();
+
+			// Empty term: the combobox opens with the most recent orders.
+			if ( '' === $search ) {
+				$recent_limit = (int) apply_filters( 'woi_pdf_preview_order_recent_limit', 5 );
+				$results      = wc_get_orders( array(
+					'type'    => 'shop_order',
+					'limit'   => $recent_limit,
+					'orderby' => 'date',
+					'order'   => 'DESC',
+					'return'  => 'ids',
+				) );
+
+			// we have an order ID
+			} elseif ( is_numeric( $search ) && wc_get_order( $search ) ) {
+				$results = array( $search );
+
+			// no order ID, let's try with customer
+			} else {
+				$default_args = apply_filters( 'woi_pdf_preview_order_search_args', array(
+					'type'    => 'shop_order',
+					'limit'   => 10,
+					'orderby' => 'date',
+					'order'   => 'DESC',
+					'return'  => 'ids',
+				), $document_type );
+
+				// search by email
+				if ( is_email( $search ) ) {
+					$args    = array( 'customer' => $search ) + $default_args;
+					$results = wc_get_orders( $args );
+
+				// search by names
+				} else {
+					$names = array( 'billing_first_name', 'billing_last_name', 'billing_company' );
+					foreach ( $names as $name ) {
+						$args    = array( $name => $search ) + $default_args;
+						$results = wc_get_orders( $args );
+						if ( count( $results ) > 0 ) {
+							break;
+						}
+					}
+				}
+			}
+
+			// filter results
+			$results = apply_filters( 'woi_pdf_preview_order_search_results', $results, $search, $document_type );
+
+			// if we got here we have results!
+			if ( ! empty( $results ) ) {
+				$data = array();
+				foreach ( $results as $value ) {
+					$order = wc_get_order( $value );
+					if ( empty( $order ) ) {
+						continue;
+					}
+					$order_id          = is_callable( array( $order, 'get_id' ) ) ? $order->get_id() : 0;
+					$data[ $order_id ] = $this->build_order_row( $order );
+				}
+
+				$data = apply_filters( 'woi_pdf_preview_order_search_data', $data, $results );
+
+				wp_send_json_success( $data );
+			} else {
+				wp_send_json_error( array( 'error' => esc_html__( 'No order(s) found!', 'woocommerce-orders-invoice-pdf' ) ) );
 			}
 		} catch ( \Throwable $th ) {
 			wp_send_json_error(
@@ -516,6 +521,49 @@ class Settings {
 		}
 
 		wp_die();
+	}
+
+	/**
+	 * Build one order's data row for the preview order search / combobox.
+	 *
+	 * The legacy keys (order_number, billing_*, date_created, total) keep their
+	 * existing label-prefixed HTML because assets/js/admin.js renders them
+	 * verbatim. The combobox in the Visual editor uses the raw + count fields.
+	 *
+	 * @param object $order WC_Order (or compatible).
+	 *
+	 * @return array
+	 */
+	protected function build_order_row( $order ): array {
+		$has_date = is_callable( array( $order, 'get_date_created' ) ) && $order->get_date_created();
+
+		$row = array(
+			'order_number'       => is_callable( array( $order, 'get_order_number' ) ) ? $order->get_order_number() : '',
+			'billing_first_name' => is_callable( array( $order, 'get_billing_first_name' ) ) ? woi_pdf_sanitize_html_content( $order->get_billing_first_name(), 'first_name' ) : '',
+			'billing_last_name'  => is_callable( array( $order, 'get_billing_last_name' ) ) ? woi_pdf_sanitize_html_content( $order->get_billing_last_name(), 'last_name' ) : '',
+			'billing_company'    => is_callable( array( $order, 'get_billing_company' ) ) ? woi_pdf_sanitize_html_content( $order->get_billing_company(), 'company' ) : '',
+			'date_created'       => $has_date ? '<strong>' . esc_attr__( 'Date', 'woocommerce-orders-invoice-pdf' ) . ':</strong> ' . $order->get_date_created()->format( 'Y/m/d' ) : '',
+			'total'              => is_callable( array( $order, 'get_total' ) ) ? '<strong>' . esc_attr__( 'Total', 'woocommerce-orders-invoice-pdf' ) . ':</strong> ' . wc_price( $order->get_total() ) : '',
+		);
+
+		// Combobox-only fields: raw amount/date (no label), payment label, qty breakdown.
+		$row['total_raw']      = is_callable( array( $order, 'get_total' ) ) ? wc_price( $order->get_total() ) : '';
+		$row['date_raw']       = $has_date ? $order->get_date_created()->format( 'Y/m/d' ) : '';
+		$row['payment_method'] = is_callable( array( $order, 'get_payment_method_title' ) ) ? woi_pdf_sanitize_html_content( $order->get_payment_method_title(), 'payment_method' ) : '';
+
+		$line_count = 0;
+		$unit_count = 0;
+		if ( is_callable( array( $order, 'get_items' ) ) ) {
+			$items      = $order->get_items();
+			$line_count = ( is_array( $items ) || $items instanceof \Countable ) ? count( $items ) : 0;
+			foreach ( (array) $items as $item ) {
+				$unit_count += is_callable( array( $item, 'get_quantity' ) ) ? (int) $item->get_quantity() : 0;
+			}
+		}
+		$row['line_count'] = $line_count;
+		$row['unit_count'] = $unit_count;
+
+		return $row;
 	}
 
 	/**

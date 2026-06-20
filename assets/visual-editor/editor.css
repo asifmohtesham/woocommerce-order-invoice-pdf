@@ -72,3 +72,39 @@ body.woi-fullscreen { overflow: hidden; }
 .woi-insert-val, .woi-insert-desc { color: #777; font-size: 12px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .woi-insert-item.is-active .woi-insert-val, .woi-insert-item.is-active .woi-insert-desc { color: #dbeafe; }
 .woi-insert-empty { padding: 8px; color: #777; }
+
+/* --- Searchable order combobox --- */
+.woi-order-combo { position: relative; display: inline-block; }
+.woi-order-combo > #woi-order-search { max-width: 320px; }
+
+.woi-order-panel {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	z-index: 100000; /* above the GrapesJS canvas */
+	margin: 2px 0 0;
+	padding: 4px 0;
+	min-width: 320px;
+	max-height: 320px;
+	overflow-y: auto;
+	list-style: none;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	box-shadow: 0 6px 16px rgba( 0, 0, 0, 0.15 );
+}
+
+.woi-order-opt {
+	display: block;
+	padding: 6px 12px;
+	cursor: pointer;
+	border-bottom: 1px solid #f0f0f1;
+}
+.woi-order-opt:last-child { border-bottom: 0; }
+.woi-order-opt:hover,
+.woi-order-opt.is-active { background: #f0f6fc; }
+
+.woi-order-opt .woi-op-title { display: block; font-weight: 600; color: #1d2327; }
+.woi-order-opt .woi-op-meta  { display: block; font-size: 12px; color: #646970; }
+
+.woi-order-empty { padding: 8px 12px; color: #646970; font-style: italic; }
