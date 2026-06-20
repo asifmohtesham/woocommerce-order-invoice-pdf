@@ -21,6 +21,7 @@ class Blocks {
 		'woi/line-items', 'woi/totals',
 		'woi/spacer', 'woi/divider', 'woi/heading', 'woi/page-break',
 		'woi/columns', 'woi/column',
+		'woi/table',
 	);
 
 	public function __construct() {

@@ -14,6 +14,7 @@ import { registerTokenBlocks } from './blocks/token';
 import { registerTextBlock } from './blocks/text';
 import { registerLayoutBlocks } from './blocks/layout';
 import { registerColumnsBlocks, registerHeaderRowVariation } from './blocks/columns';
+import { registerTableBlock } from './blocks/table';
 import { saveBlocks, setActiveSource } from './store';
 import PreviewPanel from './PreviewPanel';
 import { injectLayoutStyles, LAYOUTS } from './layout';
@@ -25,6 +26,7 @@ registerTokenBlocks();
 registerLayoutBlocks();
 registerColumnsBlocks();
 registerHeaderRowVariation();
+registerTableBlock();
 injectLayoutStyles();
 
 function readLayout() {
