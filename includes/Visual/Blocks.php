@@ -12,7 +12,14 @@ if ( ! class_exists( '\\WOI\\PDF\\Visual\\Blocks' ) ) :
 class Blocks {
 
 	/** @var string[] Block names registered for the visual editor. */
-	private const NAMES = array( 'woi/text', 'woi/shop-name', 'woi/line-items', 'woi/totals' );
+	private const NAMES = array(
+		'woi/text',
+		'woi/logo', 'woi/shop-name', 'woi/shop-address', 'woi/shop-name-ar', 'woi/shop-address-ar',
+		'woi/trn', 'woi/shop-phone', 'woi/shop-email',
+		'woi/document-title', 'woi/document-title-ar', 'woi/invoice-number', 'woi/invoice-date',
+		'woi/order-number', 'woi/payment-method', 'woi/billing-address',
+		'woi/line-items', 'woi/totals',
+	);
 
 	public function __construct() {
 		add_action( 'init', array( $this, 'register' ) );
