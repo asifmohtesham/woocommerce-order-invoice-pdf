@@ -6,9 +6,13 @@ describe( 'isHtmlToken', () => {
 		expect( isHtmlToken( '{{totals}}' ) ).toBe( true );
 		expect( isHtmlToken( '{{logo}}' ) ).toBe( true );
 		expect( isHtmlToken( '{{billing_address}}' ) ).toBe( true );
+		// Shop addresses carry <br/> line breaks server-side → HTML.
+		expect( isHtmlToken( '{{shop_address}}' ) ).toBe( true );
+		expect( isHtmlToken( '{{shop_address_ar}}' ) ).toBe( true );
 	} );
 	it( 'is false for plain-text tokens', () => {
 		expect( isHtmlToken( '{{shop_name}}' ) ).toBe( false );
+		expect( isHtmlToken( '{{shop_name_ar}}' ) ).toBe( false );
 		expect( isHtmlToken( '{{trn}}' ) ).toBe( false );
 	} );
 } );

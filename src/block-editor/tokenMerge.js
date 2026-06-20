@@ -7,6 +7,10 @@
 export const HTML_TOKENS = new Set( [
 	'{{logo}}',
 	'{{billing_address}}',
+	// Shop addresses carry <br/> line breaks server-side (wp_kses_post / nl2br),
+	// so they must render as HTML, not escaped text.
+	'{{shop_address}}',
+	'{{shop_address_ar}}',
 	'{{line_items}}',
 	'{{totals}}',
 ] );
