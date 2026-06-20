@@ -71,6 +71,25 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 				'doc_type' => array( 'type' => 'string', 'required' => false ),
 			),
 		) );
+
+		register_rest_route( 'woi-pdf/v1', '/visual-blocks', array(
+			'methods'             => 'POST',
+			'callback'            => array( $this, 'handle_visual_blocks_save' ),
+			'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
+			'args'                => array(
+				'doc_type' => array( 'type' => 'string', 'required' => true ),
+				'markup'   => array( 'type' => 'string', 'required' => true ),
+			),
+		) );
+
+		register_rest_route( 'woi-pdf/v1', '/visual-active-source', array(
+			'methods'             => 'POST',
+			'callback'            => array( $this, 'handle_visual_active_source' ),
+			'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
+			'args'                => array(
+				'source' => array( 'type' => 'string', 'required' => true ),
+			),
+		) );
 	}
 
 		/**
@@ -621,6 +640,48 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			( new \WOI\PDF\Visual\VisualTemplateStore() )->save( $doc_type, $html );
 
 			return array( 'saved' => true );
+		}
+
+		/**
+		 * Render block markup to HTML for the visual render path.
+		 * Seam so the save handler is unit-testable without the WP block registry.
+		 */
+		protected function render_blocks( string $markup ): string {
+			return function_exists( 'do_blocks' ) ? do_blocks( $markup ) : $markup;
+		}
+
+		/**
+		 * Save block markup: render → store markup (raw) + rendered HTML (kses'd).
+		 *
+		 * @param object $request Request object with get_param().
+		 * @return array|\WP_Error
+		 */
+		public function handle_visual_blocks_save( $request ) {
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				return new \WP_Error( 'forbidden', 'Insufficient permissions', array( 'status' => 403 ) );
+			}
+			$doc_type = (string) $request->get_param( 'doc_type' );
+			$markup   = (string) $request->get_param( 'markup' );
+			$html     = $this->render_blocks( $markup );
+
+			( new \WOI\PDF\Visual\VisualTemplateStore() )->save_blocks( $doc_type, $markup, $html );
+
+			return array( 'saved' => true );
+		}
+
+		/**
+		 * Set which visual source feeds the PDF.
+		 *
+		 * @param object $request Request object with get_param().
+		 * @return array|\WP_Error
+		 */
+		public function handle_visual_active_source( $request ) {
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				return new \WP_Error( 'forbidden', 'Insufficient permissions', array( 'status' => 403 ) );
+			}
+			$store = new \WOI\PDF\Visual\VisualTemplateStore();
+			$store->set_active_source( (string) $request->get_param( 'source' ) );
+			return array( 'source' => $store->get_active_source() );
 		}
 
 	}

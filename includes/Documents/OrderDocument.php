@@ -1807,10 +1807,10 @@ abstract class OrderDocument implements DocumentInterface {
 		$args = $args + $default_args;
 
 		// Visual template path: when the toggle is on and a stored template exists
-		// for an invoice, render from the GrapesJS-designed HTML instead.
+		// for an invoice, render from the active visual source's HTML (GrapesJS or block editor).
 		if ( 'invoice' === $this->get_type() ) {
 			$store   = new \WOI\PDF\Visual\VisualTemplateStore();
-			$stored  = $store->get( $this->get_type() );
+			$stored  = $store->get_active( $this->get_type() );
 			$toggle  = (bool) $this->get_setting( 'enable_visual_template_invoice' );
 		} else {
 			$stored = '';

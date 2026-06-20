@@ -1,0 +1,21 @@
+const { restUrl, nonce, docType } = window.woiBlocks || {};
+
+async function post( path, body ) {
+	const res = await fetch( `${ restUrl }/${ path }`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
+		body: JSON.stringify( body ),
+	} );
+	if ( ! res.ok ) {
+		throw new Error( `Request failed: ${ res.status }` );
+	}
+	return res.json();
+}
+
+export function saveBlocks( markup ) {
+	return post( 'visual-blocks', { doc_type: docType, markup } );
+}
+
+export function setActiveSource( source ) {
+	return post( 'visual-active-source', { source } );
+}
