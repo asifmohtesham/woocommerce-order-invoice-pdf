@@ -1,10 +1,11 @@
 import { registerBlockType } from '@wordpress/blocks';
-import { useBlockProps } from '@wordpress/block-editor';
+import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
 import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { safeHTML } from '@wordpress/dom';
 import { STORE } from '../previewStore';
 import { isHtmlToken, tokenValue } from '../tokenMerge';
+import { APPEARANCE_ATTRS, appearanceStyle, appearanceProps, AppearancePanel } from '../appearance';
 
 /**
  * Slice-1 token blocks. Each is static: save() emits a fixed wrapper holding the
@@ -38,30 +39,34 @@ export function registerTokenBlocks() {
 			title,
 			category: 'woi-invoice',
 			icon: 'media-document',
+			attributes: { ...APPEARANCE_ATTRS },
 			supports: { html: false, reusable: false },
-			edit() {
+			edit( { attributes, setAttributes } ) {
 				const Tag = tag;
 				const tokens = useSelect( ( select ) => select( STORE ).getTokens(), [] );
 				const value = tokenValue( token, tokens );
-				const blockProps = useBlockProps( { className: value ? undefined : 'woi-token-empty' } );
+				const blockProps = useBlockProps( { className: value ? undefined : 'woi-token-empty', style: appearanceStyle( attributes ) } );
+				const panel = <InspectorControls><AppearancePanel attributes={ attributes } setAttributes={ setAttributes } /></InspectorControls>;
+				let inner;
 				if ( ! value ) {
 					// No order picked / token empty: show the friendly label so the
 					// block stays visible and selectable.
-					return <Tag { ...blockProps }>{ preview }</Tag>;
-				}
-				if ( isHtmlToken( token ) ) {
+					inner = <Tag { ...blockProps }>{ preview }</Tag>;
+				} else if ( isHtmlToken( token ) ) {
 					// HTML token (logo, billing address, line-items / totals tables).
 					// safeHTML strips scripts / event-handler attributes / javascript:
 					// URLs before injecting into the live admin DOM — defence-in-depth
 					// against unescaped customer fields (billing address, product names).
-					return <Tag { ...blockProps } dangerouslySetInnerHTML={ { __html: safeHTML( value ) } } />;
+					inner = <Tag { ...blockProps } dangerouslySetInnerHTML={ { __html: safeHTML( value ) } } />;
+				} else {
+					inner = <Tag { ...blockProps }>{ value }</Tag>;
 				}
-				return <Tag { ...blockProps }>{ value }</Tag>;
+				return <>{ panel }{ inner }</>;
 			},
-			save() {
+			save( { attributes } ) {
 				const Tag = tag;
 				// Inner content is the literal token; merged at PDF render time.
-				return <Tag { ...useBlockProps.save() }>{ token }</Tag>;
+				return <Tag { ...useBlockProps.save( appearanceProps( attributes ) ) }>{ token }</Tag>;
 			},
 		} );
 	} );
