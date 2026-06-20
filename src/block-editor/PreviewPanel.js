@@ -97,9 +97,9 @@ export default function PreviewPanel( { blocks, source } ) {
 				ref={ iframeRef }
 				title={ __( 'Live preview', 'woocommerce-orders-invoice-pdf' ) }
 				hidden={ 'html' !== tab }
-				style={ { flex: '1', width: '100%', border: '0', background: '#fff', minHeight: '60vh' } }
+				style={ { flex: '1', width: '100%', border: '0', background: '#fff', minHeight: '60vh', display: 'html' === tab ? 'block' : 'none' } }
 			/>
-			<div className="woi-block-pdf" hidden={ 'pdf' !== tab } style={ { flex: '1', display: 'flex', flexDirection: 'column', minHeight: '60vh' } }>
+			<div className="woi-block-pdf" hidden={ 'pdf' !== tab } style={ { flex: '1', display: 'pdf' === tab ? 'flex' : 'none', flexDirection: 'column', minHeight: '60vh' } }>
 				<div style={ { padding: '8px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' } }>
 					<button type="button" className="button button-primary" onClick={ renderPdf }>{ __( 'Render PDF', 'woocommerce-orders-invoice-pdf' ) }</button>
 					<span aria-live="polite">{ pdfStatus }</span>
