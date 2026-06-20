@@ -94,6 +94,7 @@ class VisualTemplateStore {
 
         return array(
             'table' => $common, 'thead' => $common, 'tbody' => $common, 'tfoot' => $common,
+            'colgroup' => $common, 'col' => $common + array( 'span' => true, 'width' => true ),
             'tr' => $common, 'td' => $common + array( 'colspan' => true, 'rowspan' => true ),
             'th' => $common + array( 'colspan' => true, 'rowspan' => true ),
             'div' => $common, 'span' => $common, 'p' => $common,

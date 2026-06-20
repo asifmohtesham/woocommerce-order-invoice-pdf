@@ -63,6 +63,19 @@ function bySection( rows ) {
 	};
 }
 
+// A <colgroup> carrying per-column widths (when any are set; mPDF honours col
+// widths and kses now allows colgroup/col). `dragC`/`dragW` override one column
+// live during an editor resize drag (-1 = none).
+function renderColgroup( colWidths, colCount, dragC, dragW ) {
+	const widths = Array.from( { length: colCount }, ( _, i ) => ( i === dragC ? dragW : ( colWidths[ i ] || '' ) ) );
+	if ( ! widths.some( ( w ) => w ) ) { return null; }
+	return (
+		<colgroup>
+			{ widths.map( ( w, i ) => <col key={ i } style={ w ? { width: w } : undefined } /> ) }
+		</colgroup>
+	);
+}
+
 export function registerTableBlock() {
 	registerBlockType( 'woi/table', {
 		apiVersion: 2,
@@ -72,11 +85,13 @@ export function registerTableBlock() {
 		attributes: {
 			rows: { type: 'array', default: DEFAULT_ROWS },
 			bordered: { type: 'boolean', default: true },
+			colWidths: { type: 'array', default: [] },
 		},
 		supports: { html: false, reusable: false },
 		edit( { attributes, setAttributes } ) {
-			const { rows, bordered } = attributes;
+			const { rows, bordered, colWidths } = attributes;
 			const [ sel, setSel ] = useState( { r: 0, c: 0 } );
+			const [ drag, setDrag ] = useState( null );
 			const colCount = rows.length ? rows[ 0 ].cells.length : 0;
 			const selCell = ( rows[ sel.r ] && rows[ sel.r ].cells[ sel.c ] ) || null;
 			const headerOn = !! ( rows[ 0 ] && 'head' === rows[ 0 ].section );
@@ -107,21 +122,58 @@ export function registerTableBlock() {
 			};
 			const insertColumn = ( delta ) => {
 				const at = sel.c + delta;
-				setRows( rows.map( ( row ) => {
+				const nextRows = rows.map( ( row ) => {
 					const cells = row.cells.slice();
 					cells.splice( at, 0, newCell() );
 					return { ...row, cells };
-				} ) );
+				} );
+				const cw = colWidths.slice();
+				if ( cw.length ) { cw.splice( at, 0, '' ); }
+				setAttributes( { rows: nextRows, colWidths: cw } );
 				setSel( { r: sel.r, c: at } );
 			};
 			const deleteColumn = () => {
 				if ( colCount <= 1 ) { return; }
-				setRows( rows.map( ( row ) => {
+				const nextRows = rows.map( ( row ) => {
 					const cells = row.cells.slice();
 					cells.splice( sel.c, 1 );
 					return { ...row, cells };
-				} ) );
+				} );
+				const cw = colWidths.slice();
+				if ( cw.length ) { cw.splice( sel.c, 1 ); }
+				setAttributes( { rows: nextRows, colWidths: cw } );
 				setSel( { r: sel.r, c: Math.max( 0, sel.c - 1 ) } );
+			};
+
+			// Drag a column's right-edge handle to resize it. Live feedback via the
+			// `drag` state (cheap re-render); the final width commits once on mouseup
+			// (so the undo stack gets one entry, not one per mouse move).
+			const startResize = ( e, c ) => {
+				e.preventDefault();
+				e.stopPropagation();
+				const cellEl = e.target.closest( 'td, th' );
+				const table = e.target.closest( 'table' );
+				const tableW = ( table && table.offsetWidth ) || 1;
+				const startX = e.clientX;
+				// Baseline = the explicit width, else the column's actual rendered
+				// share (measured from this handle's own cell, so merges don't skew it).
+				const startPct = parseFloat( colWidths[ c ] ) || ( cellEl ? cellEl.offsetWidth / tableW * 100 : 100 / ( colCount || 1 ) );
+				let finalW = colWidths[ c ] || ( startPct.toFixed( 1 ) + '%' );
+				const onMove = ( ev ) => {
+					const pct = Math.max( 5, Math.min( 95, startPct + ( ev.clientX - startX ) / tableW * 100 ) );
+					finalW = pct.toFixed( 1 ) + '%';
+					setDrag( { c, w: finalW } );
+				};
+				const onUp = () => {
+					document.removeEventListener( 'mousemove', onMove );
+					document.removeEventListener( 'mouseup', onUp );
+					setDrag( null );
+					const cw = Array.from( { length: colCount }, ( _, i ) => colWidths[ i ] || '' );
+					cw[ c ] = finalW;
+					setAttributes( { colWidths: cw } );
+				};
+				document.addEventListener( 'mousemove', onMove );
+				document.addEventListener( 'mouseup', onUp );
 			};
 
 			// Merge the selected cell with its right / lower neighbour. Kept simple
@@ -195,8 +247,11 @@ export function registerTableBlock() {
 					{ row.cells.map( ( cell, c ) => {
 						if ( cell.merged ) { return null; }
 						const Tag = 'th' === cell.tag ? 'th' : 'td';
+						const props = cellProps( cell, bordered, true );
+						// Row-0 cells carry the column resize handles.
+						const tagProps = 0 === i ? { ...props, style: { ...props.style, position: 'relative' } } : props;
 						return (
-							<Tag key={ c } { ...cellProps( cell, bordered, true ) }>
+							<Tag key={ c } { ...tagProps }>
 								<RichText
 									tagName="span"
 									value={ cell.content }
@@ -204,6 +259,14 @@ export function registerTableBlock() {
 									onFocus={ () => setSel( { r: i, c } ) }
 									placeholder={ __( 'Cell', 'woocommerce-orders-invoice-pdf' ) }
 								/>
+								{ 0 === i ? (
+									<span
+										role="separator"
+										aria-label={ __( 'Resize column', 'woocommerce-orders-invoice-pdf' ) }
+										onMouseDown={ ( e ) => startResize( e, c ) }
+										style={ { position: 'absolute', top: 0, right: 0, width: '6px', height: '100%', cursor: 'col-resize', userSelect: 'none' } }
+									/>
+								) : null }
 							</Tag>
 						);
 					} ) }
@@ -254,6 +317,7 @@ export function registerTableBlock() {
 						) : null }
 					</InspectorControls>
 					<table { ...useBlockProps( { style: { borderCollapse: 'collapse', width: '100%' } } ) }>
+						{ renderColgroup( colWidths, colCount, drag ? drag.c : -1, drag ? drag.w : '' ) }
 						{ groups.head.length ? <thead>{ renderRows( groups.head ) }</thead> : null }
 						{ groups.body.length ? <tbody>{ renderRows( groups.body ) }</tbody> : null }
 						{ groups.foot.length ? <tfoot>{ renderRows( groups.foot ) }</tfoot> : null }
@@ -262,7 +326,8 @@ export function registerTableBlock() {
 			);
 		},
 		save( { attributes } ) {
-			const { rows, bordered } = attributes;
+			const { rows, bordered, colWidths = [] } = attributes;
+			const colCount = rows.length ? rows[ 0 ].cells.length : 0;
 			const groups = bySection( rows );
 			const renderRows = ( list ) => list.map( ( { row, i } ) => (
 				<tr key={ i }>
@@ -279,6 +344,7 @@ export function registerTableBlock() {
 			) );
 			return (
 				<table { ...useBlockProps.save( { style: { borderCollapse: 'collapse', width: '100%' } } ) }>
+					{ renderColgroup( colWidths, colCount, -1, '' ) }
 					{ groups.head.length ? <thead>{ renderRows( groups.head ) }</thead> : null }
 					{ groups.body.length ? <tbody>{ renderRows( groups.body ) }</tbody> : null }
 					{ groups.foot.length ? <tfoot>{ renderRows( groups.foot ) }</tfoot> : null }
