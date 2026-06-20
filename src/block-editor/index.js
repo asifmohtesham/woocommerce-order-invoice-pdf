@@ -8,7 +8,7 @@ import {
 	Inserter,
 } from '@wordpress/block-editor';
 import { parse, serialize, registerBlockCollection } from '@wordpress/blocks';
-import { Button } from '@wordpress/components';
+import { Button, Popover, SlotFillProvider } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { registerTokenBlocks } from './blocks/token';
 import { registerTextBlock } from './blocks/text';
@@ -96,18 +96,24 @@ function Editor( { initial, activeSource } ) {
 						) : null }
 					</span>
 				</div>
-				<BlockEditorProvider value={ blocks } onInput={ setBlocks } onChange={ setBlocks }>
-					<div className="woi-block-canvas" style={ { border: '1px solid #ddd', background: '#fff', minHeight: '60vh' } }>
-						<BlockTools>
-							<div style={ { padding: '8px' } }><Inserter rootClientId={ undefined } isAppender /></div>
-							<WritingFlow>
-								<ObserveTyping>
-									<BlockList />
-								</ObserveTyping>
-							</WritingFlow>
-						</BlockTools>
-					</div>
-				</BlockEditorProvider>
+				<SlotFillProvider>
+					<BlockEditorProvider value={ blocks } onInput={ setBlocks } onChange={ setBlocks }>
+						<div className="woi-block-canvas" style={ { border: '1px solid #ddd', background: '#fff', minHeight: '60vh' } }>
+							<BlockTools>
+								<div style={ { padding: '8px' } }><Inserter rootClientId={ undefined } isAppender /></div>
+								<WritingFlow>
+									<ObserveTyping>
+										<BlockList />
+									</ObserveTyping>
+								</WritingFlow>
+							</BlockTools>
+						</div>
+						{ /* Default render target for block toolbar / dropdown popovers.
+						     Without this Slot, Popover-based UI anchors to the document
+						     origin (top-left) instead of the selected block. */ }
+						<Popover.Slot />
+					</BlockEditorProvider>
+				</SlotFillProvider>
 			</div>
 			<PreviewPanel blocks={ blocks } source={ source } hidden={ previewHidden } />
 		</div>
