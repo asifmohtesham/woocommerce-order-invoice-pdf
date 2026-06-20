@@ -1,6 +1,6 @@
 import { registerBlockType, registerBlockVariation, createBlock } from '@wordpress/blocks';
 import { useBlockProps, useInnerBlocksProps, InnerBlocks, InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, RangeControl, SelectControl, ColorPalette } from '@wordpress/components';
+import { PanelBody, RangeControl, SelectControl, ColorPalette, ToggleControl, Button } from '@wordpress/components';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 
@@ -40,19 +40,23 @@ export function registerColumnsBlocks() {
 			width: { type: 'string', default: '' },
 			valign: { type: 'string', default: '' },
 			bg: { type: 'string', default: '' },
+			align: { type: 'string', default: '' },
+			border: { type: 'boolean', default: false },
 		},
 		supports: { html: false, reusable: false, inserter: false },
 		edit( { attributes, setAttributes } ) {
-			const { width, valign, bg } = attributes;
+			const { width, valign, bg, align, border } = attributes;
 			const pct = width ? ( parseInt( width, 10 ) || 0 ) : 0;
 			const blockProps = useBlockProps( {
 				style: {
-					// Preview the chosen width/alignment/background; auto when unset.
+					// Preview the chosen width/alignment/background/border; auto when unset.
 					flex: width ? '0 0 ' + width : '1',
 					minWidth: '60px',
-					border: '1px dashed #c3c4c7',
+					// Solid black previews the real cell border; dashed is the editor aid.
+					border: border ? '1px solid #000' : '1px dashed #c3c4c7',
 					padding: '8px',
 					verticalAlign: valign || 'top',
+					textAlign: align || undefined,
 					backgroundColor: bg || undefined,
 				},
 			} );
@@ -79,6 +83,22 @@ export function registerColumnsBlocks() {
 								] }
 								onChange={ ( v ) => setAttributes( { valign: v } ) }
 							/>
+							<SelectControl
+								label={ __( 'Text align', 'woocommerce-orders-invoice-pdf' ) }
+								value={ align }
+								options={ [
+									{ label: __( 'Default', 'woocommerce-orders-invoice-pdf' ), value: '' },
+									{ label: __( 'Left', 'woocommerce-orders-invoice-pdf' ), value: 'left' },
+									{ label: __( 'Center', 'woocommerce-orders-invoice-pdf' ), value: 'center' },
+									{ label: __( 'Right', 'woocommerce-orders-invoice-pdf' ), value: 'right' },
+								] }
+								onChange={ ( v ) => setAttributes( { align: v } ) }
+							/>
+							<ToggleControl
+								label={ __( 'Cell border', 'woocommerce-orders-invoice-pdf' ) }
+								checked={ border }
+								onChange={ ( v ) => setAttributes( { border: v } ) }
+							/>
 							<p style={ { margin: '12px 0 4px' } }>{ __( 'Cell background', 'woocommerce-orders-invoice-pdf' ) }</p>
 							<ColorPalette
 								value={ bg }
@@ -92,11 +112,13 @@ export function registerColumnsBlocks() {
 			);
 		},
 		save( { attributes } ) {
-			const { width, valign, bg } = attributes;
+			const { width, valign, bg, align, border } = attributes;
 			const style = {};
 			if ( width ) { style.width = width; }
 			if ( valign ) { style.verticalAlign = valign; }
+			if ( align ) { style.textAlign = align; }
 			if ( bg ) { style.backgroundColor = bg; }
+			if ( border ) { style.border = '0.5pt solid #000'; }
 			const blockProps = useBlockProps.save( Object.keys( style ).length ? { style } : {} );
 			const innerProps = useInnerBlocksProps.save( blockProps );
 			return <td { ...innerProps } />;
@@ -129,7 +151,7 @@ export function registerColumnsBlocks() {
 				( select ) => ( { getBlocks: select( 'core/block-editor' ).getBlocks } ),
 				[]
 			);
-			const { replaceInnerBlocks } = useDispatch( 'core/block-editor' );
+			const { replaceInnerBlocks, updateBlockAttributes } = useDispatch( 'core/block-editor' );
 
 			const setColumns = ( next ) => {
 				const target = Math.max( 1, Math.min( MAX_COLUMNS, next || 1 ) );
@@ -139,6 +161,12 @@ export function registerColumnsBlocks() {
 					? current.concat( Array.from( { length: target - current.length }, () => createBlock( 'woi/column' ) ) )
 					: current.slice( 0, target );
 				replaceInnerBlocks( clientId, blocks, false );
+			};
+
+			// Clear every child column's explicit width so they share the row equally.
+			const equalizeWidths = () => {
+				const ids = getBlocks( clientId ).map( ( b ) => b.clientId );
+				if ( ids.length ) { updateBlockAttributes( ids, { width: '' } ); }
 			};
 
 			return (
@@ -152,6 +180,9 @@ export function registerColumnsBlocks() {
 								min={ 1 }
 								max={ MAX_COLUMNS }
 							/>
+							<Button variant="secondary" onClick={ equalizeWidths }>
+								{ __( 'Equalize column widths', 'woocommerce-orders-invoice-pdf' ) }
+							</Button>
 						</PanelBody>
 					</InspectorControls>
 					<div { ...innerProps } />
