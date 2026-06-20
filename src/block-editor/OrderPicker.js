@@ -26,7 +26,7 @@ export default function OrderPicker() {
 			setResults( data );
 			setSearching( false );
 			setOpen( true );
-		} );
+		} ).catch( () => setSearching( false ) );
 	}, [] );
 
 	const loadOrder = useCallback( ( id, label ) => {
@@ -40,7 +40,7 @@ export default function OrderPicker() {
 			} else {
 				setLoading( false );
 			}
-		} );
+		} ).catch( () => setLoading( false ) );
 	}, [ setOrder, setLoading ] );
 
 	const onFocus = useCallback( () => {
