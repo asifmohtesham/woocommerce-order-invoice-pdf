@@ -50,10 +50,12 @@ class BlockEditorPage {
         $asset_path = WOI_PDF()->plugin_path() . '/assets/js/block-editor/index.asset.php';
         $asset = is_readable( $asset_path ) ? require $asset_path : array( 'dependencies' => array(), 'version' => WOI_PDF_VERSION );
 
+        wp_enqueue_script( 'woi-pdfjs', WOI_PDF()->plugin_url() . '/assets/js/pdf_js/pdf.min.js', array(), WOI_PDF_VERSION, true );
+
         wp_enqueue_script(
             'woi-block-editor',
             WOI_PDF()->plugin_url() . '/assets/js/block-editor/index.js',
-            $asset['dependencies'],
+            array_merge( $asset['dependencies'], array( 'woi-pdfjs' ) ),
             $asset['version'],
             true
         );
@@ -77,6 +79,7 @@ class BlockEditorPage {
             'sampleData'        => woi_pdf_visual_sample_data(),
             'previewDataUrl'    => esc_url_raw( rest_url( 'woi-pdf/v1/visual-preview-data' ) ),
             'orderSearchAction' => 'woi_pdf_preview_order_search',
+            'pdfWorkerUrl'      => esc_url_raw( WOI_PDF()->plugin_url() . '/assets/js/pdf_js/pdf.worker.min.js' ),
         ) );
     }
 
