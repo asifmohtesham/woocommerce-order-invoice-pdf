@@ -193,6 +193,23 @@ class FilenameBuilderTest extends TestCase {
 		$this->assertSame( '{document_type}-{order_number}-{date}', $settings['template'] );
 		$this->assertSame( 'Y-m-d', $settings['date_format'] );
 	}
+
+	public function test_no_order_context_drops_order_number_token(): void {
+		// Summary export with zero orders: no order id, no order number, no ids.
+		$this->assertSame(
+			'summary-2026-06-20.pdf',
+			woi_pdf_build_filename( array(
+				'type'          => 'summary',
+				'document_type' => 'summary',
+				'order_ids'     => array(),
+				'order_number'  => '',
+				'order_id'      => 0,
+				'output_format' => 'pdf',
+				'context'       => 'download',
+				'filter_args'   => array(),
+			) )
+		);
+	}
 }
 ```
 
@@ -258,9 +275,13 @@ function woi_pdf_build_filename( array $args ): string {
 	$order_ids   = array_values( (array) $args['order_ids'] );
 	$order_count = max( 1, count( $order_ids ) );
 	$is_bulk     = $order_count > 1;
+	$has_order   = ! empty( $order_ids ) || ! empty( $args['order_id'] ) || '' !== (string) $args['order_number'];
 
 	if ( $is_bulk ) {
 		$order_number = $order_count . '-orders';
+	} elseif ( ! $has_order ) {
+		// No order context at all (e.g. Summary export): drop the token.
+		$order_number = '';
 	} else {
 		$order_number = (string) $args['order_number'];
 		if ( '' === $order_number ) {
@@ -300,7 +321,7 @@ function woi_pdf_build_filename( array $args ): string {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `vendor/bin/phpunit -d auto_prepend_file=tests/bootstrap.php --filter FilenameBuilderTest`
-Expected: PASS (9 tests).
+Expected: PASS (10 tests).
 
 - [ ] **Step 5: Lint the modified file**
 
@@ -592,7 +613,12 @@ Replace the body of `OrderDocument.php` `get_filename()` (lines 1934–1961) wit
 
 - [ ] **Step 7: Refactor `Summary::get_filename()`**
 
-`Summary` has no single order — it always behaves as bulk and keeps a date-based name. Replace the body of `Summary.php` `get_filename()` (lines 95–106) with:
+`Summary` is an aggregate export over many orders. It passes its **real**
+`order_ids` so the builder's bulk rule applies (`summary-{count}-orders-{date}`)
+and the `woi_pdf_filename` filter still receives the real order IDs. The
+builder's no-order guard (Task 1) handles the degenerate empty-selection case as
+`summary-{date}`. Replace the body of `Summary.php` `get_filename()`
+(lines 95–106) with:
 
 ```php
 	public function get_filename( $context = 'download', $args = array() ): string {
@@ -602,7 +628,7 @@ Replace the body of `OrderDocument.php` `get_filename()` (lines 1934–1961) wit
 		return woi_pdf_build_filename( array(
 			'type'          => $this->get_type(),
 			'document_type' => $name,
-			'order_ids'     => array(), // force the date-only / no single order path
+			'order_ids'     => $order_ids,
 			'order_number'  => '',
 			'order_id'      => 0,
 			'output_format' => ! empty( $args['output'] ) ? esc_attr( $args['output'] ) : 'pdf',
@@ -612,83 +638,7 @@ Replace the body of `OrderDocument.php` `get_filename()` (lines 1934–1961) wit
 	}
 ```
 
-> Note: `Summary` passes an empty `order_ids` to the builder so `{order_number}` resolves to `uniqid()` only if the template demands it; with the default template, summary filenames become `summary-<uniqid>-<date>` is NOT desired. Instead, the Summary template intent is `summary-{date}`. Because the global template includes `{order_number}`, Summary would otherwise inject a uniqid. To avoid that, Summary overrides the order-number token by using a summary-specific filter (see Step 8).
-
-- [ ] **Step 8: Handle Summary's order-number token cleanly**
-
-The note in Step 7 reveals a real issue: with the global default template `{document_type}-{order_number}-{date}`, a Summary (no orders) would render `{order_number}` as `uniqid()`, producing `summary-5f3a2b...-2026-06-20.pdf`. That is noise. Fix by treating "zero orders" distinctly from "one order with a missing number" in the builder: when `order_ids` is empty AND `order_number` is empty AND `order_id` is empty, the `{order_number}` token resolves to an empty string (then separators collapse), giving `summary-2026-06-20.pdf`.
-
-Update `woi_pdf_build_filename()` in `woi-pdf-functions.php` — replace the single-order `else` branch:
-
-```php
-	if ( $is_bulk ) {
-		$order_number = $order_count . '-orders';
-	} else {
-		$order_number = (string) $args['order_number'];
-		if ( '' === $order_number ) {
-			if ( ! empty( $args['order_id'] ) ) {
-				$order_number = (string) $args['order_id'];
-			} elseif ( ! empty( $order_ids ) ) {
-				$order_number = (string) reset( $order_ids );
-			} else {
-				$order_number = uniqid();
-			}
-		}
-	}
-```
-
-with:
-
-```php
-	$has_order = ! empty( $order_ids ) || ! empty( $args['order_id'] ) || '' !== (string) $args['order_number'];
-
-	if ( $is_bulk ) {
-		$order_number = $order_count . '-orders';
-	} elseif ( ! $has_order ) {
-		// No order context at all (e.g. Summary export): drop the token.
-		$order_number = '';
-	} else {
-		$order_number = (string) $args['order_number'];
-		if ( '' === $order_number ) {
-			if ( ! empty( $args['order_id'] ) ) {
-				$order_number = (string) $args['order_id'];
-			} elseif ( ! empty( $order_ids ) ) {
-				$order_number = (string) reset( $order_ids );
-			} else {
-				$order_number = uniqid();
-			}
-		}
-	}
-```
-
-- [ ] **Step 9: Add a regression test for the no-order (Summary) path**
-
-Append to `tests/Unit/FilenameBuilderTest.php`:
-
-```php
-	public function test_no_order_context_drops_order_number_token(): void {
-		$this->assertSame(
-			'summary-2026-06-20.pdf',
-			woi_pdf_build_filename( array(
-				'type'          => 'summary',
-				'document_type' => 'summary',
-				'order_ids'     => array(),
-				'order_number'  => '',
-				'order_id'      => 0,
-				'output_format' => 'pdf',
-				'context'       => 'download',
-				'filter_args'   => array(),
-			) )
-		);
-	}
-```
-
-- [ ] **Step 10: Run the builder tests**
-
-Run: `vendor/bin/phpunit -d auto_prepend_file=tests/bootstrap.php --filter FilenameBuilderTest`
-Expected: PASS (10 tests).
-
-- [ ] **Step 11: Lint all modified document files**
+- [ ] **Step 8: Lint all modified document files**
 
 Run:
 ```bash
@@ -702,18 +652,18 @@ php -l includes/Documents/Summary.php
 ```
 Expected: `No syntax errors detected` for each.
 
-- [ ] **Step 12: Run the full unit suite to confirm no regressions**
+- [ ] **Step 9: Run the full unit suite to confirm no regressions**
 
 Run: `vendor/bin/phpunit -d auto_prepend_file=tests/bootstrap.php`
-Expected: PASS — same pass count as the clean baseline plus the new `FilenameBuilderTest` (10).
+Expected: PASS — same pass count as the clean baseline plus the `FilenameBuilderTest` from Task 1.
 
-- [ ] **Step 13: Commit**
+- [ ] **Step 10: Commit**
 
 ```bash
 git add includes/Documents/Invoice.php includes/Documents/PackingSlip.php \
   includes/Documents/CreditNote.php includes/Documents/Receipt.php \
   includes/Documents/Proforma.php includes/Documents/OrderDocument.php \
-  includes/Documents/Summary.php woi-pdf-functions.php tests/Unit/FilenameBuilderTest.php
+  includes/Documents/Summary.php
 git commit -m "refactor: route all get_filename() methods through woi_pdf_build_filename()"
 ```
 
@@ -771,7 +721,7 @@ git commit -m "chore: bump version to 1.5.5 — configurable PDF filename nomenc
 - Bulk `{count}-orders`, `{document_number}` empty → Task 1 `$is_bulk` branch. ✓
 - Order number always present (incl. when `display_number` set) → Task 3 drops the old `display_number` branch and always supplies the order number; `document_number` is now a separate optional token. ✓
 - Filter + `sanitize_file_name()` preserved/centralized → Task 1. ✓
-- Empty-token separator cleanup, empty template fallback, empty order number fallback, no-order (Summary) path → Task 1 + Task 3 Step 8, with tests. ✓
+- Empty-token separator cleanup, empty template fallback, empty order number fallback, no-order (Summary) path → Task 1 (builder + tests). ✓
 - Refund uses `order_id` → Task 3 Step 6. ✓
 - Version bump 1.5.4 → 1.5.5 → Task 4. ✓
 - PHPUnit tests for builder → Task 1 + Task 3 Step 9. ✓
