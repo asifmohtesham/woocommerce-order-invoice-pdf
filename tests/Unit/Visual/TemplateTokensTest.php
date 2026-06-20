@@ -165,6 +165,47 @@ class TemplateTokensTest extends TestCase {
     }
 
     /**
+     * Bilingual column headers must wrap BOTH labels in block spans so mPDF
+     * stacks them (English over Arabic) instead of jamming them on one line.
+     */
+    public function test_line_item_headers_wrap_primary_label_in_block_span(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array {
+                return array( array( 'class' => 'total', 'title' => 'Total', 'secondary' => 'المبلغ' ) );
+            }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $map = $tokens->map( $this->stub_document() );
+
+        $this->assertStringContainsString( '<span class="woi-lbl-primary">Total</span>', $map['{{line_items}}'] );
+        $this->assertStringContainsString( '<span class="woi-lbl-secondary" dir="rtl">المبلغ</span>', $map['{{line_items}}'] );
+    }
+
+    /**
+     * Totals labels get the same block-span pairing. When no secondary exists,
+     * the primary span still renders (single block span == old bare text).
+     */
+    public function test_totals_wrap_primary_label_and_render_without_secondary(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array {
+                return array(
+                    array( 'class' => 'total grand-total', 'label' => 'Total', 'value' => 'AED 10', 'secondary' => 'المجموع' ),
+                    array( 'class' => 'subtotal', 'label' => 'Subtotal', 'value' => 'AED 8' ),
+                );
+            }
+        };
+        $map = $tokens->map( $this->stub_document() );
+
+        $this->assertStringContainsString( '<span class="woi-lbl-primary">Total</span>', $map['{{totals}}'] );
+        $this->assertStringContainsString( '<span class="woi-lbl-secondary" dir="rtl">المجموع</span>', $map['{{totals}}'] );
+        // No-secondary row still renders its primary label.
+        $this->assertStringContainsString( '<span class="woi-lbl-primary">Subtotal</span>', $map['{{totals}}'] );
+    }
+
+    /**
      * Fix C: a throwing block renderer must degrade to '' and must not prevent
      * other tokens from resolving.
      */

@@ -100,7 +100,7 @@ class TemplateTokens {
 
             $html = '<table class="order-details"><thead><tr>';
             foreach ( $headers as $header_data ) {
-                $html .= '<th class="' . esc_attr( $header_data['class'] ?? '' ) . '">' . esc_html( $header_data['title'] ?? '' );
+                $html .= '<th class="' . esc_attr( $header_data['class'] ?? '' ) . '"><span class="woi-lbl-primary">' . esc_html( $header_data['title'] ?? '' ) . '</span>';
                 if ( ! empty( $header_data['secondary'] ) ) {
                     $html .= '<span class="woi-lbl-secondary" dir="rtl">' . esc_html( $header_data['secondary'] ) . '</span>';
                 }
@@ -131,7 +131,7 @@ class TemplateTokens {
             $html = '<table class="totals-table">';
             foreach ( $totals as $total_data ) {
                 $html .= '<tr class="' . esc_attr( $total_data['class'] ?? '' ) . '">';
-                $html .= '<th class="description"><span>' . esc_html( $total_data['label'] ?? '' );
+                $html .= '<th class="description"><span><span class="woi-lbl-primary">' . esc_html( $total_data['label'] ?? '' ) . '</span>';
                 if ( ! empty( $total_data['secondary'] ) ) {
                     $html .= '<span class="woi-lbl-secondary" dir="rtl">' . esc_html( $total_data['secondary'] ) . '</span>';
                 }
