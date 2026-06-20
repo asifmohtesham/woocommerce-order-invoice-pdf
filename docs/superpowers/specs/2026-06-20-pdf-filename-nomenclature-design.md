@@ -80,23 +80,23 @@ Defined in `woi-pdf-functions.php` (alongside
 | Key | Meaning |
 |---|---|
 | `type` | Machine type (e.g. `invoice`) — for the filter, not the name |
-| `name_singular` / `name_plural` | Localized display names; the method passes the same `_n()` strings it uses today |
+| `document_type` | Localized display name, already singular/plural-resolved by the caller via `_n( …, $order_count )` |
 | `order_ids` | Array of order IDs in this document |
 | `order_number` | Pre-resolved order-number string from the caller (may be empty) |
 | `order_id` | Primary order ID, for the empty-order-number fallback |
 | `document_number` | The document's own number, or empty |
 | `output_format` | `pdf` (default) or other; drives the extension |
 
-The caller resolves `order_number` using its own rules (e.g. normal docs use
-`get_order_number()`, respecting sequential-order-number plugins; refunds use
-the refund `order_id`). The builder does **not** re-derive it — it only applies
-the empty-value fallback and the multi-order collapse. This keeps each
-document's quirks at the call site and the builder generic.
+The caller resolves both `document_type` (pluralized) and `order_number` using
+its own rules (e.g. normal docs use `get_order_number()`, respecting
+sequential-order-number plugins; refunds use the refund `order_id`). The builder
+does **not** re-derive them — it only applies the empty-value fallback, the
+multi-order collapse, and token substitution. This keeps each document's quirks
+at the call site (where they already live today) and the builder generic.
 
 **Token resolution:**
 
-- `{document_type}` → `name_singular` for a single order, `name_plural` for
-  multiple (mirrors current `_n()` behavior).
+- `{document_type}` → the caller's `document_type` (already pluralized).
 - `{order_number}` →
   - **Single order:** the caller's `order_number`. Empty → fall back to
     `order_id` → then `uniqid()` (preserves today's safety net).
