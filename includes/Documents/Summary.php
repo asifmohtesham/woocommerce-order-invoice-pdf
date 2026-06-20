@@ -93,16 +93,19 @@ class Summary extends BulkDocument {
 	}
 
 	public function get_filename( $context = 'download', $args = array() ): string {
-		$name     = __( 'summary', 'woocommerce-orders-invoice-pdf' );
-		$suffix   = date( 'Y-m-d' ); // 2020-11-11
-		$filename = $name . '-' . $suffix . '.pdf';
-
-		// Filter filename
+		$name      = __( 'summary', 'woocommerce-orders-invoice-pdf' );
 		$order_ids = isset( $args['order_ids'] ) ? $args['order_ids'] : $this->order_ids;
-		$filename  = apply_filters( 'woi_pdf_filename', $filename, $this->get_type(), $order_ids, $context, $args );
 
-		// sanitize filename (after filters to prevent human errors)!
-		return sanitize_file_name( $filename );
+		return woi_pdf_build_filename( array(
+			'type'          => $this->get_type(),
+			'document_type' => $name,
+			'order_ids'     => $order_ids,
+			'order_number'  => '',
+			'order_id'      => 0,
+			'output_format' => ! empty( $args['output'] ) ? esc_attr( $args['output'] ) : 'pdf',
+			'context'       => $context,
+			'filter_args'   => $args,
+		) );
 	}
 
 	/**

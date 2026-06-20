@@ -1932,32 +1932,26 @@ abstract class OrderDocument implements DocumentInterface {
 	}
 
 	public function get_filename( $context = 'download', $args = array() ) {
-		$order_count = isset($args['order_ids']) ? count($args['order_ids']) : 1;
-
-		$name = $this->get_type();
+		$order_ids = isset( $args['order_ids'] ) ? $args['order_ids'] : array( $this->order_id );
+		$name      = $this->get_type();
 
 		if ( is_callable( array( $this->order, 'get_type' ) ) && $this->order->get_type() == 'shop_order_refund' ) {
-			$number = $this->order_id;
+			$order_number = (string) $this->order_id;
 		} else {
-			$number = is_callable( array( $this->order, 'get_order_number' ) ) ? $this->order->get_order_number() : '';
+			$order_number = is_callable( array( $this->order, 'get_order_number' ) ) ? $this->order->get_order_number() : '';
 		}
 
-		if ( $order_count == 1 ) {
-			$suffix = $number;
-		} else {
-			$suffix = gmdate('Y-m-d'); // 2020-11-11
-		}
-
-		// get filename
-		$output_format = ! empty( $args['output'] ) ? esc_attr( $args['output'] ) : 'pdf';
-		$filename      = $name . '-' . $suffix . woi_pdf_get_document_output_format_extension( $output_format );
-
-		// Filter filename
-		$order_ids = isset( $args['order_ids'] ) ? $args['order_ids'] : array( $this->order_id );
-		$filename  = apply_filters( 'woi_pdf_filename', $filename, $this->get_type(), $order_ids, $context, $args );
-
-		// sanitize filename (after filters to prevent human errors)!
-		return sanitize_file_name( $filename );
+		return woi_pdf_build_filename( array(
+			'type'            => $this->get_type(),
+			'document_type'   => $name,
+			'order_ids'       => $order_ids,
+			'order_number'    => $order_number,
+			'order_id'        => $this->order_id,
+			'document_number' => '',
+			'output_format'   => ! empty( $args['output'] ) ? esc_attr( $args['output'] ) : 'pdf',
+			'context'         => $context,
+			'filter_args'     => $args,
+		) );
 	}
 
 	public function get_template_path() {
