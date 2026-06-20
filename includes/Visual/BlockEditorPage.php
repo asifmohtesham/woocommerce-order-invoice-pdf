@@ -64,12 +64,19 @@ class BlockEditorPage {
 
         $store = new VisualTemplateStore();
         wp_localize_script( 'woi-block-editor', 'woiBlocks', array(
-            'restUrl'        => esc_url_raw( rest_url( 'woi-pdf/v1' ) ),
-            'nonce'          => wp_create_nonce( 'wp_rest' ),
-            'docType'        => 'invoice',
-            'storedMarkup'   => $store->get_blocks_markup( 'invoice' ),
-            'activeSource'   => $store->get_active_source(),
-            'backUrl'        => esc_url_raw( admin_url( 'admin.php?page=woi_pdf_options_page' ) ),
+            'restUrl'           => esc_url_raw( rest_url( 'woi-pdf/v1' ) ),
+            'nonce'             => wp_create_nonce( 'wp_rest' ),
+            'docType'           => 'invoice',
+            'storedMarkup'      => $store->get_blocks_markup( 'invoice' ),
+            'activeSource'      => $store->get_active_source(),
+            'backUrl'           => esc_url_raw( admin_url( 'admin.php?page=woi_pdf_options_page' ) ),
+            // --- Live preview (Slice 3A) ---
+            'ajaxUrl'           => esc_url_raw( admin_url( 'admin-ajax.php' ) ),
+            'previewNonce'      => wp_create_nonce( 'woi_pdf_preview' ),
+            'previewCss'        => woi_pdf_visual_document_css(),
+            'sampleData'        => woi_pdf_visual_sample_data(),
+            'previewDataUrl'    => esc_url_raw( rest_url( 'woi-pdf/v1/visual-preview-data' ) ),
+            'orderSearchAction' => 'woi_pdf_preview_order_search',
         ) );
     }
 
