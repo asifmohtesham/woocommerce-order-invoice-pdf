@@ -74,6 +74,44 @@ class SettingsGeneral {
 				),
 			),
 			array(
+				'type'     => 'section',
+				'id'       => 'general_filename',
+				'title'    => __( 'PDF filename', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'section',
+			),
+			array(
+				'type'     => 'setting',
+				'id'       => 'filename_template',
+				'title'    => __( 'Filename template', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'text_element',
+				'section'  => 'general_filename',
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'filename_template',
+					'size'        => 'large',
+					'default'     => '{document_type}-{order_number}-{date}',
+					'description' => sprintf(
+						/* translators: %1$s lists the available placeholders, %2$s is a filename example. */
+						__( 'Template for generated PDF filenames. Available placeholders: %1$s. The file extension is added automatically. Example: %2$s', 'woocommerce-orders-invoice-pdf' ),
+						'<code>{document_type}</code>, <code>{order_number}</code>, <code>{document_number}</code>, <code>{date}</code>',
+						'<code>Invoice-1042-2026-06-20.pdf</code>'
+					),
+				),
+			),
+			array(
+				'type'     => 'setting',
+				'id'       => 'filename_date_format',
+				'title'    => __( 'Filename date format', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'text_element',
+				'section'  => 'general_filename',
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'filename_date_format',
+					'default'     => 'Y-m-d',
+					'description' => __( 'PHP date format for the {date} placeholder, using the date the PDF is generated (e.g. Y-m-d, d-m-Y, Ymd).', 'woocommerce-orders-invoice-pdf' ),
+				),
+			),
+			array(
 				'type'     => 'setting',
 				'id'       => 'template_path',
 				'title'    => __( 'Base template', 'woocommerce-orders-invoice-pdf' ),
