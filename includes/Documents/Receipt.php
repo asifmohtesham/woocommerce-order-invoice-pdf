@@ -122,42 +122,28 @@ class Receipt extends OrderDocumentMethods implements NumberedDocumentInterface,
 	}
 
 	public function get_filename( $context = 'download', $args = array() ): string {
-		$order_count = isset( $args['order_ids'] ) ? count( $args['order_ids'] ) : 1;
+		$order_ids   = isset( $args['order_ids'] ) ? $args['order_ids'] : array( $this->order_id );
+		$order_count = count( $order_ids );
 		$name        = _n( 'receipt', 'receipts', $order_count, 'woocommerce-orders-invoice-pdf' );
 
-		if ( 1 === $order_count ) {
-			if ( isset( $this->settings['display_number'] ) ) {
-				$suffix = (string) $this->get_number();
-			} else {
-				if ( empty( $this->order ) && isset( $args['order_ids'][0] ) ) {
-					$order  = wc_get_order( $args['order_ids'][0] );
-					$suffix = is_callable( array( $order, 'get_order_number' ) ) ? $order->get_order_number() : '';
-				} else {
-					$suffix = is_callable( array( $this->order, 'get_order_number' ) ) ? $this->order->get_order_number() : '';
-				}
-			}
-			// ensure unique filename in case suffix was empty
-			if ( empty( $suffix ) ) {
-				if ( ! empty( $this->order_id ) ) {
-					$suffix = $this->order_id;
-				} elseif ( ! empty( $args['order_ids'] ) && is_array( $args['order_ids'] ) ) {
-					$suffix = reset( $args['order_ids'] );
-				} else {
-					$suffix = uniqid();
-				}
-			}
+		if ( empty( $this->order ) && isset( $order_ids[0] ) ) {
+			$order = wc_get_order( $order_ids[0] );
 		} else {
-			$suffix = date( 'Y-m-d' ); // 2020-11-11
+			$order = $this->order;
 		}
+		$order_number = is_callable( array( $order, 'get_order_number' ) ) ? $order->get_order_number() : '';
 
-		$filename = $name . '-' . $suffix . '.pdf';
-
-		// Filter filename
-		$order_ids = isset( $args['order_ids'] ) ? $args['order_ids'] : array( $this->order_id );
-		$filename  = apply_filters( 'woi_pdf_filename', $filename, $this->get_type(), $order_ids, $context, $args );
-
-		// sanitize filename (after filters to prevent human errors)!
-		return sanitize_file_name( $filename );
+		return woi_pdf_build_filename( array(
+			'type'            => $this->get_type(),
+			'document_type'   => $name,
+			'order_ids'       => $order_ids,
+			'order_number'    => $order_number,
+			'order_id'        => $this->order_id,
+			'document_number' => (string) $this->get_number(),
+			'output_format'   => ! empty( $args['output'] ) ? esc_attr( $args['output'] ) : 'pdf',
+			'context'         => $context,
+			'filter_args'     => $args,
+		) );
 	}
 
 	// -------------------------------------------------------------------------

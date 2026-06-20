@@ -137,31 +137,24 @@ class CreditNote extends OrderDocumentMethods implements NumberedDocumentInterfa
 		$order_count = count( $order_ids );
 		$name        = _n( 'credit-note', 'credit-notes', $order_count, 'woocommerce-orders-invoice-pdf' );
 
-		if ( $order_count === 1 ) {
-			if ( isset( $this->settings['display_number'] ) ) {
-				$suffix = (string) $this->get_number();
-			} else {
-				if ( empty( $this->order ) ) {
-					$order  = wc_get_order( $order_ids[0] );
-					$suffix = method_exists( $order, 'get_order_number' ) ? $order->get_order_number() : intval( $order_ids[0] );
-				} else {
-					$suffix = method_exists( $this->order, 'get_order_number' ) ? $this->order->get_order_number() : $this->order->get_id();
-				}
-			}
+		if ( empty( $this->order ) && isset( $order_ids[0] ) ) {
+			$order = wc_get_order( $order_ids[0] );
 		} else {
-			$suffix = date( 'Y-m-d' ); // 2020-11-11
+			$order = $this->order;
 		}
+		$order_number = is_callable( array( $order, 'get_order_number' ) ) ? $order->get_order_number() : '';
 
-		// get filename
-		$output_format = ! empty( $args['output'] ) ? esc_attr( $args['output'] ) : 'pdf';
-		$filename      = $name . '-' . $suffix . woi_pdf_get_document_output_format_extension( $output_format );
-
-		// Filter filename
-		$order_ids = isset( $args['order_ids'] ) ? $args['order_ids'] : array( $this->order_id );
-		$filename  = apply_filters( 'woi_pdf_filename', $filename, $this->get_type(), $order_ids, $context, $args );
-
-		// sanitize filename (after filters to prevent human errors)!
-		return sanitize_file_name( $filename );
+		return woi_pdf_build_filename( array(
+			'type'            => $this->get_type(),
+			'document_type'   => $name,
+			'order_ids'       => $order_ids,
+			'order_number'    => $order_number,
+			'order_id'        => $this->order_id,
+			'document_number' => (string) $this->get_number(),
+			'output_format'   => ! empty( $args['output'] ) ? esc_attr( $args['output'] ) : 'pdf',
+			'context'         => $context,
+			'filter_args'     => $args,
+		) );
 	}
 
 	// -------------------------------------------------------------------------
