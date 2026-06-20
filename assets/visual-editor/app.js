@@ -652,11 +652,13 @@
     //     A4 "page" in the pane. Centring needs a definite width: max-width
     //     alone leaves margin:auto resolving to 0 (the page stays left-aligned);
     //     width:210mm + max-width:100% centres on a wide pane yet still shrinks
-    //     to fit a narrow one.
+    //     to fit a narrow one. The margin needs !important: the live preview
+    //     appends editor.getCss() (GrapesJS) in an in-<body> <style> that ships
+    //     a later `body{margin:0}` reset which would otherwise win on source order.
     //   - the shared .woi-pagebreak rule is height:0 (invisible) — fine for a
     //     real PDF, useless in a continuous view, so show a dashed divider.
     var PREVIEW_SHIM_CSS =
-        'body{width:210mm;max-width:100%;margin:0 auto;padding:15mm;box-sizing:border-box;background:#fff}' +
+        'body{width:210mm;max-width:100%;margin:0 auto !important;padding:15mm;box-sizing:border-box;background:#fff}' +
         '.woi-pagebreak{border-top:1px dashed #999;margin:4mm 0;height:auto;page-break-after:auto}';
     // Fallback if the server failed to deliver the shared stylesheet. Labels are
     // inline; the <br> in the markup does the stacking (matches visual-document.css).
