@@ -111,13 +111,14 @@ class VisualEditorPage {
         echo '</div>'; // .woi-layout-switch
         echo '</div>'; // #woi-editor-toolbar
 
-        // Order bar.
+        // Order bar (searchable combobox; populated by app.js via woi_pdf_preview_order_search).
         echo '<div class="woi-order-bar" style="margin:8px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">';
         echo '<label for="woi-order-search"><strong>' . esc_html__( 'Preview order:', 'woocommerce-orders-invoice-pdf' ) . '</strong></label>';
-        echo '<input type="text" id="woi-order-search" class="regular-text" placeholder="' . esc_attr__( 'Order #, email or name (blank = last order)', 'woocommerce-orders-invoice-pdf' ) . '" style="max-width:280px">';
-        echo '<button type="button" class="button" id="woi-order-search-btn">' . esc_html__( 'Find', 'woocommerce-orders-invoice-pdf' ) . '</button>';
+        echo '<span class="woi-order-combo">';
+        echo '<input type="text" id="woi-order-search" class="regular-text" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="woi-order-panel" aria-autocomplete="list" placeholder="' . esc_attr__( 'Search by order #, name, company or email', 'woocommerce-orders-invoice-pdf' ) . '">';
+        echo '<ul id="woi-order-panel" class="woi-order-panel" role="listbox" hidden></ul>';
+        echo '</span>';
         echo '<span class="spinner woi-order-spinner" style="float:none;margin:0;visibility:hidden"></span>';
-        echo '<select id="woi-order-results" style="display:none;max-width:320px"></select>';
         echo '<span id="woi-order-current" style="color:#555"></span>';
         echo '</div>';
 

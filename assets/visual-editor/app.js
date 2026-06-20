@@ -486,79 +486,197 @@
         if ( el ) { el.textContent = label ? ( 'Selected: ' + label ) : ''; }
     }
 
-    // Toggle loading feedback on the order bar (spinner + disabled "Find" button).
+    // Toggle loading feedback on the order bar (spinner only; no Find button now).
     function setOrderBarBusy( busy ) {
-        var btn     = document.getElementById( 'woi-order-search-btn' );
         var spinner = document.querySelector( '.woi-order-spinner' );
-        if ( btn ) {
-            btn.disabled = !! busy;
-            if ( busy ) {
-                if ( ! btn.getAttribute( 'data-woi-label' ) ) { btn.setAttribute( 'data-woi-label', btn.textContent ); }
-                btn.textContent = 'Finding…';
-            } else if ( btn.getAttribute( 'data-woi-label' ) ) {
-                btn.textContent = btn.getAttribute( 'data-woi-label' );
-            }
-        }
         if ( spinner ) {
             spinner.classList.toggle( 'is-active', !! busy );
             spinner.style.visibility = busy ? 'visible' : 'hidden';
         }
     }
 
-    function orderSearch() {
-        var input = document.getElementById( 'woi-order-search' );
-        var sel   = document.getElementById( 'woi-order-results' );
-        if ( ! input || ! sel ) { return; }
-        var term = input.value.trim();
-        setOrderBarBusy( true );
-        if ( '' === term ) {
-            setCurrentOrder( null, 'last order' );
-            sel.style.display = 'none';
-            woiFetchOrderTokens( null ).then( function () {
-                woiRefreshLiveHtml();
-                if ( typeof woiMaybeRefreshPdf === 'function' ) { woiMaybeRefreshPdf(); }
-            } ).catch( function () {} ).then( function () { setOrderBarBusy( false ); } );
-            return;
-        }
+    // --- Searchable order combobox ---
+    var woiOrderDebounce   = null;
+    var woiOrderActiveIdx  = -1;
 
+    function woiOrderPanel() { return document.getElementById( 'woi-order-panel' ); }
+
+    function woiOrderRowTitle( d ) {
+        var name = ( d.billing_company || '' ).trim();
+        if ( '' === name ) {
+            name = ( ( d.billing_first_name || '' ) + ' ' + ( d.billing_last_name || '' ) ).trim();
+        }
+        if ( '' === name ) { name = '(no name)'; }
+        return '#' + ( d.order_number || '' ) + ' — ' + name;
+    }
+
+    function woiSetPanelOpen( open ) {
+        var panel = woiOrderPanel();
+        var input = document.getElementById( 'woi-order-search' );
+        if ( ! panel ) { return; }
+        if ( open ) { panel.removeAttribute( 'hidden' ); } else { panel.setAttribute( 'hidden', '' ); }
+        if ( input ) { input.setAttribute( 'aria-expanded', open ? 'true' : 'false' ); }
+        if ( ! open ) { woiOrderActiveIdx = -1; }
+    }
+
+    function woiPanelIsOpen() {
+        var panel = woiOrderPanel();
+        return panel && ! panel.hasAttribute( 'hidden' );
+    }
+
+    // POST a search term (empty = recent orders); resolves to the data map or {}.
+    function woiFetchOrders( term ) {
         var body = 'action=' + encodeURIComponent( woiVisual.orderSearchAction ) +
             '&security=' + encodeURIComponent( woiVisual.previewNonce ) +
             '&document_type=' + encodeURIComponent( woiVisual.docType ) +
-            '&search=' + encodeURIComponent( term );
-
-        fetch( woiVisual.ajaxUrl, {
+            '&search=' + encodeURIComponent( term || '' );
+        return fetch( woiVisual.ajaxUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             credentials: 'same-origin',
             body: body
-        } ).then( function ( r ) { return r.json(); } ).then( function ( res ) {
-            sel.innerHTML = '';
-            if ( ! res.success || ! res.data ) { alert( 'No orders found.' ); sel.style.display = 'none'; setOrderBarBusy( false ); return; }
-            Object.keys( res.data ).forEach( function ( id ) {
-                var d = res.data[ id ];
-                var opt = document.createElement( 'option' );
-                opt.value = id;
-                opt.textContent = '#' + ( d.order_number || id ) + ' — ' + ( d.billing_first_name || '' ) + ' ' + ( d.billing_last_name || '' );
-                sel.appendChild( opt );
-            } );
-            sel.style.display = 'inline-block';
-            sel.selectedIndex = 0;
-            setCurrentOrder( sel.value, sel.options[ 0 ].textContent );
-            woiFetchOrderTokens( sel.value ).then( function () { woiRefreshLiveHtml(); if ( typeof woiMaybeRefreshPdf === 'function' ) { woiMaybeRefreshPdf(); } } ).catch( function () {} ).then( function () { setOrderBarBusy( false ); } );
-        } ).catch( function ( e ) { alert( 'Order search failed: ' + ( e && e.message ? e.message : e ) ); setOrderBarBusy( false ); } );
+        } ).then( function ( r ) { return r.json(); } )
+           .then( function ( res ) { return ( res && res.success && res.data ) ? res.data : {}; } )
+           .catch( function () { return {}; } );
     }
 
-    ( function bindOrderBar() {
-        var searchBtn  = document.getElementById( 'woi-order-search-btn' );
-        var sel        = document.getElementById( 'woi-order-results' );
-        if ( searchBtn ) { searchBtn.addEventListener( 'click', orderSearch ); }
-        if ( sel ) { sel.addEventListener( 'change', function () {
-            woiSelectedOrderId = sel.value;
-            var cur = document.getElementById( 'woi-order-current' );
-            if ( cur && sel.options[ sel.selectedIndex ] ) { cur.textContent = 'Selected: ' + sel.options[ sel.selectedIndex ].textContent; }
-            setOrderBarBusy( true );
-            woiFetchOrderTokens( sel.value ).then( function () { woiRefreshLiveHtml(); if ( typeof woiMaybeRefreshPdf === 'function' ) { woiMaybeRefreshPdf(); } } ).catch( function () {} ).then( function () { setOrderBarBusy( false ); } );
-        } ); }
+    function woiSelectOrder( id, label ) {
+        setCurrentOrder( id, label );
+        woiSetPanelOpen( false );
+        var input = document.getElementById( 'woi-order-search' );
+        if ( input ) { input.value = label || ''; }
+        setOrderBarBusy( true );
+        woiFetchOrderTokens( id ).then( function () {
+            woiRefreshLiveHtml();
+            if ( typeof woiMaybeRefreshPdf === 'function' ) { woiMaybeRefreshPdf(); }
+        } ).catch( function () {} ).then( function () { setOrderBarBusy( false ); } );
+    }
+
+    // Rebuild #woi-order-panel from a data map and open it.
+    function woiRenderOrderPanel( data ) {
+        var panel = woiOrderPanel();
+        if ( ! panel ) { return; }
+        panel.innerHTML = '';
+        woiOrderActiveIdx = -1;
+        var ids = Object.keys( data || {} );
+
+        if ( ! ids.length ) {
+            var empty = document.createElement( 'li' );
+            empty.className = 'woi-order-empty';
+            empty.textContent = 'No orders found';
+            panel.appendChild( empty );
+            woiSetPanelOpen( true );
+            return;
+        }
+
+        ids.forEach( function ( id ) {
+            var d  = data[ id ];
+            var li = document.createElement( 'li' );
+            li.className = 'woi-order-opt';
+            li.setAttribute( 'role', 'option' );
+            li.setAttribute( 'data-order-id', id );
+
+            var title = document.createElement( 'span' );
+            title.className = 'woi-op-title';
+            title.textContent = woiOrderRowTitle( d );
+
+            var meta1 = document.createElement( 'span' );
+            meta1.className = 'woi-op-meta';
+            // total_raw is server-escaped wc_price() HTML; append counts as text nodes.
+            var priceSpan = document.createElement( 'span' );
+            priceSpan.innerHTML = d.total_raw || '';   // wc_price() output — server-escaped
+            meta1.appendChild( priceSpan );
+            meta1.appendChild( document.createTextNode(
+                ' · ' + ( d.line_count || 0 ) + ' items / ' + ( d.unit_count || 0 ) + ' units'
+            ) );
+
+            var meta2 = document.createElement( 'span' );
+            meta2.className = 'woi-op-meta';
+            var dateTxt = d.date_raw || '';
+            var payTxt  = d.payment_method || '—';
+            // Both values are plain text (date format + sanitized payment title) — use textContent.
+            meta2.textContent = ( dateTxt ? dateTxt + ' · ' : '' ) + payTxt;
+
+            li.appendChild( title );
+            li.appendChild( meta1 );
+            li.appendChild( meta2 );
+
+            li.addEventListener( 'mousedown', function ( e ) {
+                // mousedown (not click) so it fires before the input blur closes the panel.
+                e.preventDefault();
+                woiSelectOrder( id, woiOrderRowTitle( d ) );
+            } );
+
+            panel.appendChild( li );
+        } );
+
+        woiSetPanelOpen( true );
+    }
+
+    function woiOrderOptions() {
+        var panel = woiOrderPanel();
+        return panel ? Array.prototype.slice.call( panel.querySelectorAll( '.woi-order-opt' ) ) : [];
+    }
+
+    function woiHighlightOption( idx ) {
+        var opts = woiOrderOptions();
+        if ( ! opts.length ) { return; }
+        if ( idx < 0 ) { idx = opts.length - 1; }
+        if ( idx >= opts.length ) { idx = 0; }
+        woiOrderActiveIdx = idx;
+        opts.forEach( function ( o, i ) { o.classList.toggle( 'is-active', i === idx ); } );
+        opts[ idx ].scrollIntoView( { block: 'nearest' } );
+    }
+
+    function woiLoadOrders( term ) {
+        setOrderBarBusy( true );
+        return woiFetchOrders( term ).then( function ( data ) {
+            woiRenderOrderPanel( data );
+        } ).catch( function () {} ).then( function () { setOrderBarBusy( false ); } );
+    }
+
+    ( function bindOrderCombo() {
+        var input = document.getElementById( 'woi-order-search' );
+        if ( ! input ) { return; }
+
+        input.addEventListener( 'focus', function () {
+            // Show recents (or the existing list) on open.
+            if ( ! woiPanelIsOpen() || ! woiOrderOptions().length ) {
+                woiLoadOrders( input.value.trim() );
+            } else {
+                woiSetPanelOpen( true );
+            }
+        } );
+
+        input.addEventListener( 'input', function () {
+            if ( woiOrderDebounce ) { clearTimeout( woiOrderDebounce ); }
+            var term = input.value.trim();
+            woiOrderDebounce = setTimeout( function () { woiLoadOrders( term ); }, 300 );
+        } );
+
+        input.addEventListener( 'keydown', function ( e ) {
+            if ( 'ArrowDown' === e.key ) {
+                e.preventDefault();
+                if ( ! woiPanelIsOpen() ) { woiLoadOrders( input.value.trim() ); return; }
+                woiHighlightOption( woiOrderActiveIdx + 1 );
+            } else if ( 'ArrowUp' === e.key ) {
+                e.preventDefault();
+                woiHighlightOption( woiOrderActiveIdx - 1 );
+            } else if ( 'Enter' === e.key ) {
+                var opts = woiOrderOptions();
+                if ( woiPanelIsOpen() && woiOrderActiveIdx >= 0 && opts[ woiOrderActiveIdx ] ) {
+                    e.preventDefault();
+                    opts[ woiOrderActiveIdx ].dispatchEvent( new MouseEvent( 'mousedown' ) );
+                }
+            } else if ( 'Escape' === e.key ) {
+                woiSetPanelOpen( false );
+            }
+        } );
+
+        document.addEventListener( 'click', function ( e ) {
+            var combo = e.target.closest ? e.target.closest( '.woi-order-combo' ) : null;
+            if ( ! combo ) { woiSetPanelOpen( false ); }
+        } );
     }() );
 
     // --- Preview pane (#4/#5): toggle + tab switching ---
