@@ -4,7 +4,10 @@ import { BlockCanvas, BlockList, WritingFlow, ObserveTyping } from '@wordpress/b
 // Sizes the body as an A4 page and neutralises WP block chrome so the canvas
 // reads as the printed document.
 export const A4_SHIM_CSS =
-	'html,body{margin:0;padding:0;background:transparent}' +
+	// overflow:hidden — the iframe is sized to its content by Canvas.js, so it must
+	// never grow its own scrollbar (a transient one starts a horizontal/vertical
+	// scrollbar deadlock that leaves a stuck inner scroll window).
+	'html,body{margin:0;padding:0;background:transparent;overflow:hidden}' +
 	'body{width:210mm;min-height:297mm;margin:0;padding:15mm;box-sizing:border-box;background:#fff}' +
 	'.block-editor-block-list__layout.is-root-container{padding:0}' +
 	'.block-editor-block-list__block{margin-top:0;margin-bottom:0}' +
