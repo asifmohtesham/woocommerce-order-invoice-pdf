@@ -60,6 +60,11 @@ class BlockEditorPage {
             true
         );
         // Core block-editor styles for the canvas + components.
+        // 'wp-block-editor' carries the editor CHROME (block toolbar flex layout,
+        // inserter grid, popovers). 'wp-edit-blocks' only styles block CONTENT and
+        // does NOT pull it in, so without this the toolbar stacks vertically and the
+        // inserter list collapses/overlaps. Enqueue it explicitly.
+        wp_enqueue_style( 'wp-block-editor' );
         wp_enqueue_style( 'wp-edit-blocks' );
         wp_enqueue_style( 'wp-components' );
         wp_enqueue_style( 'wp-format-library' );
