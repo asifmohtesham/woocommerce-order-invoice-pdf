@@ -25,6 +25,58 @@ class VisualTemplateStore {
         update_option( $this->option_name( $doc_type ), $clean, false );
     }
 
+    public function blocks_markup_option_name( string $doc_type ): string {
+        return 'woi_pdf_visual_blocks_' . preg_replace( '/[^a-z0-9_]/', '', $doc_type );
+    }
+
+    public function blocks_html_option_name( string $doc_type ): string {
+        return 'woi_pdf_visual_blocks_html_' . preg_replace( '/[^a-z0-9_]/', '', $doc_type );
+    }
+
+    public function active_source_option_name(): string {
+        return 'woi_pdf_visual_active_source';
+    }
+
+    public function get_blocks_markup( string $doc_type ): string {
+        $stored = get_option( $this->blocks_markup_option_name( $doc_type ) );
+        return is_string( $stored ) ? $stored : '';
+    }
+
+    public function get_blocks_html( string $doc_type ): string {
+        $stored = get_option( $this->blocks_html_option_name( $doc_type ) );
+        return is_string( $stored ) ? $stored : '';
+    }
+
+    /**
+     * Store both the round-trip block markup (raw) and the rendered HTML
+     * (kses-cleaned, tokens preserved). Both unautoloaded.
+     */
+    public function save_blocks( string $doc_type, string $markup, string $rendered_html ): void {
+        update_option( $this->blocks_markup_option_name( $doc_type ), $markup, false );
+        $clean = wp_kses( $rendered_html, $this->allowed_html() );
+        update_option( $this->blocks_html_option_name( $doc_type ), $clean, false );
+    }
+
+    /** 'grapesjs' (default) or 'blocks'. */
+    public function get_active_source(): string {
+        $source = get_option( $this->active_source_option_name() );
+        return ( 'blocks' === $source ) ? 'blocks' : 'grapesjs';
+    }
+
+    /** Silently ignores anything other than the two valid sources. */
+    public function set_active_source( string $source ): void {
+        if ( 'grapesjs' === $source || 'blocks' === $source ) {
+            update_option( $this->active_source_option_name(), $source, false );
+        }
+    }
+
+    /** Rendered HTML for whichever source is active (what the render path consumes). */
+    public function get_active( string $doc_type ): string {
+        return ( 'blocks' === $this->get_active_source() )
+            ? $this->get_blocks_html( $doc_type )
+            : $this->get( $doc_type );
+    }
+
     /**
      * kses allowlist for GrapesJS output. Covers tables, common block/inline
      * tags, images, and a <style> element. The {{token}} brace syntax is plain
