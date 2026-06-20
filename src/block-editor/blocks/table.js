@@ -158,6 +158,10 @@ export function registerTableBlock() {
 				const table = e.target.closest( 'table' );
 				const tableW = ( table && table.offsetWidth ) || 1;
 				const startX = e.clientX;
+				// Listen on the document that owns the dragged element — the canvas
+				// renders inside a BlockCanvas IFRAME, so mousemove/up fire there, not
+				// on the parent document.
+				const doc = e.target.ownerDocument || document;
 				// Baseline = the explicit width, else the column's actual rendered
 				// share (measured from this handle's own cell, so merges don't skew it).
 				const startPct = parseFloat( colWidths[ c ] ) || ( cellEl ? cellEl.offsetWidth / tableW * 100 : 100 / ( colCount || 1 ) );
@@ -168,15 +172,15 @@ export function registerTableBlock() {
 					setDrag( { c, w: finalW } );
 				};
 				const onUp = () => {
-					document.removeEventListener( 'mousemove', onMove );
-					document.removeEventListener( 'mouseup', onUp );
+					doc.removeEventListener( 'mousemove', onMove );
+					doc.removeEventListener( 'mouseup', onUp );
 					setDrag( null );
 					const cw = Array.from( { length: colCount }, ( _, i ) => colWidths[ i ] || '' );
 					cw[ c ] = finalW;
 					setAttributes( { colWidths: cw } );
 				};
-				document.addEventListener( 'mousemove', onMove );
-				document.addEventListener( 'mouseup', onUp );
+				doc.addEventListener( 'mousemove', onMove );
+				doc.addEventListener( 'mouseup', onUp );
 			};
 
 			// Merge the selected cell with its right / lower neighbour. Kept simple
@@ -246,15 +250,18 @@ export function registerTableBlock() {
 			// mousedown anchors a 1-cell range (text editing still works); dragging
 			// onto other cells grows the rectangle; mouseup keeps a multi-cell range
 			// (→ "Merge cells" appears) or clears a single-cell one.
-			const onCellDown = ( i, c ) => {
+			const onCellDown = ( e, i, c ) => {
 				setRange( { aR: i, aC: c, fR: i, fC: c } );
 				draggingRef.current = true;
+				// The mouseup fires in the BlockCanvas iframe's document, not the
+				// parent — listen on the dragged cell's ownerDocument.
+				const doc = ( e && e.target && e.target.ownerDocument ) || document;
 				const up = () => {
 					draggingRef.current = false;
-					document.removeEventListener( 'mouseup', up );
+					doc.removeEventListener( 'mouseup', up );
 					setRange( ( r ) => ( r && r.aR === r.fR && r.aC === r.fC ) ? null : r );
 				};
-				document.addEventListener( 'mouseup', up );
+				doc.addEventListener( 'mouseup', up );
 			};
 			const onCellEnter = ( i, c ) => {
 				if ( draggingRef.current ) { setRange( ( r ) => ( r ? { ...r, fR: i, fC: c } : r ) ); }
@@ -300,7 +307,7 @@ export function registerTableBlock() {
 							// Highlight cells inside the drag-select rectangle.
 							...( inRange( i, c ) ? { boxShadow: 'inset 0 0 0 2px #2271b1' } : {} ),
 						};
-						const tagProps = { ...props, style, onMouseDown: () => onCellDown( i, c ), onMouseEnter: () => onCellEnter( i, c ) };
+						const tagProps = { ...props, style, onMouseDown: ( e ) => onCellDown( e, i, c ), onMouseEnter: () => onCellEnter( i, c ) };
 						return (
 							<Tag key={ c } { ...tagProps }>
 								<RichText
