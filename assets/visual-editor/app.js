@@ -648,17 +648,22 @@
     // (woiVisual.previewCss). These rules exist solely because the browser
     // preview is a scrolling iframe, not paged media:
     //   - @page doesn't apply in an iframe, so simulate the 15mm page margin
-    //     and the ~180mm content width mPDF lays out against.
+    //     and the ~180mm content width mPDF lays out against, and CENTRE the
+    //     A4 "page" in the pane. Centring needs a definite width: max-width
+    //     alone leaves margin:auto resolving to 0 (the page stays left-aligned);
+    //     width:210mm + max-width:100% centres on a wide pane yet still shrinks
+    //     to fit a narrow one.
     //   - the shared .woi-pagebreak rule is height:0 (invisible) — fine for a
     //     real PDF, useless in a continuous view, so show a dashed divider.
     var PREVIEW_SHIM_CSS =
-        'body{max-width:210mm;margin:0 auto;padding:15mm;box-sizing:border-box;background:#fff}' +
+        'body{width:210mm;max-width:100%;margin:0 auto;padding:15mm;box-sizing:border-box;background:#fff}' +
         '.woi-pagebreak{border-top:1px dashed #999;margin:4mm 0;height:auto;page-break-after:auto}';
-    // Fallback if the server failed to deliver the shared stylesheet.
+    // Fallback if the server failed to deliver the shared stylesheet. Labels are
+    // inline; the <br> in the markup does the stacking (matches visual-document.css).
     var PREVIEW_FALLBACK_CSS =
         'table{border-collapse:collapse;width:100%}' +
         '.order-details th,.order-details td{border:0.5pt solid #000;padding:0.375em}' +
-        '.woi-lbl-primary,.woi-lbl-secondary{display:block}.woi-lbl-secondary{direction:rtl}';
+        '.woi-lbl-primary,.woi-lbl-secondary{display:inline}.woi-lbl-secondary{direction:rtl}';
 
     function woiDebounce( fn, ms ) {
         var t; return function () { clearTimeout( t ); t = setTimeout( fn, ms ); };
