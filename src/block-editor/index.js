@@ -74,7 +74,7 @@ function Editor( { initial, activeSource } ) {
 					</div>
 				</BlockEditorProvider>
 			</div>
-			<PreviewPanel blocks={ blocks } />
+			<PreviewPanel blocks={ blocks } source={ source } />
 		</div>
 	);
 }
