@@ -1,0 +1,34 @@
+const CSS =
+	'.woi-canvas-scroll{flex:1;min-height:0;overflow:auto;background:#525659;padding:24px}' +
+	'.woi-a4-frame{position:relative;width:max-content;margin:0 auto;padding-left:8mm;padding-top:6mm}' +
+	'.woi-a4-frame-body{position:relative;display:block}' +
+	// top ruler
+	'.woi-ruler{position:relative;background:#f3f3f3;color:#555;font-size:8px;line-height:1}' +
+	'.woi-ruler--top{height:6mm;width:210mm;margin-left:8mm;position:sticky;top:0;z-index:3;' +
+		'background-image:repeating-linear-gradient(to right,#bbb 0,#bbb 0.18mm,transparent 0.18mm,transparent 1mm),' +
+		'repeating-linear-gradient(to right,#888 0,#888 0.25mm,transparent 0.25mm,transparent 10mm)}' +
+	'.woi-ruler--top .woi-ruler-mark{position:absolute;top:0.5mm;transform:translateX(1px)}' +
+	// left ruler
+	'.woi-ruler--left{position:absolute;left:0;top:0;width:8mm;font-size:8px;' +
+		'background-image:repeating-linear-gradient(to bottom,#bbb 0,#bbb 0.18mm,transparent 0.18mm,transparent 1mm),' +
+		'repeating-linear-gradient(to bottom,#888 0,#888 0.25mm,transparent 0.25mm,transparent 10mm)}' +
+	'.woi-ruler--left .woi-ruler-mark{position:absolute;left:0.5mm;transform:translateY(-1px)}' +
+	'.woi-ruler--left .woi-ruler-mark.is-page{color:#c0392b;font-weight:700}' +
+	// page
+	'.woi-a4-page{position:relative;margin-left:8mm;width:210mm;min-height:297mm;background:#fff;' +
+		'box-shadow:0 1px 6px rgba(0,0,0,.4)}' +
+	'.woi-a4-page .block-editor-block-canvas,.woi-a4-page iframe{width:210mm;border:0;display:block}' +
+	// fallback (no BlockCanvas): apply preview CSS scoped, padded like the page
+	'.woi-a4-fallback{padding:15mm;box-sizing:border-box;min-height:297mm}' +
+	// page-break guides
+	'.woi-page-guides{position:absolute;inset:0;pointer-events:none;z-index:2}' +
+	'.woi-page-guide{position:absolute;left:0;right:0;border-top:1px dashed #c0392b}' +
+	'.woi-page-guide-label{position:absolute;right:2mm;top:1mm;font-size:8px;color:#c0392b;background:#fff;padding:0 2px}';
+
+export default function injectCanvasStyles() {
+	if ( document.getElementById( 'woi-canvas-styles' ) ) { return; }
+	const el = document.createElement( 'style' );
+	el.id = 'woi-canvas-styles';
+	el.textContent = CSS;
+	document.head.appendChild( el );
+}
