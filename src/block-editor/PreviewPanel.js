@@ -3,7 +3,7 @@ import { __ } from '@wordpress/i18n';
 import { renderedHtmlFromBlocks, mergeTokens, wrapForPreview, fetchOrderTokens, fetchOrders, orderRowTitle } from './preview';
 import { renderPdfPreview } from './pdfPreview';
 
-export default function PreviewPanel( { blocks, source } ) {
+export default function PreviewPanel( { blocks, source, hidden } ) {
 	const iframeRef = useRef( null );
 	const stageRef = useRef( null );
 	const [ tab, setTab ] = useState( 'html' ); // 'html' | 'pdf'
@@ -63,7 +63,7 @@ export default function PreviewPanel( { blocks, source } ) {
 	}, [] );
 
 	return (
-		<div className="woi-block-preview" style={ { flex: '1', minWidth: '360px', borderLeft: '1px solid #ddd', display: 'flex', flexDirection: 'column' } }>
+		<div className="woi-block-preview" hidden={ hidden }>
 			<div className="woi-block-preview-bar" style={ { display: 'flex', gap: '8px', alignItems: 'center', padding: '8px', flexWrap: 'wrap' } }>
 				<div className="woi-block-preview-tabs" role="group" style={ { display: 'flex', gap: '4px' } }>
 					<button type="button" className={ 'button' + ( 'html' === tab ? ' button-primary' : '' ) } onClick={ () => setTab( 'html' ) }>{ __( 'Live HTML', 'woocommerce-orders-invoice-pdf' ) }</button>
