@@ -297,7 +297,7 @@ function woi_pdf_get_filename_settings(): array {
 
 	$template = isset( $settings['filename_template'] ) ? trim( (string) $settings['filename_template'] ) : '';
 	if ( '' === $template ) {
-		$template = '{document_type}-{order_number}-{date}';
+		$template = '{document_type}_{order_number}_{date}';
 	}
 
 	$date_format = isset( $settings['filename_date_format'] ) ? trim( (string) $settings['filename_date_format'] ) : '';
@@ -368,12 +368,13 @@ function woi_pdf_build_filename( array $args ): string {
 
 	$filename = strtr( $settings['template'], $replacements );
 
-	// Collapse separators left by empty tokens, then trim stray separators.
-	// Only the dash separator is collapsed (it is the default template's
-	// separator); a custom template using another character keeps it verbatim,
-	// and sanitize_file_name() below still guarantees a safe filename.
-	$filename = preg_replace( '/-{2,}/', '-', $filename );
-	$filename = trim( $filename, '-' );
+	// Collapse runs of a repeated separator left by empty tokens, then trim
+	// stray leading/trailing separators. Only dash and underscore (the
+	// template separators) are collapsed, and a run is collapsed to the SAME
+	// character so a custom template's chosen separator is never rewritten.
+	// sanitize_file_name() below still guarantees a safe filename.
+	$filename = preg_replace( '/([_-])\1+/', '$1', $filename );
+	$filename = trim( $filename, '-_' );
 
 	$filename .= woi_pdf_get_document_output_format_extension( (string) $args['output_format'] );
 

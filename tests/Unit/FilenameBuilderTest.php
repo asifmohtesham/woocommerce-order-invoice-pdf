@@ -58,8 +58,9 @@ class FilenameBuilderTest extends TestCase {
 	}
 
 	public function test_default_template_single_order(): void {
+		// Underscore delimits the data points; the date keeps its own hyphens.
 		$this->assertSame(
-			'invoice-1042-2026-06-20.pdf',
+			'invoice_1042_2026-06-20.pdf',
 			woi_pdf_build_filename( $this->args() )
 		);
 	}
@@ -84,9 +85,23 @@ class FilenameBuilderTest extends TestCase {
 		);
 	}
 
-	public function test_bulk_order_number_becomes_count(): void {
+	public function test_underscore_template_empty_document_number_collapses(): void {
+		// A custom underscore template with an empty {document_number} leaves a
+		// doubled underscore that collapses to one — and the underscore
+		// separator is preserved (never rewritten to a dash).
+		Functions\when( 'get_option' )->justReturn( array(
+			'filename_template' => '{document_type}_{order_number}_{document_number}_{date}',
+		) );
 		$this->assertSame(
-			'invoices-3-orders-2026-06-20.pdf',
+			'invoice_1042_2026-06-20.pdf',
+			woi_pdf_build_filename( $this->args( array( 'document_number' => '' ) ) )
+		);
+	}
+
+	public function test_bulk_order_number_becomes_count(): void {
+		// Underscore delimits data points; "12-orders" keeps its internal hyphen.
+		$this->assertSame(
+			'invoices_3-orders_2026-06-20.pdf',
 			woi_pdf_build_filename( $this->args( array(
 				'document_type' => 'invoices',
 				'order_ids'     => array( 55, 56, 57 ),
@@ -99,7 +114,7 @@ class FilenameBuilderTest extends TestCase {
 			'filename_date_format' => 'd-m-Y',
 		) );
 		$this->assertSame(
-			'invoice-1042-20-06-2026.pdf',
+			'invoice_1042_20-06-2026.pdf',
 			woi_pdf_build_filename( $this->args() )
 		);
 	}
@@ -109,14 +124,14 @@ class FilenameBuilderTest extends TestCase {
 			'filename_template' => '',
 		) );
 		$this->assertSame(
-			'invoice-1042-2026-06-20.pdf',
+			'invoice_1042_2026-06-20.pdf',
 			woi_pdf_build_filename( $this->args() )
 		);
 	}
 
 	public function test_empty_order_number_falls_back_to_order_id(): void {
 		$this->assertSame(
-			'invoice-55-2026-06-20.pdf',
+			'invoice_55_2026-06-20.pdf',
 			woi_pdf_build_filename( $this->args( array( 'order_number' => '' ) ) )
 		);
 	}
@@ -133,14 +148,16 @@ class FilenameBuilderTest extends TestCase {
 
 	public function test_settings_resolver_applies_defaults(): void {
 		$settings = woi_pdf_get_filename_settings();
-		$this->assertSame( '{document_type}-{order_number}-{date}', $settings['template'] );
+		$this->assertSame( '{document_type}_{order_number}_{date}', $settings['template'] );
 		$this->assertSame( 'Y-m-d', $settings['date_format'] );
 	}
 
 	public function test_no_order_context_drops_order_number_token(): void {
 		// Summary export with zero orders: no order id, no order number, no ids.
+		// The empty {order_number} leaves "summary__2026-06-20" which the
+		// underscore-aware collapse reduces to a single underscore.
 		$this->assertSame(
-			'summary-2026-06-20.pdf',
+			'summary_2026-06-20.pdf',
 			woi_pdf_build_filename( array(
 				'type'          => 'summary',
 				'document_type' => 'summary',
