@@ -369,6 +369,9 @@ function woi_pdf_build_filename( array $args ): string {
 	$filename = strtr( $settings['template'], $replacements );
 
 	// Collapse separators left by empty tokens, then trim stray separators.
+	// Only the dash separator is collapsed (it is the default template's
+	// separator); a custom template using another character keeps it verbatim,
+	// and sanitize_file_name() below still guarantees a safe filename.
 	$filename = preg_replace( '/-{2,}/', '-', $filename );
 	$filename = trim( $filename, '-' );
 

@@ -1932,9 +1932,8 @@ abstract class OrderDocument implements DocumentInterface {
 	}
 
 	public function get_filename( $context = 'download', $args = array() ) {
-		$order_ids   = isset( $args['order_ids'] ) ? $args['order_ids'] : array( $this->order_id );
-		$order_count = count( $order_ids );
-		$name        = $this->get_type();
+		$order_ids = isset( $args['order_ids'] ) ? $args['order_ids'] : array( $this->order_id );
+		$name      = $this->get_type();
 
 		if ( is_callable( array( $this->order, 'get_type' ) ) && $this->order->get_type() == 'shop_order_refund' ) {
 			$order_number = (string) $this->order_id;
