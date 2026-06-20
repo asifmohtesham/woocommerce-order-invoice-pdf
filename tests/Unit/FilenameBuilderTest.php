@@ -153,4 +153,41 @@ class FilenameBuilderTest extends TestCase {
 			) )
 		);
 	}
+
+	public function test_filter_receives_expected_arguments(): void {
+		$captured = array();
+		Functions\when( 'apply_filters' )->alias( function ( ...$a ) use ( &$captured ) {
+			$captured = $a;
+			return $a[1]; // return $filename unchanged
+		} );
+
+		woi_pdf_build_filename( $this->args() );
+
+		$this->assertSame( 'woi_pdf_filename', $captured[0] );
+		$this->assertSame( 'invoice', $captured[2] );        // $type
+		$this->assertSame( array( 55 ), $captured[3] );      // $order_ids
+		$this->assertSame( 'download', $captured[4] );       // $context
+		$this->assertSame( array(), $captured[5] );          // $filter_args
+	}
+
+	public function test_no_order_context_passes_empty_order_ids_to_filter(): void {
+		$captured = array();
+		Functions\when( 'apply_filters' )->alias( function ( ...$a ) use ( &$captured ) {
+			$captured = $a;
+			return $a[1];
+		} );
+
+		woi_pdf_build_filename( array(
+			'type'          => 'summary',
+			'document_type' => 'summary',
+			'order_ids'     => array(),
+			'order_number'  => '',
+			'order_id'      => 0,
+			'output_format' => 'pdf',
+			'context'       => 'download',
+			'filter_args'   => array(),
+		) );
+
+		$this->assertSame( array(), $captured[3] ); // no-order context -> empty order_ids
+	}
 }

@@ -375,7 +375,9 @@ function woi_pdf_build_filename( array $args ): string {
 	$filename .= woi_pdf_get_document_output_format_extension( (string) $args['output_format'] );
 
 	// Preserve the existing developer filter contract.
-	$filter_order_ids = ! empty( $order_ids ) ? $order_ids : array( $args['order_id'] );
+	$filter_order_ids = ! empty( $order_ids )
+		? $order_ids
+		: ( ! empty( $args['order_id'] ) ? array( $args['order_id'] ) : array() );
 	$filename         = apply_filters( 'woi_pdf_filename', $filename, $args['type'], $filter_order_ids, $args['context'], $args['filter_args'] );
 
 	return sanitize_file_name( $filename );
