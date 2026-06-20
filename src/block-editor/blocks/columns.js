@@ -15,21 +15,54 @@ const MAX_COLUMNS = 12;
  * validates save() markup, so the divergence is intentional and allowed.
  */
 export function registerColumnsBlocks() {
-	// Child: one table cell holding arbitrary blocks.
+	// Child: one table cell holding arbitrary blocks. An optional width (%) is
+	// set via a sidebar control; save() bakes it into the <td> as an inline
+	// width style (mPDF honours td width %, and kses allows style on td). An
+	// empty width emits a plain <td>, identical to the pre-width save() — so
+	// existing saved columns stay valid.
 	registerBlockType( 'woi/column', {
 		apiVersion: 2,
 		title: __( 'Column', 'woocommerce-orders-invoice-pdf' ),
 		category: 'woi-invoice',
 		parent: [ 'woi/columns' ],
 		icon: 'columns',
+		attributes: { width: { type: 'string', default: '' } },
 		supports: { html: false, reusable: false, inserter: false },
-		edit() {
-			const blockProps = useBlockProps( { style: { flex: '1', minWidth: '60px', border: '1px dashed #c3c4c7', padding: '8px', verticalAlign: 'top' } } );
+		edit( { attributes, setAttributes } ) {
+			const { width } = attributes;
+			const pct = width ? ( parseInt( width, 10 ) || 0 ) : 0;
+			const blockProps = useBlockProps( {
+				style: {
+					// Preview the chosen width as a flex-basis; auto when unset.
+					flex: width ? '0 0 ' + width : '1',
+					minWidth: '60px',
+					border: '1px dashed #c3c4c7',
+					padding: '8px',
+					verticalAlign: 'top',
+				},
+			} );
 			const innerProps = useInnerBlocksProps( blockProps, { templateLock: false } );
-			return <div { ...innerProps } />;
+			return (
+				<>
+					<InspectorControls>
+						<PanelBody title={ __( 'Column', 'woocommerce-orders-invoice-pdf' ) }>
+							<RangeControl
+								label={ __( 'Width (%) — 0 = auto', 'woocommerce-orders-invoice-pdf' ) }
+								value={ pct }
+								onChange={ ( v ) => setAttributes( { width: v ? v + '%' : '' } ) }
+								min={ 0 }
+								max={ 100 }
+							/>
+						</PanelBody>
+					</InspectorControls>
+					<div { ...innerProps } />
+				</>
+			);
 		},
-		save() {
-			const innerProps = useInnerBlocksProps.save( useBlockProps.save() );
+		save( { attributes } ) {
+			const { width } = attributes;
+			const blockProps = useBlockProps.save( width ? { style: { width } } : {} );
+			const innerProps = useInnerBlocksProps.save( blockProps );
 			return <td { ...innerProps } />;
 		},
 	} );
