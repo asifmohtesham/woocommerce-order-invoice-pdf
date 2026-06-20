@@ -15,6 +15,7 @@ import { registerTextBlock } from './blocks/text';
 import { registerLayoutBlocks } from './blocks/layout';
 import { registerColumnsBlocks, registerHeaderRowVariation } from './blocks/columns';
 import { saveBlocks, setActiveSource } from './store';
+import PreviewPanel from './PreviewPanel';
 
 // Register our blocks (core blocks not used in slice 1, but registering the
 // collection groups ours under an "Invoice" heading in the inserter).
@@ -49,28 +50,31 @@ function Editor( { initial, activeSource } ) {
 	}
 
 	return (
-		<div className="woi-block-shell">
-			<div className="woi-block-toolbar" style={ { display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' } }>
-				<Button variant="primary" onClick={ onSave }>{ __( 'Save', 'woocommerce-orders-invoice-pdf' ) }</Button>
-				<label>{ __( 'PDF source:', 'woocommerce-orders-invoice-pdf' ) }</label>
-				<select value={ source } onChange={ ( e ) => onSource( e.target.value ) }>
-					<option value="grapesjs">{ __( 'GrapesJS', 'woocommerce-orders-invoice-pdf' ) }</option>
-					<option value="blocks">{ __( 'Block editor', 'woocommerce-orders-invoice-pdf' ) }</option>
-				</select>
-				<span aria-live="polite">{ status }</span>
-			</div>
-			<BlockEditorProvider value={ blocks } onInput={ setBlocks } onChange={ setBlocks }>
-				<div className="woi-block-canvas" style={ { border: '1px solid #ddd', background: '#fff', minHeight: '60vh' } }>
-					<BlockTools>
-						<div style={ { padding: '8px' } }><Inserter rootClientId={ undefined } isAppender /></div>
-						<WritingFlow>
-							<ObserveTyping>
-								<BlockList />
-							</ObserveTyping>
-						</WritingFlow>
-					</BlockTools>
+		<div className="woi-block-shell" style={ { display: 'flex', gap: '0', alignItems: 'stretch', minHeight: '70vh' } }>
+			<div className="woi-block-main" style={ { flex: '1.3', minWidth: '0', paddingRight: '8px' } }>
+				<div className="woi-block-toolbar" style={ { display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' } }>
+					<Button variant="primary" onClick={ onSave }>{ __( 'Save', 'woocommerce-orders-invoice-pdf' ) }</Button>
+					<label>{ __( 'PDF source:', 'woocommerce-orders-invoice-pdf' ) }</label>
+					<select value={ source } onChange={ ( e ) => onSource( e.target.value ) }>
+						<option value="grapesjs">{ __( 'GrapesJS', 'woocommerce-orders-invoice-pdf' ) }</option>
+						<option value="blocks">{ __( 'Block editor', 'woocommerce-orders-invoice-pdf' ) }</option>
+					</select>
+					<span aria-live="polite">{ status }</span>
 				</div>
-			</BlockEditorProvider>
+				<BlockEditorProvider value={ blocks } onInput={ setBlocks } onChange={ setBlocks }>
+					<div className="woi-block-canvas" style={ { border: '1px solid #ddd', background: '#fff', minHeight: '60vh' } }>
+						<BlockTools>
+							<div style={ { padding: '8px' } }><Inserter rootClientId={ undefined } isAppender /></div>
+							<WritingFlow>
+								<ObserveTyping>
+									<BlockList />
+								</ObserveTyping>
+							</WritingFlow>
+						</BlockTools>
+					</div>
+				</BlockEditorProvider>
+			</div>
+			<PreviewPanel blocks={ blocks } />
 		</div>
 	);
 }
