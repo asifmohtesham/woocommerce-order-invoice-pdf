@@ -20,7 +20,7 @@
 - `sanitize_file_name()` is always the last transform.
 - Settings option name: `woi_pdf_settings_general`. New keys: `filename_template`, `filename_date_format`.
 - Run PHPUnit with the ABSPATH prepend or it dies silently:
-  `vendor/bin/phpunit -d auto_prepend_file=tests/bootstrap.php`
+  `php -d auto_prepend_file=tests/bootstrap.php vendor/phpunit/phpunit/phpunit`
 - Version bump target: `1.5.4` → `1.5.5` in `woocommerce-orders-invoice-pdf.php` (header `Version:` + the `$this->version` property that feeds `WOI_PDF_VERSION`).
 
 ---
@@ -215,7 +215,7 @@ class FilenameBuilderTest extends TestCase {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `vendor/bin/phpunit -d auto_prepend_file=tests/bootstrap.php --filter FilenameBuilderTest`
+Run: `php -d auto_prepend_file=tests/bootstrap.php vendor/phpunit/phpunit/phpunit --filter FilenameBuilderTest`
 Expected: FAIL — `Error: Call to undefined function WOI\PDF\Tests\Unit\woi_pdf_build_filename()` (and `..._get_filename_settings()`).
 
 - [ ] **Step 3: Implement the two helpers**
@@ -320,7 +320,7 @@ function woi_pdf_build_filename( array $args ): string {
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `vendor/bin/phpunit -d auto_prepend_file=tests/bootstrap.php --filter FilenameBuilderTest`
+Run: `php -d auto_prepend_file=tests/bootstrap.php vendor/phpunit/phpunit/phpunit --filter FilenameBuilderTest`
 Expected: PASS (10 tests).
 
 - [ ] **Step 5: Lint the modified file**
@@ -654,7 +654,7 @@ Expected: `No syntax errors detected` for each.
 
 - [ ] **Step 9: Run the full unit suite to confirm no regressions**
 
-Run: `vendor/bin/phpunit -d auto_prepend_file=tests/bootstrap.php`
+Run: `php -d auto_prepend_file=tests/bootstrap.php vendor/phpunit/phpunit/phpunit`
 Expected: PASS — same pass count as the clean baseline plus the `FilenameBuilderTest` from Task 1.
 
 - [ ] **Step 10: Commit**
