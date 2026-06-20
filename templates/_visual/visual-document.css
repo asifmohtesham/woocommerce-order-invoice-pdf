@@ -53,9 +53,12 @@ table.totals-table th.description { text-align: inherit; vertical-align: top; mi
 table.totals-table td.price { text-align: right; }
 tr.grand-total td, tr.grand-total th { border-top: 1px solid #000; border-bottom: 1px solid #000; }
 
-/* Bilingual label pairs (Arabic column headers / totals labels) */
-.woi-lbl-primary { display: block; }
-.woi-lbl-secondary { display: block; direction: rtl; }
+/* Bilingual label pairs (Arabic column headers / totals labels).
+   Labels are inline; a <br> in the markup (see TemplateTokens) does the
+   stacking. mPDF ignores display:block on inline <span>s inside a <th>, so
+   the line break must be a real <br>, not CSS. */
+.woi-lbl-primary { display: inline; }
+.woi-lbl-secondary { display: inline; direction: rtl; }
 
 /* --- Layout blocks (visual editor) --- */
 .woi-pagebreak { page-break-after: always; height: 0; }

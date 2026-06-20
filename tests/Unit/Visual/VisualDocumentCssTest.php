@@ -13,7 +13,9 @@ class VisualDocumentCssTest extends TestCase {
         $css = (string) file_get_contents( $this->repo_root() . '/templates/_visual/visual-document.css' );
 
         $this->assertStringContainsString( 'width: 13mm !important', $css );
-        $this->assertStringContainsString( '.woi-lbl-primary { display: block; }', $css );
+        // Labels are inline; a <br> in the markup does the stacking (mPDF ignores
+        // display:block on inline spans inside <th>). See TemplateTokens.
+        $this->assertStringContainsString( '.woi-lbl-primary { display: inline; }', $css );
         $this->assertStringContainsString( '.order-details .vat-split { width: 12%; }', $css );
     }
 }
