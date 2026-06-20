@@ -586,8 +586,10 @@
             var priceSpan = document.createElement( 'span' );
             priceSpan.innerHTML = d.total_raw || '';   // wc_price() output — server-escaped
             meta1.appendChild( priceSpan );
+            var lc = d.line_count || 0;
+            var uc = d.unit_count || 0;
             meta1.appendChild( document.createTextNode(
-                ' · ' + ( d.line_count || 0 ) + ' items / ' + ( d.unit_count || 0 ) + ' units'
+                ' · ' + lc + ( 1 === lc ? ' item / ' : ' items / ' ) + uc + ( 1 === uc ? ' unit' : ' units' )
             ) );
 
             var meta2 = document.createElement( 'span' );
