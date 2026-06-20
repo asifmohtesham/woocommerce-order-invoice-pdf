@@ -437,6 +437,7 @@ class Settings {
 
 			if ( empty( $_POST['document_type'] ) ) {
 				wp_send_json_error( array( 'error' => esc_html__( 'An error occurred when trying to process your request!', 'woocommerce-orders-invoice-pdf' ) ) );
+				return;
 			}
 
 			$document_type = sanitize_text_field( wp_unslash( $_POST['document_type'] ) );
