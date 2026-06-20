@@ -16,6 +16,7 @@ class Blocks {
 
 	public function __construct() {
 		add_action( 'init', array( $this, 'register' ) );
+		add_filter( 'block_categories_all', array( $this, 'add_category' ) );
 	}
 
 	public function register(): void {
@@ -32,6 +33,15 @@ class Blocks {
 				'category'    => 'woi-invoice',
 			) );
 		}
+	}
+
+	public function add_category( $categories ) {
+		if ( ! is_array( $categories ) ) { return $categories; }
+		array_unshift( $categories, array(
+			'slug'  => 'woi-invoice',
+			'title' => __( 'Invoice', 'woocommerce-orders-invoice-pdf' ),
+		) );
+		return $categories;
 	}
 }
 
