@@ -2,6 +2,7 @@ import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps } from '@wordpress/block-editor';
 import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
+import { safeHTML } from '@wordpress/dom';
 import { STORE } from '../previewStore';
 import { isHtmlToken, tokenValue } from '../tokenMerge';
 
@@ -49,9 +50,11 @@ export function registerTokenBlocks() {
 					return <Tag { ...blockProps }>{ preview }</Tag>;
 				}
 				if ( isHtmlToken( token ) ) {
-					// Server-trusted HTML from the token map (logo, billing address,
-					// line-items table, totals table).
-					return <Tag { ...blockProps } dangerouslySetInnerHTML={ { __html: value } } />;
+					// HTML token (logo, billing address, line-items / totals tables).
+					// safeHTML strips scripts / event-handler attributes / javascript:
+					// URLs before injecting into the live admin DOM — defence-in-depth
+					// against unescaped customer fields (billing address, product names).
+					return <Tag { ...blockProps } dangerouslySetInnerHTML={ { __html: safeHTML( value ) } } />;
 				}
 				return <Tag { ...blockProps }>{ value }</Tag>;
 			},
