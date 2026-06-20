@@ -12,6 +12,7 @@ import { Button } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { registerTokenBlocks } from './blocks/token';
 import { registerTextBlock } from './blocks/text';
+import { registerLayoutBlocks } from './blocks/layout';
 import { saveBlocks, setActiveSource } from './store';
 
 // Register our blocks (core blocks not used in slice 1, but registering the
@@ -19,6 +20,7 @@ import { saveBlocks, setActiveSource } from './store';
 registerBlockCollection( 'woi', { title: __( 'Invoice', 'woocommerce-orders-invoice-pdf' ) } );
 registerTextBlock();
 registerTokenBlocks();
+registerLayoutBlocks();
 
 function Editor( { initial, activeSource } ) {
 	const [ blocks, setBlocks ] = useState( initial );

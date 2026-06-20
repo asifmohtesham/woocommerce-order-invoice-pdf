@@ -19,6 +19,7 @@ class Blocks {
 		'woi/document-title', 'woi/document-title-ar', 'woi/invoice-number', 'woi/invoice-date',
 		'woi/order-number', 'woi/payment-method', 'woi/billing-address',
 		'woi/line-items', 'woi/totals',
+		'woi/spacer', 'woi/divider', 'woi/heading', 'woi/page-break',
 	);
 
 	public function __construct() {
