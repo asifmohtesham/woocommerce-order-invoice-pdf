@@ -2927,6 +2927,20 @@ if ( ! function_exists( 'woi_pdf_templates_get_totals' ) ) {
 	}
 }
 
+if ( ! function_exists( 'woi_pdf_visual_document_css' ) ) {
+	/**
+	 * Single source of truth for the visual document stylesheet, shared by the
+	 * mPDF wrapper (templates/_visual/visual-document-wrapper.php) and the
+	 * browser Live HTML preview (VisualEditorPage::enqueue -> woiVisual.previewCss).
+	 *
+	 * @return string CSS text, or '' when the file is unreadable.
+	 */
+	function woi_pdf_visual_document_css() {
+		$path = WOI_PDF_PLUGIN_PATH . '/templates/_visual/visual-document.css';
+		return is_readable( $path ) ? (string) file_get_contents( $path ) : '';
+	}
+}
+
 if ( ! function_exists( 'woi_pdf_templates_get_footer_settings' ) ) {
 	function woi_pdf_templates_get_footer_settings( $document, $default_height = '5cm' ) {
 		$footer_height = str_replace( ' ', '', \WOI\PDF\Editor\EditorSettings::instance()->get_footer_height() );
