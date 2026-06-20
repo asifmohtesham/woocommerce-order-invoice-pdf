@@ -901,6 +901,7 @@ import { registerTokenBlocks } from './blocks/token';
 import { registerTextBlock } from './blocks/text';
 import { registerLayoutBlocks } from './blocks/layout';
 import { registerColumnsBlocks, registerHeaderRowVariation } from './blocks/columns';
+import { registerTableBlock } from './blocks/table';
 import { saveBlocks, setActiveSource } from './store';
 import './previewStore';
 import OrderPicker from './OrderPicker';
@@ -909,6 +910,10 @@ import injectCanvasStyles from './canvas/canvasStyles';
 import PreviewPanel from './PreviewPanel';
 import { injectLayoutStyles, LAYOUTS } from './layout';
 ```
+
+**PRESERVE the existing `registerTableBlock();` call** (added by the `woi/table`
+block, commit `401cbe9`) alongside the other `register*()` calls — do not drop it.
+The `woi/table` block is a static layout block; it needs no store integration.
 
 After the existing `injectLayoutStyles();` call, add:
 
