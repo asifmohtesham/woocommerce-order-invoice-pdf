@@ -288,6 +288,100 @@ function woi_pdf_get_document_output_format_extension( string $output_format ): 
 }
 
 /**
+ * Resolve the configurable filename settings, applying defaults.
+ *
+ * @return array{template:string, date_format:string}
+ */
+function woi_pdf_get_filename_settings(): array {
+	$settings = get_option( 'woi_pdf_settings_general', array() );
+
+	$template = isset( $settings['filename_template'] ) ? trim( (string) $settings['filename_template'] ) : '';
+	if ( '' === $template ) {
+		$template = '{document_type}-{order_number}-{date}';
+	}
+
+	$date_format = isset( $settings['filename_date_format'] ) ? trim( (string) $settings['filename_date_format'] ) : '';
+	if ( '' === $date_format ) {
+		$date_format = 'Y-m-d';
+	}
+
+	return array(
+		'template'    => $template,
+		'date_format' => $date_format,
+	);
+}
+
+/**
+ * Build a standardized PDF filename from the configurable template.
+ *
+ * The order number is always represented: for a single order it is the
+ * caller-resolved order number (falling back to order id / uniqid); for
+ * multiple orders it collapses to "{count}-orders".
+ *
+ * @param array $args type, document_type, order_ids, order_number, order_id,
+ *                    document_number, output_format, context, filter_args.
+ * @return string Sanitized filename including extension.
+ */
+function woi_pdf_build_filename( array $args ): string {
+	$args = array_merge( array(
+		'type'            => '',
+		'document_type'   => '',
+		'order_ids'       => array(),
+		'order_number'    => '',
+		'order_id'        => 0,
+		'document_number' => '',
+		'output_format'   => 'pdf',
+		'context'         => 'download',
+		'filter_args'     => array(),
+	), $args );
+
+	$settings    = woi_pdf_get_filename_settings();
+	$order_ids   = array_values( (array) $args['order_ids'] );
+	$order_count = max( 1, count( $order_ids ) );
+	$is_bulk     = $order_count > 1;
+	$has_order   = ! empty( $order_ids ) || ! empty( $args['order_id'] ) || '' !== (string) $args['order_number'];
+
+	if ( $is_bulk ) {
+		$order_number = $order_count . '-orders';
+	} elseif ( ! $has_order ) {
+		// No order context at all (e.g. Summary export): drop the token.
+		$order_number = '';
+	} else {
+		$order_number = (string) $args['order_number'];
+		if ( '' === $order_number ) {
+			if ( ! empty( $args['order_id'] ) ) {
+				$order_number = (string) $args['order_id'];
+			} elseif ( ! empty( $order_ids ) ) {
+				$order_number = (string) reset( $order_ids );
+			} else {
+				$order_number = uniqid();
+			}
+		}
+	}
+
+	$replacements = array(
+		'{document_type}'   => (string) $args['document_type'],
+		'{order_number}'    => $order_number,
+		'{document_number}' => $is_bulk ? '' : (string) $args['document_number'],
+		'{date}'            => date_i18n( $settings['date_format'] ),
+	);
+
+	$filename = strtr( $settings['template'], $replacements );
+
+	// Collapse separators left by empty tokens, then trim stray separators.
+	$filename = preg_replace( '/-{2,}/', '-', $filename );
+	$filename = trim( $filename, '-' );
+
+	$filename .= woi_pdf_get_document_output_format_extension( (string) $args['output_format'] );
+
+	// Preserve the existing developer filter contract.
+	$filter_order_ids = ! empty( $order_ids ) ? $order_ids : array( $args['order_id'] );
+	$filename         = apply_filters( 'woi_pdf_filename', $filename, $args['type'], $filter_order_ids, $args['context'], $args['filter_args'] );
+
+	return sanitize_file_name( $filename );
+}
+
+/**
  * Wrapper for deprecated functions so we can apply some extra logic.
  *
  * @since  2.0
