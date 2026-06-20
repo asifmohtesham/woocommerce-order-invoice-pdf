@@ -21,9 +21,14 @@ table.order-details th, table.order-details td { border: 0.5pt solid #000; paddi
 .order-details td, .order-details th { padding: 0.375em; }
 
 /* Column widths (cells default class == column type) */
-.order-details .thumbnail,
 .order-details .quantity,
 .order-details .weight { width: 8%; }
+/* Thumbnail column: an ABSOLUTE width — mPDF ignores a % width here and
+   collapses the column, letting the fixed-width product image overflow into
+   the next column. An absolute mm width mPDF does honour, so the image stays
+   contained. ~15mm ≈ the old 8% on A4. */
+.order-details th.thumbnail,
+.order-details td.thumbnail { width: 15mm; }
 .order-details .sku,
 .order-details .price,
 .order-details .regular_price,
@@ -34,9 +39,10 @@ table.order-details th, table.order-details td { border: 0.5pt solid #000; paddi
 .order-details .vat-split { width: 12%; }
 .order-details .position { width: 5%; }
 
-/* Product thumbnails. !important beats WooCommerce's inline width/height attrs
-   (this is why the canonical template uses !important here too). */
-td.thumbnail img { width: 13mm !important; height: auto !important; }
+/* Product thumbnails. display:block stacks multiple gallery images vertically
+   (centred) so they never overflow the column inline. !important beats
+   WooCommerce's inline width/height attrs (the canonical template does this too). */
+td.thumbnail img { display: block; width: 13mm !important; height: auto !important; margin: 0 auto; }
 
 /* Item meta (variations / personalisation lines) */
 .wc-item-meta { margin: 4px 0; font-size: 7pt; line-height: 115%; }
