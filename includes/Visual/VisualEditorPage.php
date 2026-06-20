@@ -86,6 +86,7 @@ class VisualEditorPage {
             'docType'      => 'invoice',
             'stored'          => $store->get( 'invoice' ),
             'starter'         => $this->starter_html(),
+            'previewCss'      => woi_pdf_visual_document_css(),
             'sampleData'      => $this->sample_data(),
             'previewDataUrl'  => esc_url_raw( rest_url( 'woi-pdf/v1/visual-preview-data' ) ),
             'orderSearchAction' => 'woi_pdf_preview_order_search',

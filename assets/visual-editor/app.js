@@ -644,15 +644,21 @@
 
     // --- Live HTML preview engine (#5) ---
     var currentOrderTokens = null; // cached token map for the selected order
-    var PREVIEW_CSS =
-        'body{font-family:dejavusans,sans-serif;font-size:11pt;color:#222;padding:8mm}' +
+    // Preview-only shim layered ON TOP of the shared visual-document CSS
+    // (woiVisual.previewCss). These rules exist solely because the browser
+    // preview is a scrolling iframe, not paged media:
+    //   - @page doesn't apply in an iframe, so simulate the 15mm page margin
+    //     and the ~180mm content width mPDF lays out against.
+    //   - the shared .woi-pagebreak rule is height:0 (invisible) — fine for a
+    //     real PDF, useless in a continuous view, so show a dashed divider.
+    var PREVIEW_SHIM_CSS =
+        'body{max-width:210mm;margin:0 auto;padding:15mm;box-sizing:border-box;background:#fff}' +
+        '.woi-pagebreak{border-top:1px dashed #999;margin:4mm 0;height:auto;page-break-after:auto}';
+    // Fallback if the server failed to deliver the shared stylesheet.
+    var PREVIEW_FALLBACK_CSS =
         'table{border-collapse:collapse;width:100%}' +
-        '.order-details th,.order-details td{border:0.5pt solid #000;padding:2px 4px}' +
-        '.totals-table td.price{text-align:right}.totals-table th.description{text-align:inherit}' +
-        '.woi-lbl-secondary{display:block;direction:rtl}' +
-        '.woi-doc-title{text-align:center;margin:4mm 0}.woi-doc-title .title-en,.woi-doc-title .title-ar{font-size:16pt;font-weight:bold}.woi-doc-title .title-ar{margin-left:6mm}' +
-        '.woi-pagebreak{border-top:1px dashed #999;margin:4mm 0}.woi-row td{vertical-align:top}' +
-        '[dir="rtl"],.woi-bilingual-secondary{direction:rtl}';
+        '.order-details th,.order-details td{border:0.5pt solid #000;padding:0.375em}' +
+        '.woi-lbl-primary,.woi-lbl-secondary{display:block}.woi-lbl-secondary{direction:rtl}';
 
     function woiDebounce( fn, ms ) {
         var t; return function () { clearTimeout( t ); t = setTimeout( fn, ms ); };
@@ -665,7 +671,9 @@
         return out.replace( /\{\{\s*[a-z0-9_]+\s*\}\}/gi, '' );
     }
     function woiWrapForPreview( bodyHtml ) {
-        return '<!DOCTYPE html><html><head><meta charset="utf-8"><style>' + PREVIEW_CSS + '</style></head><body>' + bodyHtml + '</body></html>';
+        var docCss = ( woiVisual && woiVisual.previewCss ) ? woiVisual.previewCss : PREVIEW_FALLBACK_CSS;
+        var css = docCss + PREVIEW_SHIM_CSS;
+        return '<!DOCTYPE html><html><head><meta charset="utf-8"><style>' + css + '</style></head><body>' + bodyHtml + '</body></html>';
     }
     function woiRefreshLiveHtml() {
         var frame = document.getElementById( 'woi-preview-html' );
