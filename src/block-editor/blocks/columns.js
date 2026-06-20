@@ -42,11 +42,17 @@ export function registerColumnsBlocks() {
 			bg: { type: 'string', default: '' },
 			align: { type: 'string', default: '' },
 			border: { type: 'boolean', default: false },
+			pad: { type: 'number', default: 0 },
 		},
 		supports: { html: false, reusable: false, inserter: false },
-		edit( { attributes, setAttributes } ) {
-			const { width, valign, bg, align, border } = attributes;
+		edit( { clientId, attributes, setAttributes } ) {
+			const { width, valign, bg, align, border, pad } = attributes;
 			const pct = width ? ( parseInt( width, 10 ) || 0 ) : 0;
+			const rootId = useSelect(
+				( select ) => select( 'core/block-editor' ).getBlockRootClientId( clientId ),
+				[ clientId ]
+			);
+			const { duplicateBlocks, moveBlocksUp, moveBlocksDown } = useDispatch( 'core/block-editor' );
 			const blockProps = useBlockProps( {
 				style: {
 					// Preview the chosen width/alignment/background/border; auto when unset.
@@ -54,7 +60,7 @@ export function registerColumnsBlocks() {
 					minWidth: '60px',
 					// Solid black previews the real cell border; dashed is the editor aid.
 					border: border ? '1px solid #000' : '1px dashed #c3c4c7',
-					padding: '8px',
+					padding: pad ? pad + 'px' : '8px',
 					verticalAlign: valign || 'top',
 					textAlign: align || undefined,
 					backgroundColor: bg || undefined,
@@ -105,6 +111,18 @@ export function registerColumnsBlocks() {
 								colors={ CELL_COLORS }
 								onChange={ ( c ) => setAttributes( { bg: c || '' } ) }
 							/>
+							<RangeControl
+								label={ __( 'Cell padding (px) — 0 = default', 'woocommerce-orders-invoice-pdf' ) }
+								value={ pad }
+								onChange={ ( v ) => setAttributes( { pad: v || 0 } ) }
+								min={ 0 }
+								max={ 24 }
+							/>
+							<div style={ { display: 'flex', gap: '4px', marginTop: '8px', flexWrap: 'wrap' } }>
+								<Button variant="secondary" onClick={ () => duplicateBlocks( [ clientId ] ) }>{ __( 'Duplicate', 'woocommerce-orders-invoice-pdf' ) }</Button>
+								<Button variant="secondary" onClick={ () => moveBlocksUp( [ clientId ], rootId ) }>{ __( 'Move ←', 'woocommerce-orders-invoice-pdf' ) }</Button>
+								<Button variant="secondary" onClick={ () => moveBlocksDown( [ clientId ], rootId ) }>{ __( 'Move →', 'woocommerce-orders-invoice-pdf' ) }</Button>
+							</div>
 						</PanelBody>
 					</InspectorControls>
 					<div { ...innerProps } />
@@ -112,13 +130,14 @@ export function registerColumnsBlocks() {
 			);
 		},
 		save( { attributes } ) {
-			const { width, valign, bg, align, border } = attributes;
+			const { width, valign, bg, align, border, pad } = attributes;
 			const style = {};
 			if ( width ) { style.width = width; }
 			if ( valign ) { style.verticalAlign = valign; }
 			if ( align ) { style.textAlign = align; }
 			if ( bg ) { style.backgroundColor = bg; }
 			if ( border ) { style.border = '0.5pt solid #000'; }
+			if ( pad ) { style.padding = pad + 'px'; }
 			const blockProps = useBlockProps.save( Object.keys( style ).length ? { style } : {} );
 			const innerProps = useInnerBlocksProps.save( blockProps );
 			return <td { ...innerProps } />;
