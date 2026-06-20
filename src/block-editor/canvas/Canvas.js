@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from '@wordpress/element';
 import A4Canvas from './A4Canvas';
-import { TopRuler, LeftRuler, PageGuides, A4_H } from './rulers';
+import { TopRuler, LeftRuler, PageGuides, A4_H } from './rulerView';
 
 const PX_PER_MM = 96 / 25.4;
 
