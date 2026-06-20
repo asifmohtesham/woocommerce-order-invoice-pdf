@@ -96,6 +96,7 @@ export default function PreviewPanel( { blocks, source, hidden } ) {
 			<iframe
 				ref={ iframeRef }
 				title={ __( 'Live preview', 'woocommerce-orders-invoice-pdf' ) }
+				sandbox="allow-same-origin"
 				hidden={ 'html' !== tab }
 				style={ { flex: '1', width: '100%', border: '0', background: '#fff', minHeight: '60vh', display: 'html' === tab ? 'block' : 'none' } }
 			/>
