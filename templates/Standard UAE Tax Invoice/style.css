@@ -289,10 +289,16 @@ table.order-details tr:last-child {
 .order-details .cb {
 	width: 3.5mm;
 }
-.order-details .thumbnail,
 .order-details .quantity,
 .order-details .weight {
 	width: 8%;
+}
+/* Thumbnail column needs an ABSOLUTE width: mPDF ignores a % width here and
+   collapses the column, letting the fixed-width product image overflow into
+   the next column. ~15mm ≈ the old 8% on A4. */
+.order-details th.thumbnail,
+.order-details td.thumbnail {
+	width: 15mm;
 }
 .order-details .sku,
 .order-details .price,
@@ -315,8 +321,10 @@ table.order-details tr:last-child {
 }
 
 td.thumbnail img {
+	display: block;
 	width: 13mm !important;
 	height: auto !important;
+	margin: 0 auto;
 }
 
 /* item meta formatting for WC2.6 and older */

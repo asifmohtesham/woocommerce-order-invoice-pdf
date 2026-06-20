@@ -124,7 +124,7 @@
 				<th class="<?php echo esc_attr( $header_data['class'] ); ?>"<?php echo woi_pdf_templates_maybe_apply_column_styles( $header_data, 'header' ); ?>><?php
 					echo esc_html( $header_data['title'] );
 					if ( ! empty( $header_data['secondary'] ) ) {
-						echo '<span class="woi-lbl-secondary" dir="rtl">' . esc_html( $header_data['secondary'] ) . '</span>';
+						echo '<br><span class="woi-lbl-secondary" dir="rtl">' . esc_html( $header_data['secondary'] ) . '</span>';
 					}
 				?></th>
 			<?php endforeach; ?>
@@ -154,7 +154,7 @@
 					<th class="description"><span><?php
 						echo esc_html( $total_data['label'] );
 						if ( ! empty( $total_data['secondary'] ) ) {
-							echo '<span class="woi-lbl-secondary" dir="rtl">' . esc_html( $total_data['secondary'] ) . '</span>';
+							echo '<br><span class="woi-lbl-secondary" dir="rtl">' . esc_html( $total_data['secondary'] ) . '</span>';
 						}
 					?></span></th>
 					<td class="price"><span class="totals-price"><?php echo esc_html( $total_data['value'] ); ?></span></td>
