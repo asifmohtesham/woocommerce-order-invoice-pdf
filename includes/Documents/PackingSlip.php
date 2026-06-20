@@ -83,35 +83,28 @@ class PackingSlip extends OrderDocumentMethods implements EmailAttachableInterfa
 	}
 
 	public function get_filename( $context = 'download', $args = array() ) {
-		$order_count = isset($args['order_ids']) ? count($args['order_ids']) : 1;
+		$order_ids   = isset( $args['order_ids'] ) ? $args['order_ids'] : array( $this->order_id );
+		$order_count = count( $order_ids );
+		$name        = _n( 'packing-slip', 'packing-slips', $order_count, 'woocommerce-orders-invoice-pdf' );
 
-		$name = _n( 'packing-slip', 'packing-slips', $order_count, 'woocommerce-orders-invoice-pdf' );
-
-		if ( $order_count == 1 ) {
-			if ( isset( $this->settings['display_number'] ) ) {
-				$suffix = (string) $this->get_number();
-			} else {
-				if ( empty( $this->order ) && isset( $args['order_ids'] ) ) {
-					$order = wc_get_order( $args['order_ids'][0] );
-					$suffix = is_callable( array( $order, 'get_order_number' ) ) ? $order->get_order_number() : '';
-				} else {
-					$suffix = is_callable( array( $this->order, 'get_order_number' ) ) ? $this->order->get_order_number() : '';
-				}
-			}
+		if ( empty( $this->order ) && isset( $order_ids[0] ) ) {
+			$order = wc_get_order( $order_ids[0] );
 		} else {
-			$suffix = date_i18n( 'Y-m-d' ); // 2024-12-31
+			$order = $this->order;
 		}
+		$order_number = is_callable( array( $order, 'get_order_number' ) ) ? $order->get_order_number() : '';
 
-		// get filename
-		$output_format = ! empty( $args['output'] ) ? esc_attr( $args['output'] ) : 'pdf';
-		$filename      = $name . '-' . $suffix . woi_pdf_get_document_output_format_extension( $output_format );
-
-		// Filter filename
-		$order_ids = isset( $args['order_ids'] ) ? $args['order_ids'] : array( $this->order_id );
-		$filename  = apply_filters( 'woi_pdf_filename', $filename, $this->get_type(), $order_ids, $context, $args );
-
-		// sanitize filename (after filters to prevent human errors)!
-		return sanitize_file_name( $filename );
+		return woi_pdf_build_filename( array(
+			'type'            => $this->get_type(),
+			'document_type'   => $name,
+			'order_ids'       => $order_ids,
+			'order_number'    => $order_number,
+			'order_id'        => $this->order_id,
+			'document_number' => (string) $this->get_number(),
+			'output_format'   => ! empty( $args['output'] ) ? esc_attr( $args['output'] ) : 'pdf',
+			'context'         => $context,
+			'filter_args'     => $args,
+		) );
 	}
 
 	public function init_settings() {
