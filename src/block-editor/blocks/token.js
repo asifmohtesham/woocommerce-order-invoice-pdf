@@ -1,6 +1,9 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps } from '@wordpress/block-editor';
+import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
+import { STORE } from '../previewStore';
+import { isHtmlToken, tokenValue } from '../tokenMerge';
 
 /**
  * Slice-1 token blocks. Each is static: save() emits a fixed wrapper holding the
@@ -37,7 +40,20 @@ export function registerTokenBlocks() {
 			supports: { html: false, reusable: false },
 			edit() {
 				const Tag = tag;
-				return <Tag { ...useBlockProps() }>{ preview }</Tag>;
+				const tokens = useSelect( ( select ) => select( STORE ).getTokens(), [] );
+				const value = tokenValue( token, tokens );
+				const blockProps = useBlockProps( { className: value ? undefined : 'woi-token-empty' } );
+				if ( ! value ) {
+					// No order picked / token empty: show the friendly label so the
+					// block stays visible and selectable.
+					return <Tag { ...blockProps }>{ preview }</Tag>;
+				}
+				if ( isHtmlToken( token ) ) {
+					// Server-trusted HTML from the token map (logo, billing address,
+					// line-items table, totals table).
+					return <Tag { ...blockProps } dangerouslySetInnerHTML={ { __html: value } } />;
+				}
+				return <Tag { ...blockProps }>{ value }</Tag>;
 			},
 			save() {
 				const Tag = tag;
