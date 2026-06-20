@@ -1,3 +1,5 @@
+import { _n, sprintf } from '@wordpress/i18n';
+
 // GET the selected order's token map (read-only; falls back to null on error).
 export function fetchOrderTokens( orderId ) {
 	const w = window.woiBlocks || {};
@@ -59,13 +61,19 @@ export function orderMetaLine( d ) {
 	const parts = [];
 	const items = parseInt( d.line_count, 10 ) || 0;
 	const units = parseInt( d.unit_count, 10 ) || 0;
-	parts.push(
-		items +
-			( 1 === items ? ' item' : ' items' ) +
-			' / ' +
-			units +
-			( 1 === units ? ' unit' : ' units' )
+	/* translators: %d: number of line items in the order. */
+	const itemsLabel = sprintf(
+		/* translators: %d: number of line items in the order. */
+		_n( '%d item', '%d items', items, 'woocommerce-orders-invoice-pdf' ),
+		items
 	);
+	/* translators: %d: number of product units (quantity sum) in the order. */
+	const unitsLabel = sprintf(
+		/* translators: %d: number of product units (quantity sum) in the order. */
+		_n( '%d unit', '%d units', units, 'woocommerce-orders-invoice-pdf' ),
+		units
+	);
+	parts.push( itemsLabel + ' / ' + unitsLabel );
 	if ( d.date_raw ) {
 		parts.push( d.date_raw );
 	}

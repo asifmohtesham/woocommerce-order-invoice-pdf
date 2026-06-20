@@ -1,3 +1,7 @@
+// INVARIANT: every token whose merged value is HTML must be listed here so the
+// block edit() routes it through safeHTML before dangerouslySetInnerHTML. A new
+// HTML-valued token added to the TOKENS array but omitted here renders as escaped
+// text (fails safe), so keep this set in sync when adding HTML tokens.
 // Tokens whose merged value is HTML (rendered via dangerouslySetInnerHTML),
 // not plain text. Everything else is treated as text.
 export const HTML_TOKENS = new Set( [

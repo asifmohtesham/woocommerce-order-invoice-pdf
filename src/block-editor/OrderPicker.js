@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { Spinner } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+import { safeHTML } from '@wordpress/dom';
 import { STORE } from './previewStore';
 import { parseOrderNumber } from './orderInput';
 import { fetchOrders, fetchOrderTokens, orderRowTitle, orderMetaLine } from './preview';
@@ -113,7 +114,7 @@ export default function OrderPicker() {
 								>
 									<span style={ { fontWeight: 600 } }>{ orderRowTitle( d ) }</span>
 									<span style={ { display: 'block', fontSize: '11px', color: '#666' } }>
-										<span dangerouslySetInnerHTML={ { __html: d.total_raw || '' } } />
+										<span dangerouslySetInnerHTML={ { __html: safeHTML( d.total_raw || '' ) } } />
 										{ d.total_raw ? ' · ' : '' }
 										{ orderMetaLine( d ) }
 									</span>

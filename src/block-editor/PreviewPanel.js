@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from '@wordpress/element';
+import { useRef, useCallback } from '@wordpress/element';
 import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { STORE } from './previewStore';
@@ -19,10 +19,6 @@ export default function PreviewPanel( { blocks, source, hidden } ) {
 			onStatus: () => {},
 		} );
 	}, [ blocks, orderId ] );
-
-	useEffect( () => {
-		/* no auto-render; user clicks Render PDF */
-	}, [] );
 
 	return (
 		<div className="woi-block-preview" hidden={ hidden }>
