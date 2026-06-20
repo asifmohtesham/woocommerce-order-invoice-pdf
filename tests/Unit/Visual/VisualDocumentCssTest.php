@@ -17,5 +17,9 @@ class VisualDocumentCssTest extends TestCase {
         // display:block on inline spans inside <th>). See TemplateTokens.
         $this->assertStringContainsString( '.woi-lbl-primary { display: inline; }', $css );
         $this->assertStringContainsString( '.order-details .vat-split { width: 12%; }', $css );
+        // Thumbnail column uses an absolute width (mPDF ignores % here and lets the
+        // image overflow), and images are display:block so galleries stack contained.
+        $this->assertStringContainsString( 'td.thumbnail { width: 15mm; }', $css );
+        $this->assertStringContainsString( 'td.thumbnail img { display: block;', $css );
     }
 }
