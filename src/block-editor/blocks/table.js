@@ -1,7 +1,7 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps, RichText, BlockControls, InspectorControls } from '@wordpress/block-editor';
 import { ToolbarGroup, ToolbarButton, PanelBody, ToggleControl, SelectControl, ColorPalette } from '@wordpress/components';
-import { useState } from '@wordpress/element';
+import { useState, useRef } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -92,6 +92,9 @@ export function registerTableBlock() {
 			const { rows, bordered, colWidths } = attributes;
 			const [ sel, setSel ] = useState( { r: 0, c: 0 } );
 			const [ drag, setDrag ] = useState( null );
+			// Drag-select a rectangular range of cells to merge: { aR,aC, fR,fC }.
+			const [ range, setRange ] = useState( null );
+			const draggingRef = useRef( false );
 			const colCount = rows.length ? rows[ 0 ].cells.length : 0;
 			const selCell = ( rows[ sel.r ] && rows[ sel.r ].cells[ sel.c ] ) || null;
 			const headerOn = !! ( rows[ 0 ] && 'head' === rows[ 0 ].section );
@@ -210,22 +213,20 @@ export function registerTableBlock() {
 					return row;
 				} ) );
 			};
+			// Unmerge the selected span: reset its colspan/rowspan and clear `merged`
+			// on every cell of its span rectangle. Handles 1D (mergeRight/mergeDown)
+			// AND 2D (drag-select mergeRange) spans uniformly.
 			const unmerge = () => {
 				if ( ! selCell ) { return; }
 				const spanC = cs( selCell );
 				const spanR = rs( selCell );
 				if ( spanC === 1 && spanR === 1 ) { return; }
 				setRows( rows.map( ( row, ri ) => {
-					// The merged cells covered by a horizontal span are in the same row;
-					// a vertical span covers the same column index in the rows below.
-					const inHoriz = ri === sel.r && spanC > 1;
-					const inVert = spanR > 1 && ri > sel.r && ri < sel.r + spanR;
-					if ( ! inHoriz && ! inVert && ri !== sel.r ) { return row; }
+					if ( ri < sel.r || ri >= sel.r + spanR ) { return row; }
 					return { ...row, cells: row.cells.map( ( cell, ci ) => {
+						if ( ci < sel.c || ci >= sel.c + spanC ) { return cell; }
 						if ( ri === sel.r && ci === sel.c ) { return { ...cell, colspan: 1, rowspan: 1 }; }
-						if ( inHoriz && ci > sel.c && ci < sel.c + spanC ) { return { ...cell, merged: false }; }
-						if ( inVert && ci === sel.c ) { return { ...cell, merged: false }; }
-						return cell;
+						return { ...cell, merged: false };
 					} ) };
 				} ) );
 			};
@@ -241,6 +242,50 @@ export function registerTableBlock() {
 				setRows( rows.map( ( row, ri ) => ri !== last ? row : { ...row, section: footerOn ? 'body' : 'foot' } ) );
 			};
 
+			// --- Drag-select range merge ---
+			// mousedown anchors a 1-cell range (text editing still works); dragging
+			// onto other cells grows the rectangle; mouseup keeps a multi-cell range
+			// (→ "Merge cells" appears) or clears a single-cell one.
+			const onCellDown = ( i, c ) => {
+				setRange( { aR: i, aC: c, fR: i, fC: c } );
+				draggingRef.current = true;
+				const up = () => {
+					draggingRef.current = false;
+					document.removeEventListener( 'mouseup', up );
+					setRange( ( r ) => ( r && r.aR === r.fR && r.aC === r.fC ) ? null : r );
+				};
+				document.addEventListener( 'mouseup', up );
+			};
+			const onCellEnter = ( i, c ) => {
+				if ( draggingRef.current ) { setRange( ( r ) => ( r ? { ...r, fR: i, fC: c } : r ) ); }
+			};
+			const rb = range
+				? { minR: Math.min( range.aR, range.fR ), maxR: Math.max( range.aR, range.fR ), minC: Math.min( range.aC, range.fC ), maxC: Math.max( range.aC, range.fC ) }
+				: null;
+			const rangeMulti = !! ( rb && ( rb.minR !== rb.maxR || rb.minC !== rb.maxC ) );
+			// Merge the selected rectangle into its top-left cell (others → merged).
+			// Guard: the range must not already contain a span/merged cell.
+			const mergeRange = () => {
+				if ( ! rb || ! rangeMulti ) { return; }
+				for ( let r = rb.minR; r <= rb.maxR; r++ ) {
+					for ( let c = rb.minC; c <= rb.maxC; c++ ) {
+						const cell = rows[ r ] && rows[ r ].cells[ c ];
+						if ( ! cell || cell.merged || cs( cell ) !== 1 || rs( cell ) !== 1 ) { return; }
+					}
+				}
+				setRows( rows.map( ( row, r ) => {
+					if ( r < rb.minR || r > rb.maxR ) { return row; }
+					return { ...row, cells: row.cells.map( ( cell, c ) => {
+						if ( c < rb.minC || c > rb.maxC ) { return cell; }
+						if ( r === rb.minR && c === rb.minC ) { return { ...cell, colspan: rb.maxC - rb.minC + 1, rowspan: rb.maxR - rb.minR + 1 }; }
+						return { ...cell, merged: true };
+					} ) };
+				} ) );
+				setSel( { r: rb.minR, c: rb.minC } );
+				setRange( null );
+			};
+			const inRange = ( i, c ) => !! ( rb && i >= rb.minR && i <= rb.maxR && c >= rb.minC && c <= rb.maxC );
+
 			const groups = bySection( rows );
 			const renderRows = ( list ) => list.map( ( { row, i } ) => (
 				<tr key={ i }>
@@ -248,8 +293,14 @@ export function registerTableBlock() {
 						if ( cell.merged ) { return null; }
 						const Tag = 'th' === cell.tag ? 'th' : 'td';
 						const props = cellProps( cell, bordered, true );
-						// Row-0 cells carry the column resize handles.
-						const tagProps = 0 === i ? { ...props, style: { ...props.style, position: 'relative' } } : props;
+						const style = {
+							...props.style,
+							// Row-0 cells carry the column resize handles (need relative).
+							...( 0 === i ? { position: 'relative' } : {} ),
+							// Highlight cells inside the drag-select rectangle.
+							...( inRange( i, c ) ? { boxShadow: 'inset 0 0 0 2px #2271b1' } : {} ),
+						};
+						const tagProps = { ...props, style, onMouseDown: () => onCellDown( i, c ), onMouseEnter: () => onCellEnter( i, c ) };
 						return (
 							<Tag key={ c } { ...tagProps }>
 								<RichText
@@ -290,6 +341,7 @@ export function registerTableBlock() {
 							<ToolbarButton title={ __( 'Merge right', 'woocommerce-orders-invoice-pdf' ) } onClick={ mergeRight }>{ __( 'Merge →', 'woocommerce-orders-invoice-pdf' ) }</ToolbarButton>
 							<ToolbarButton title={ __( 'Merge down', 'woocommerce-orders-invoice-pdf' ) } onClick={ mergeDown }>{ __( 'Merge ↓', 'woocommerce-orders-invoice-pdf' ) }</ToolbarButton>
 							<ToolbarButton title={ __( 'Unmerge', 'woocommerce-orders-invoice-pdf' ) } onClick={ unmerge }>{ __( 'Unmerge', 'woocommerce-orders-invoice-pdf' ) }</ToolbarButton>
+							{ rangeMulti ? <ToolbarButton title={ __( 'Merge selected cells', 'woocommerce-orders-invoice-pdf' ) } onClick={ mergeRange }>{ __( 'Merge cells', 'woocommerce-orders-invoice-pdf' ) }</ToolbarButton> : null }
 						</ToolbarGroup>
 					</BlockControls>
 					<InspectorControls>
