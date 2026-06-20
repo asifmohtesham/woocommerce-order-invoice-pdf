@@ -20,6 +20,7 @@ class Blocks {
 		'woi/order-number', 'woi/payment-method', 'woi/billing-address',
 		'woi/line-items', 'woi/totals',
 		'woi/spacer', 'woi/divider', 'woi/heading', 'woi/page-break',
+		'woi/columns', 'woi/column',
 	);
 
 	public function __construct() {

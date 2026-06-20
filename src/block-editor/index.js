@@ -13,6 +13,7 @@ import { __ } from '@wordpress/i18n';
 import { registerTokenBlocks } from './blocks/token';
 import { registerTextBlock } from './blocks/text';
 import { registerLayoutBlocks } from './blocks/layout';
+import { registerColumnsBlocks, registerHeaderRowVariation } from './blocks/columns';
 import { saveBlocks, setActiveSource } from './store';
 
 // Register our blocks (core blocks not used in slice 1, but registering the
@@ -21,6 +22,8 @@ registerBlockCollection( 'woi', { title: __( 'Invoice', 'woocommerce-orders-invo
 registerTextBlock();
 registerTokenBlocks();
 registerLayoutBlocks();
+registerColumnsBlocks();
+registerHeaderRowVariation();
 
 function Editor( { initial, activeSource } ) {
 	const [ blocks, setBlocks ] = useState( initial );
