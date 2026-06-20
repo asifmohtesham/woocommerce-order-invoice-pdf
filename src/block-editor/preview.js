@@ -65,3 +65,16 @@ export function orderRowTitle( d ) {
 	if ( ! name ) { name = '(no name)'; }
 	return '#' + ( d.order_number || '' ) + ' — ' + name;
 }
+
+// Secondary line for an order row: "AED 100 · 3 items / 5 units · 18 Jun · Credit Card".
+// total_raw is wc_price HTML and must be rendered separately (innerHTML); this
+// helper returns only the plain-text remainder.
+export function orderMetaLine( d ) {
+	const parts = [];
+	const items = parseInt( d.line_count, 10 ) || 0;
+	const units = parseInt( d.unit_count, 10 ) || 0;
+	parts.push( items + ( 1 === items ? ' item' : ' items' ) + ' / ' + units + ( 1 === units ? ' unit' : ' units' ) );
+	if ( d.date_raw ) { parts.push( d.date_raw ); }
+	if ( d.payment_method ) { parts.push( d.payment_method ); }
+	return parts.join( ' · ' );
+}
