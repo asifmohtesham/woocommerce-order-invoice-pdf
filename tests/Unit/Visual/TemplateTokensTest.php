@@ -165,28 +165,40 @@ class TemplateTokensTest extends TestCase {
     }
 
     /**
-     * Bilingual column headers must wrap BOTH labels in block spans so mPDF
-     * stacks them (English over Arabic) instead of jamming them on one line.
+     * Bilingual column headers must place a <br> between the primary and
+     * secondary label so mPDF stacks them (English over Arabic). mPDF ignores
+     * display:block on inline <span>s inside a <th>, so a real line break is
+     * required — display:block alone leaves them jammed on one line.
      */
-    public function test_line_item_headers_wrap_primary_label_in_block_span(): void {
+    public function test_line_item_headers_break_between_primary_and_secondary(): void {
         $tokens = new class extends TemplateTokens {
             protected function fetch_table_headers( $d ): array {
-                return array( array( 'class' => 'total', 'title' => 'Total', 'secondary' => 'المبلغ' ) );
+                return array(
+                    array( 'class' => 'total', 'title' => 'Total', 'secondary' => 'المبلغ' ),
+                    array( 'class' => 'quantity', 'title' => 'Qty' ), // no secondary
+                );
             }
             protected function fetch_table_body( $d ): array { return array(); }
             protected function fetch_totals( $d ): array { return array(); }
         };
         $map = $tokens->map( $this->stub_document() );
 
-        $this->assertStringContainsString( '<span class="woi-lbl-primary">Total</span>', $map['{{line_items}}'] );
-        $this->assertStringContainsString( '<span class="woi-lbl-secondary" dir="rtl">المبلغ</span>', $map['{{line_items}}'] );
+        // Primary span, then a <br>, then the secondary span — in that order.
+        $this->assertStringContainsString(
+            '<span class="woi-lbl-primary">Total</span><br><span class="woi-lbl-secondary" dir="rtl">المبلغ</span>',
+            $map['{{line_items}}']
+        );
+        // A header with no secondary must NOT emit a stray <br>.
+        $this->assertStringContainsString( '<span class="woi-lbl-primary">Qty</span></th>', $map['{{line_items}}'] );
+        $this->assertStringNotContainsString( '<span class="woi-lbl-primary">Qty</span><br>', $map['{{line_items}}'] );
     }
 
     /**
-     * Totals labels get the same block-span pairing. When no secondary exists,
-     * the primary span still renders (single block span == old bare text).
+     * Totals labels get the same <br> break between primary and secondary so
+     * mPDF stacks them. When no secondary exists, the primary renders alone
+     * with no stray <br>.
      */
-    public function test_totals_wrap_primary_label_and_render_without_secondary(): void {
+    public function test_totals_break_between_primary_and_secondary_and_render_without_secondary(): void {
         $tokens = new class extends TemplateTokens {
             protected function fetch_table_headers( $d ): array { return array(); }
             protected function fetch_table_body( $d ): array { return array(); }
@@ -199,10 +211,14 @@ class TemplateTokensTest extends TestCase {
         };
         $map = $tokens->map( $this->stub_document() );
 
-        $this->assertStringContainsString( '<span class="woi-lbl-primary">Total</span>', $map['{{totals}}'] );
-        $this->assertStringContainsString( '<span class="woi-lbl-secondary" dir="rtl">المجموع</span>', $map['{{totals}}'] );
-        // No-secondary row still renders its primary label.
-        $this->assertStringContainsString( '<span class="woi-lbl-primary">Subtotal</span>', $map['{{totals}}'] );
+        // Primary span, then <br>, then secondary span.
+        $this->assertStringContainsString(
+            '<span class="woi-lbl-primary">Total</span><br><span class="woi-lbl-secondary" dir="rtl">المجموع</span>',
+            $map['{{totals}}']
+        );
+        // No-secondary row renders its primary label and no stray <br>.
+        $this->assertStringContainsString( '<span class="woi-lbl-primary">Subtotal</span></span>', $map['{{totals}}'] );
+        $this->assertStringNotContainsString( '<span class="woi-lbl-primary">Subtotal</span><br>', $map['{{totals}}'] );
     }
 
     /**

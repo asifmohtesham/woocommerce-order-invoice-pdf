@@ -102,7 +102,9 @@ class TemplateTokens {
             foreach ( $headers as $header_data ) {
                 $html .= '<th class="' . esc_attr( $header_data['class'] ?? '' ) . '"><span class="woi-lbl-primary">' . esc_html( $header_data['title'] ?? '' ) . '</span>';
                 if ( ! empty( $header_data['secondary'] ) ) {
-                    $html .= '<span class="woi-lbl-secondary" dir="rtl">' . esc_html( $header_data['secondary'] ) . '</span>';
+                    // <br> (not display:block) is what makes mPDF stack the pair —
+                    // mPDF ignores display:block on inline <span>s inside a <th>.
+                    $html .= '<br><span class="woi-lbl-secondary" dir="rtl">' . esc_html( $header_data['secondary'] ) . '</span>';
                 }
                 $html .= '</th>';
             }
@@ -133,7 +135,8 @@ class TemplateTokens {
                 $html .= '<tr class="' . esc_attr( $total_data['class'] ?? '' ) . '">';
                 $html .= '<th class="description"><span><span class="woi-lbl-primary">' . esc_html( $total_data['label'] ?? '' ) . '</span>';
                 if ( ! empty( $total_data['secondary'] ) ) {
-                    $html .= '<span class="woi-lbl-secondary" dir="rtl">' . esc_html( $total_data['secondary'] ) . '</span>';
+                    // <br> stacks the pair in mPDF (display:block on the span is ignored there).
+                    $html .= '<br><span class="woi-lbl-secondary" dir="rtl">' . esc_html( $total_data['secondary'] ) . '</span>';
                 }
                 $html .= '</span></th>';
                 $html .= '<td class="price"><span class="totals-price">' . wp_kses_post( (string) ( $total_data['value'] ?? '' ) ) . '</span></td>';
