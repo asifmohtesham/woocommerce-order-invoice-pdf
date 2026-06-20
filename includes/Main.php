@@ -124,6 +124,7 @@ class Main {
 		// Visual template editor admin pages + Status/diagnostics tab
 		if ( is_admin() ) {
 			new \WOI\PDF\Visual\VisualEditorPage();
+			new \WOI\PDF\Visual\BlockEditorPage();
 			new \WOI\PDF\Status\StatusTab();
 		}
 	}
