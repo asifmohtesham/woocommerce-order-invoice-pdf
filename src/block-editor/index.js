@@ -56,6 +56,10 @@ import { downloadPdf } from './pdfPreview';
 import { fetchOrderTokens } from './preview';
 import { patchLineItems } from './patchLineItems';
 import ColumnEditor from './ColumnEditor';
+import TotalsEditor from './TotalsEditor';
+import CustomBlocksEditor from './CustomBlocksEditor';
+import SortBundlePanel from './SortBundlePanel';
+import CustomCssPanel from './CustomCssPanel';
 
 // Register our blocks; group them under an "Invoice" heading in the inserter.
 registerBlockCollection( 'woi', {
@@ -428,6 +432,18 @@ function Editor( { initial, activeSource } ) {
 						<p className="insp-note">
 							{ __( 'Reorder, rename, set width and alignment, add or remove columns. Applies to the line-items table.', 'woocommerce-orders-invoice-pdf' ) }
 						</p>
+
+						<div className="insp-sec">{ __( 'Total rows', 'woocommerce-orders-invoice-pdf' ) }</div>
+						<TotalsEditor onTokens={ applyTokens } onSaved={ refreshTokens } orderId={ orderId } />
+
+						<div className="insp-sec">{ __( 'Custom blocks', 'woocommerce-orders-invoice-pdf' ) }</div>
+						<CustomBlocksEditor onSaved={ refreshTokens } />
+
+						<div className="insp-sec">{ __( 'Sorting & bundle', 'woocommerce-orders-invoice-pdf' ) }</div>
+						<SortBundlePanel onSaved={ refreshTokens } />
+
+						<div className="insp-sec">{ __( 'Custom CSS', 'woocommerce-orders-invoice-pdf' ) }</div>
+						<CustomCssPanel onSaved={ refreshTokens } />
 					</div>
 				)
 			}
