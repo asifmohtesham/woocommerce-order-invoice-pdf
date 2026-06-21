@@ -1,6 +1,6 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps, RichText, InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, SelectControl } from '@wordpress/components';
+import { PanelBody, SelectControl, RangeControl, ColorPalette } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { APPEARANCE_ATTRS, appearanceStyle, appearanceProps, AppearancePanel, AppearanceToolbar } from '../appearance';
 
@@ -11,36 +11,84 @@ import { APPEARANCE_ATTRS, appearanceStyle, appearanceProps, AppearancePanel, Ap
  * edit() adds a light in-canvas hint for the otherwise-invisible blocks.
  */
 export function registerLayoutBlocks() {
-	// Spacer — vertical gap. CSS: .woi-spacer { height: 12mm }.
+	// Spacer — vertical gap. CSS default .woi-spacer { height: 12mm }; an optional
+	// height attribute overrides it inline (mm). Unset → bare class (CSS default).
 	registerBlockType( 'woi/spacer', {
 		apiVersion: 2,
 		title: __( 'Spacer', 'woocommerce-orders-invoice-pdf' ),
 		category: 'woi-invoice',
 		icon: 'minus',
+		attributes: { height: { type: 'number', default: 0 } },
 		supports: { html: false, reusable: false },
-		edit() {
+		edit( { attributes, setAttributes } ) {
+			const { height } = attributes;
 			return (
-				<div { ...useBlockProps( { style: { minHeight: '24px', background: 'repeating-linear-gradient(45deg,#f3f4f5,#f3f4f5 6px,#fff 6px,#fff 12px)', border: '1px dashed #c3c4c7' } } ) }>
-					<span style={ { fontSize: '11px', color: '#666' } }>{ __( 'Spacer', 'woocommerce-orders-invoice-pdf' ) }</span>
-				</div>
+				<>
+					<InspectorControls>
+						<PanelBody title={ __( 'Spacer', 'woocommerce-orders-invoice-pdf' ) }>
+							<RangeControl
+								label={ __( 'Height (mm) — 0 = default', 'woocommerce-orders-invoice-pdf' ) }
+								value={ height || 0 }
+								onChange={ ( v ) => setAttributes( { height: v || 0 } ) }
+								min={ 0 }
+								max={ 60 }
+							/>
+						</PanelBody>
+					</InspectorControls>
+					<div { ...useBlockProps( { style: { minHeight: height ? height + 'mm' : '24px', background: 'repeating-linear-gradient(45deg,#f3f4f5,#f3f4f5 6px,#fff 6px,#fff 12px)', border: '1px dashed #c3c4c7' } } ) }>
+						<span style={ { fontSize: '11px', color: '#666' } }>{ __( 'Spacer', 'woocommerce-orders-invoice-pdf' ) }</span>
+					</div>
+				</>
 			);
 		},
-		save() {
-			return <div { ...useBlockProps.save( { className: 'woi-spacer' } ) } />;
+		save( { attributes } ) {
+			const props = attributes.height
+				? { className: 'woi-spacer', style: { height: attributes.height + 'mm' } }
+				: { className: 'woi-spacer' };
+			return <div { ...useBlockProps.save( props ) } />;
 		},
 	} );
 
-	// Divider — horizontal rule.
+	// Divider — horizontal rule. Optional thickness (px) + colour; unset → bare <hr>.
 	registerBlockType( 'woi/divider', {
 		apiVersion: 2,
 		title: __( 'Divider', 'woocommerce-orders-invoice-pdf' ),
 		category: 'woi-invoice',
 		icon: 'minus',
-		supports: { html: false, reusable: false },
-		edit() {
-			return <div { ...useBlockProps() }><hr /></div>;
+		attributes: {
+			thickness: { type: 'number', default: 0 },
+			color: { type: 'string', default: '' },
 		},
-		save() {
+		supports: { html: false, reusable: false },
+		edit( { attributes, setAttributes } ) {
+			const { thickness, color } = attributes;
+			const previewStyle = ( thickness || color )
+				? { border: 0, borderTop: ( thickness || 1 ) + 'px solid ' + ( color || '#000' ) }
+				: undefined;
+			return (
+				<>
+					<InspectorControls>
+						<PanelBody title={ __( 'Divider', 'woocommerce-orders-invoice-pdf' ) }>
+							<RangeControl
+								label={ __( 'Thickness (px) — 0 = default', 'woocommerce-orders-invoice-pdf' ) }
+								value={ thickness || 0 }
+								onChange={ ( v ) => setAttributes( { thickness: v || 0 } ) }
+								min={ 0 }
+								max={ 10 }
+							/>
+							<p style={ { margin: '12px 0 4px' } }>{ __( 'Colour', 'woocommerce-orders-invoice-pdf' ) }</p>
+							<ColorPalette value={ color } onChange={ ( c ) => setAttributes( { color: c || '' } ) } />
+						</PanelBody>
+					</InspectorControls>
+					<div { ...useBlockProps() }><hr style={ previewStyle } /></div>
+				</>
+			);
+		},
+		save( { attributes } ) {
+			const { thickness, color } = attributes;
+			if ( thickness || color ) {
+				return <hr { ...useBlockProps.save( { style: { border: 0, borderTop: ( thickness || 1 ) + 'px solid ' + ( color || '#000' ) } } ) } />;
+			}
 			return <hr { ...useBlockProps.save() } />;
 		},
 	} );
