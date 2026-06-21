@@ -17,7 +17,7 @@ import {
 	SelectControl,
 	ToggleControl,
 } from '@wordpress/components';
-import { useSelect, useDispatch } from '@wordpress/data';
+import { useSelect, useDispatch, select as dataSelect } from '@wordpress/data';
 import { InterfaceSkeleton } from '@wordpress/interface';
 import {
 	cog,
@@ -54,6 +54,7 @@ import injectCanvasStyles from './canvas/canvasStyles';
 import { optionsCss } from './optionsCss';
 import { downloadPdf } from './pdfPreview';
 import { fetchOrderTokens } from './preview';
+import { patchLineItems } from './patchLineItems';
 import ColumnEditor from './ColumnEditor';
 
 // Register our blocks; group them under an "Invoice" heading in the inserter.
@@ -109,6 +110,20 @@ function Editor( { initial, activeSource } ) {
 	const applyTokens = useCallback( ( tokens ) => {
 		if ( tokens && Object.keys( tokens ).length ) {
 			patchTokens( tokens );
+		}
+	}, [ patchTokens ] );
+
+	// Optimistic, instant canvas update for in-place column edits (title/width/
+	// align): patch the current line-items HTML client-side so there's no wait
+	// for the slow server save (which still runs in the background to persist +
+	// re-confirm). Field-key / add / remove / reorder fall through to the save.
+	const onColumnsLiveEdit = useCallback( ( columns ) => {
+		const tokens = dataSelect( STORE ).getTokens();
+		const html = tokens && tokens[ '{{line_items}}' ];
+		if ( ! html ) { return; }
+		const patched = patchLineItems( html, columns );
+		if ( patched && patched !== html ) {
+			patchTokens( { '{{line_items}}': patched } );
 		}
 	}, [ patchTokens ] );
 
@@ -395,7 +410,7 @@ function Editor( { initial, activeSource } ) {
 						</p>
 
 						<div className="insp-sec">{ __( 'Line items columns', 'woocommerce-orders-invoice-pdf' ) }</div>
-						<ColumnEditor onTokens={ applyTokens } onSaved={ refreshTokens } orderId={ orderId } />
+						<ColumnEditor onTokens={ applyTokens } onSaved={ refreshTokens } onLiveEdit={ onColumnsLiveEdit } orderId={ orderId } />
 						<p className="insp-note">
 							{ __( 'Reorder, rename, set width and alignment, add or remove columns. Applies to the line-items table.', 'woocommerce-orders-invoice-pdf' ) }
 						</p>

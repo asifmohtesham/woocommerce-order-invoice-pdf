@@ -8,7 +8,7 @@ import { getColumns, saveColumns } from './store';
 // (order, title, width %, alignment) via REST; the server line-items renderer
 // reflects it. onSaved() lets the editor re-fetch the order tokens so the canvas
 // live-updates.
-export default function ColumnEditor( { onTokens, onSaved, orderId } ) {
+export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId } ) {
 	const [ columns, setColumns ] = useState( null );
 	const [ types, setTypes ] = useState( {} );
 	const debounceRef = useRef( null );
@@ -32,6 +32,14 @@ export default function ColumnEditor( { onTokens, onSaved, orderId } ) {
 	}, [ onTokens, onSaved, orderId ] );
 
 	const update = ( next ) => { setColumns( next ); persist( next ); };
+	// In-place value edit (title/width/align): apply optimistically for instant
+	// feedback, then persist. (Field-key needs the server; add/remove/reorder
+	// change structure, so they skip the optimistic path.)
+	const editField = ( next, instant ) => {
+		setColumns( next );
+		if ( instant && onLiveEdit ) { onLiveEdit( next ); }
+		persist( next );
+	};
 
 	if ( null === columns ) {
 		return <div className="woi-col-editor"><Spinner /></div>;
@@ -45,7 +53,11 @@ export default function ColumnEditor( { onTokens, onSaved, orderId } ) {
 		const tmp = n[ i ]; n[ i ] = n[ j ]; n[ j ] = tmp;
 		update( n );
 	};
-	const setField = ( i, k, v ) => update( columns.map( ( c, idx ) => ( idx === i ? { ...c, [ k ]: v } : c ) ) );
+	const setField = ( i, k, v ) => {
+		const next = columns.map( ( c, idx ) => ( idx === i ? { ...c, [ k ]: v } : c ) );
+		// title/width/align update the canvas instantly; field-key needs the server.
+		editField( next, 'title' === k || 'width' === k || 'align' === k );
+	};
 	const remove = ( i ) => update( columns.filter( ( _, idx ) => idx !== i ) );
 	const add = ( t ) => { if ( t ) { update( [ ...columns, { type: t, label: '', width: '', align: '' } ] ); } };
 
