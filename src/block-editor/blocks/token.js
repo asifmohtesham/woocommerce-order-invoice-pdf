@@ -1,5 +1,6 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
+import { PanelBody, RangeControl } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { safeHTML } from '@wordpress/dom';
@@ -8,12 +9,13 @@ import { isHtmlToken, tokenValue } from '../tokenMerge';
 import { APPEARANCE_ATTRS, appearanceStyle, appearanceProps, AppearancePanel, AppearanceToolbar } from '../appearance';
 
 /**
- * Slice-1 token blocks. Each is static: save() emits a fixed wrapper holding the
- * literal {{token}}; the real value is merged server-side at PDF time.
- * `example`/preview shows a friendly label so the canvas is readable.
+ * Token blocks. Each is static: save() emits a fixed wrapper holding the literal
+ * {{token}}; the real value is merged server-side at PDF time. The logo entry is
+ * flagged `image: true` and gains a width control (mm) that sizes the
+ * server-rendered logo via the .woi-img-sized CSS contract.
  */
 const TOKENS = [
-	{ name: 'woi/logo',              title: __( 'Logo image', 'woocommerce-orders-invoice-pdf' ),        token: '{{logo}}',              tag: 'div', preview: '[ logo image ]' },
+	{ name: 'woi/logo',              title: __( 'Logo image', 'woocommerce-orders-invoice-pdf' ),        token: '{{logo}}',              tag: 'div', preview: '[ logo image ]', image: true },
 	{ name: 'woi/shop-name',         title: __( 'Shop name', 'woocommerce-orders-invoice-pdf' ),         token: '{{shop_name}}',         tag: 'p',   preview: 'Acme Trading LLC' },
 	{ name: 'woi/shop-address',      title: __( 'Shop address', 'woocommerce-orders-invoice-pdf' ),      token: '{{shop_address}}',      tag: 'p',   preview: 'Office 12, Dubai, UAE' },
 	{ name: 'woi/shop-name-ar',      title: __( 'Shop name (AR)', 'woocommerce-orders-invoice-pdf' ),    token: '{{shop_name_ar}}',      tag: 'p',   preview: 'أكمي للتجارة' },
@@ -33,20 +35,41 @@ const TOKENS = [
 ];
 
 export function registerTokenBlocks() {
-	TOKENS.forEach( ( { name, title, token, tag, preview } ) => {
+	TOKENS.forEach( ( { name, title, token, tag, preview, image } ) => {
 		registerBlockType( name, {
 			apiVersion: 2,
 			title,
 			category: 'woi-invoice',
 			icon: 'media-document',
-			attributes: { ...APPEARANCE_ATTRS },
+			attributes: {
+				...APPEARANCE_ATTRS,
+				...( image ? { imgWidth: { type: 'number', default: 0 } } : {} ),
+			},
 			supports: { html: false, reusable: false },
 			edit( { attributes, setAttributes } ) {
 				const Tag = tag;
 				const tokens = useSelect( ( select ) => select( STORE ).getTokens(), [] );
 				const value = tokenValue( token, tokens );
-				const blockProps = useBlockProps( { className: value ? undefined : 'woi-token-empty', style: appearanceStyle( attributes ) } );
-				const panel = <InspectorControls><AppearancePanel attributes={ attributes } setAttributes={ setAttributes } /></InspectorControls>;
+				const sized = image && attributes.imgWidth;
+				const style = { ...appearanceStyle( attributes ), ...( sized ? { width: attributes.imgWidth + 'mm' } : {} ) };
+				const className = [ value ? '' : 'woi-token-empty', sized ? 'woi-img-sized' : '' ].filter( Boolean ).join( ' ' ) || undefined;
+				const blockProps = useBlockProps( { className, style } );
+				const panel = (
+					<InspectorControls>
+						{ image ? (
+							<PanelBody title={ __( 'Image', 'woocommerce-orders-invoice-pdf' ) }>
+								<RangeControl
+									label={ __( 'Logo width (mm) — 0 = default', 'woocommerce-orders-invoice-pdf' ) }
+									value={ attributes.imgWidth || 0 }
+									onChange={ ( v ) => setAttributes( { imgWidth: v || 0 } ) }
+									min={ 0 }
+									max={ 120 }
+								/>
+							</PanelBody>
+						) : null }
+						<AppearancePanel attributes={ attributes } setAttributes={ setAttributes } />
+					</InspectorControls>
+				);
 				let inner;
 				if ( ! value ) {
 					// No order picked / token empty: show the friendly label so the
@@ -55,8 +78,7 @@ export function registerTokenBlocks() {
 				} else if ( isHtmlToken( token ) ) {
 					// HTML token (logo, billing address, line-items / totals tables).
 					// safeHTML strips scripts / event-handler attributes / javascript:
-					// URLs before injecting into the live admin DOM — defence-in-depth
-					// against unescaped customer fields (billing address, product names).
+					// URLs before injecting into the live admin DOM.
 					inner = <Tag { ...blockProps } dangerouslySetInnerHTML={ { __html: safeHTML( value ) } } />;
 				} else {
 					inner = <Tag { ...blockProps }>{ value }</Tag>;
@@ -71,6 +93,12 @@ export function registerTokenBlocks() {
 			},
 			save( { attributes } ) {
 				const Tag = tag;
+				// Sized logo: wrapper carries the width + the .woi-img-sized class that
+				// the visual-document.css rule uses to fill the server <img>.
+				if ( image && attributes.imgWidth ) {
+					const style = { ...appearanceStyle( attributes ), width: attributes.imgWidth + 'mm' };
+					return <Tag { ...useBlockProps.save( { className: 'woi-img-sized', style } ) }>{ token }</Tag>;
+				}
 				// Inner content is the literal token; merged at PDF render time.
 				return <Tag { ...useBlockProps.save( appearanceProps( attributes ) ) }>{ token }</Tag>;
 			},

@@ -78,3 +78,7 @@ tr.grand-total td, tr.grand-total th { border-top: 1px solid #000; border-bottom
 .woi-doc-title .title-en,
 .woi-doc-title .title-ar { font-size: 16pt; font-weight: bold; }
 .woi-doc-title .title-ar { margin-left: 6mm; }
+
+/* Block-editor sized logo: fill the wrapper's width and drop the default 3cm
+   inline max-height cap so the chosen width controls the size. */
+.woi-img-sized img { width: 100% !important; height: auto !important; max-height: none !important; }
