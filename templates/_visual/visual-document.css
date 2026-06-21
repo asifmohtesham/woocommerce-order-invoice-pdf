@@ -119,7 +119,12 @@ table.woi-parties td.woi-party-gap { width: 4mm; border: 0; padding: 0; }
    Header: soft fill bounded top+bottom by 1.5px accent rules. Body: 0.5pt
    hairline separators; last row a heavier rule. Keep the thumbnail mm fix.
    --------------------------------------------------------------------- */
-table.order-details { width: 100%; margin-top: 3mm; margin-bottom: 2.5mm; }
+/* table-layout:fixed makes per-column widths AUTHORITATIVE. With the default
+   `auto`, a cell `width` is only a hint the engine overrides by content, so a
+   user-set column width visibly "collapses back" toward its content size. Fixed
+   honours the widths exactly (the unsized description column absorbs the
+   remainder) — required for the editor's full column-width control. */
+table.order-details { width: 100%; table-layout: fixed; margin-top: 3mm; margin-bottom: 2.5mm; }
 .order-details thead th {
     background: #F6F3EC;
     color: #1C1A17;
