@@ -1,50 +1,15 @@
 import { PanelBody, SelectControl, RangeControl, ColorPalette } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+import { APPEARANCE_ATTRS, appearanceStyle, appearanceProps } from './appearanceStyle';
 
-/**
- * Shared block-level presentational controls (text align, font weight, font
- * size, text colour, background colour) for the text-bearing blocks (Text,
- * Heading, all Token blocks).
- *
- * Inline-style based ON PURPOSE: WordPress's native color/typography block
- * supports emit PALETTE classes (e.g. has-vivid-red-color) that resolve only
- * against the theme stylesheet — which the mPDF PDF does NOT load. Inline styles
- * always render, are kses-safe (safecss_filter_attr allows these properties),
- * and mPDF honours them. Every attribute defaults empty, so a block with no
- * appearance set serialises exactly as before (no block-validation break).
- */
+export { APPEARANCE_ATTRS, appearanceStyle, appearanceProps };
+
 const PALETTE = [
 	{ name: __( 'Black', 'woocommerce-orders-invoice-pdf' ), color: '#000000' },
 	{ name: __( 'White', 'woocommerce-orders-invoice-pdf' ), color: '#ffffff' },
 	{ name: __( 'Grey', 'woocommerce-orders-invoice-pdf' ), color: '#666666' },
 	{ name: __( 'Light grey', 'woocommerce-orders-invoice-pdf' ), color: '#f3f4f5' },
 ];
-
-export const APPEARANCE_ATTRS = {
-	align: { type: 'string', default: '' },
-	weight: { type: 'string', default: '' },
-	fontSize: { type: 'number', default: 0 },
-	color: { type: 'string', default: '' },
-	bg: { type: 'string', default: '' },
-};
-
-// Build the inline style object from the appearance attributes (set props only).
-export function appearanceStyle( a ) {
-	const s = {};
-	if ( a.align ) { s.textAlign = a.align; }
-	if ( a.weight ) { s.fontWeight = a.weight; }
-	if ( a.fontSize ) { s.fontSize = a.fontSize + 'px'; }
-	if ( a.color ) { s.color = a.color; }
-	if ( a.bg ) { s.backgroundColor = a.bg; }
-	return s;
-}
-
-// Spread onto an element's props: adds { style } only when something is set, so
-// an unstyled block produces the identical markup it did before this feature.
-export function appearanceProps( attributes ) {
-	const style = appearanceStyle( attributes );
-	return Object.keys( style ).length ? { style } : {};
-}
 
 // The Inspector "Appearance" panel, shared by every text-bearing block.
 export function AppearancePanel( { attributes, setAttributes } ) {
