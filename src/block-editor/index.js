@@ -4,7 +4,8 @@ import {
 	BlockEditorProvider,
 	BlockInspector,
 	Inserter,
-	ListView,
+	ListView as StableListView,
+	__experimentalListView as ExperimentalListView,
 } from '@wordpress/block-editor';
 import { parse, serialize, registerBlockCollection } from '@wordpress/blocks';
 import { Button, Popover, SlotFillProvider, TabPanel } from '@wordpress/components';
@@ -18,6 +19,15 @@ import {
 	fullscreen as fullscreenIcon,
 } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
+import ErrorBoundary from './ErrorBoundary';
+
+// WordPress renamed the block list-view export from `__experimentalListView` to
+// the stable `ListView` partway through the 6.x line. The externalized
+// `wp.blockEditor` global belongs to the LIVE site's WP, not our build — so the
+// stable name is `undefined` on older installs and rendering it throws React
+// error #130 ("Element type is invalid: got undefined"), which without a boundary
+// unmounts the whole editor. Resolve whichever name the live WP actually exposes.
+const ListView = StableListView || ExperimentalListView;
 import { historyReducer, initHistory, canUndo, canRedo } from './history';
 import { registerTokenBlocks } from './blocks/token';
 import { registerTextBlock } from './blocks/text';
@@ -185,7 +195,15 @@ function Editor( { initial, activeSource } ) {
 
 	const secondarySidebar = isListViewOpen ? (
 		<div className="woi-block-listview">
-			<ListView />
+			<ErrorBoundary
+				fallback={
+					<p style={ { padding: '8px', color: '#757575' } }>
+						{ __( 'List view is unavailable.', 'woocommerce-orders-invoice-pdf' ) }
+					</p>
+				}
+			>
+				<ListView />
+			</ErrorBoundary>
 		</div>
 	) : undefined;
 
