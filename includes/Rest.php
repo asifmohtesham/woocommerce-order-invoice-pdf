@@ -201,7 +201,7 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 		// live-updates in a single round-trip (no separate token fetch).
 		$order_id = ( is_array( $json ) && ! empty( $json['order_id'] ) ) ? absint( $json['order_id'] ) : 0;
 		if ( $order_id ) {
-			$response['tokens'] = $this->render_order_tokens( 'invoice', $order_id );
+			$response['tokens'] = $this->render_line_items_token( 'invoice', $order_id );
 		}
 		return $response;
 	}
@@ -241,15 +241,16 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 	}
 
 				/**
-		 * Render the token map for an order in preview mode (mirrors
-		 * handle_visual_preview_data). Used to return fresh tokens from the column
-		 * save so the editor canvas live-updates in one round-trip.
+		 * Render ONLY the {{line_items}} token for an order in preview mode. A
+		 * column change affects just the line-items table, so the column-save
+		 * endpoint returns this partial token map (merged client-side) instead of
+		 * re-rendering the whole document — keeps the canvas update snappy.
 		 *
 		 * @param string $doc_type
 		 * @param int    $order_id
-		 * @return array
+		 * @return array Partial token map ('{{line_items}}' => html), or array().
 		 */
-		protected function render_order_tokens( string $doc_type, int $order_id ): array {
+		protected function render_line_items_token( string $doc_type, int $order_id ): array {
 			if ( ! $order_id || ! function_exists( 'wc_get_order' ) ) { return array(); }
 			$order = wc_get_order( $order_id );
 			if ( empty( $order ) ) { return array(); }
@@ -263,9 +264,9 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			if ( is_callable( array( $document, 'initiate_date' ) ) ) { $document->initiate_date(); }
 
 			add_filter( 'woi_pdf_use_path', '__return_false', 99 );
-			$tokens = $this->token_map( $document );
+			$html = ( new \WOI\PDF\Visual\TemplateTokens() )->line_items( $document );
 			remove_filter( 'woi_pdf_use_path', '__return_false', 99 );
-			return $tokens;
+			return array( '{{line_items}}' => $html );
 		}
 
 /**

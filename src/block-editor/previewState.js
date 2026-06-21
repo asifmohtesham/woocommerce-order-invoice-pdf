@@ -17,6 +17,10 @@ export function reducer( state, action ) {
 				orderId: ( undefined === action.orderId ? null : action.orderId ),
 				loading: false,
 			};
+		case 'PATCH_TOKENS':
+			// Merge a partial token map (e.g. just {{line_items}} after a column
+			// change) into the current tokens, keeping every other token intact.
+			return { ...state, tokens: { ...state.tokens, ...( action.tokens || {} ) }, loading: false };
 		default:
 			return state;
 	}
@@ -28,6 +32,9 @@ export const actions = {
 	},
 	setOrder( { tokens, orderLabel, orderId } ) {
 		return { type: 'SET_ORDER', tokens, orderLabel, orderId };
+	},
+	patchTokens( tokens ) {
+		return { type: 'PATCH_TOKENS', tokens };
 	},
 };
 

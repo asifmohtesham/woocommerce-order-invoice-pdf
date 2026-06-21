@@ -328,6 +328,15 @@ class TemplateTokens {
         return (string) ob_get_clean();
     }
 
+    /**
+     * Public: render just the {{line_items}} table for a document. Lets the
+     * column-save endpoint return only the part a column change affects, so the
+     * editor canvas live-updates without re-rendering the whole document.
+     */
+    public function line_items( $document ): string {
+        return $this->render_line_items( $document );
+    }
+
     /** Overridable seam: fetch table headers (testable without Patchwork). */
     protected function fetch_table_headers( $document ): array { return (array) woi_pdf_templates_get_table_headers( $document ); }
 

@@ -102,15 +102,15 @@ function Editor( { initial, activeSource } ) {
 		orderId: select( STORE ).getOrderId(),
 		orderLabel: select( STORE ).getOrderLabel(),
 	} ), [] );
-	const { setOrder } = useDispatch( STORE );
+	const { setOrder, patchTokens } = useDispatch( STORE );
 
-	// Apply freshly-rendered tokens (returned by the column save) to the store so
-	// the canvas line-items live-update — no extra round-trip.
+	// Merge the partial tokens the column save returns (just {{line_items}}) into
+	// the store so the canvas line-items live-update — one light round-trip.
 	const applyTokens = useCallback( ( tokens ) => {
-		if ( tokens ) {
-			setOrder( { tokens, orderLabel: orderLabel || '', orderId } );
+		if ( tokens && Object.keys( tokens ).length ) {
+			patchTokens( tokens );
 		}
-	}, [ orderId, orderLabel, setOrder ] );
+	}, [ patchTokens ] );
 
 	// Fallback: re-fetch the current order's tokens (used when the save couldn't
 	// render them, e.g. no order selected is a no-op).
