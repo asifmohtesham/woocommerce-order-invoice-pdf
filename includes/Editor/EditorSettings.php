@@ -415,6 +415,43 @@ class EditorSettings {
 		);
 	}
 
+	/** Custom-block insertion positions (hook name => label). Mirror of display_custom_block(). */
+	public function get_custom_block_positions(): array {
+		return array(
+			'woi_pdf_before_document'         => __( 'Before document', 'woi_pdf_templates' ),
+			'woi_pdf_before_shop_logo'        => __( 'Before the shop logo', 'woi_pdf_templates' ),
+			'woi_pdf_after_shop_logo'         => __( 'After the shop logo', 'woi_pdf_templates' ),
+			'woi_pdf_before_shop_name'        => __( 'Before the shop name', 'woi_pdf_templates' ),
+			'woi_pdf_after_shop_name'         => __( 'After the shop name', 'woi_pdf_templates' ),
+			'woi_pdf_before_shop_address'     => __( 'Before the shop address', 'woi_pdf_templates' ),
+			'woi_pdf_after_shop_address'      => __( 'After the shop address', 'woi_pdf_templates' ),
+			'woi_pdf_before_document_label'   => __( 'Before the document label', 'woi_pdf_templates' ),
+			'woi_pdf_after_document_label'    => __( 'After the document label', 'woi_pdf_templates' ),
+			'woi_pdf_before_billing_address'  => __( 'Before the billing address', 'woi_pdf_templates' ),
+			'woi_pdf_after_billing_address'   => __( 'After the billing address', 'woi_pdf_templates' ),
+			'woi_pdf_before_shipping_address' => __( 'Before the shipping address', 'woi_pdf_templates' ),
+			'woi_pdf_after_shipping_address'  => __( 'After the shipping address', 'woi_pdf_templates' ),
+			'woi_pdf_before_order_data'       => __( 'Before the order data (invoice number, order date, etc.)', 'woi_pdf_templates' ),
+			'woi_pdf_after_order_data'        => __( 'After the order data', 'woi_pdf_templates' ),
+			'woi_pdf_before_customer_notes'   => __( 'Before the customer notes', 'woi_pdf_templates' ),
+			'woi_pdf_after_customer_notes'    => __( 'After the customer notes', 'woi_pdf_templates' ),
+			'woi_pdf_before_order_details'    => __( 'Before the order details table with all items', 'woi_pdf_templates' ),
+			'woi_pdf_after_order_details'     => __( 'After the order details table', 'woi_pdf_templates' ),
+			'woi_pdf_before_footer'           => __( 'Before the footer', 'woi_pdf_templates' ),
+			'woi_pdf_after_footer'            => __( 'After the footer', 'woi_pdf_templates' ),
+			'woi_pdf_after_document'          => __( 'After document', 'woi_pdf_templates' ),
+		);
+	}
+
+	/** Custom-block content types (key => label). */
+	public function get_custom_block_types(): array {
+		return array(
+			'text'         => __( 'Text', 'woi_pdf_templates' ),
+			'custom_field' => __( 'Custom Field', 'woi_pdf_templates' ),
+			'user_meta'    => __( 'User Meta', 'woi_pdf_templates' ),
+		);
+	}
+
 	public function get_columns_field_options(): array {
 		$column_blocks = array (
 			'position' => array (

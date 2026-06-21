@@ -115,6 +115,19 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 				),
 			),
 		) );
+
+		register_rest_route( 'woi-pdf/v1', '/editor-config', array(
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'handle_get_editor_config' ),
+				'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
+			),
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'handle_save_editor_config' ),
+				'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
+			),
+		) );
 	}
 
 	/**
@@ -204,6 +217,192 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			$response['tokens'] = $this->render_line_items_token( 'invoice', $order_id );
 		}
 		return $response;
+	}
+
+	/** GET /editor-config — full schema + saved values for every Customiser section. */
+	public function handle_get_editor_config( $request ) {
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return new \WP_Error( 'forbidden', 'Insufficient permissions', array( 'status' => 403 ) );
+		}
+		$es     = \WOI\PDF\Editor\EditorSettings::instance();
+		$sort   = $es->get_sorting_options();
+		$option = get_option( 'woi_pdf_editor_settings', array() );
+		$config = array(
+			'columns' => array( 'schema' => $this->editor_schema_columns(), 'values' => $this->read_invoice_columns() ),
+			'totals'  => array( 'schema' => $this->editor_schema_totals(),  'values' => $this->read_invoice_totals() ),
+			'custom'  => array(
+				'positions' => $this->editor_custom_positions(),
+				'types'     => $this->editor_custom_types(),
+				'values'    => array_values( (array) ( $option['fields_invoice_custom'] ?? array() ) ),
+			),
+			'sort'  => array( 'options' => $sort['options'], 'value' => (string) ( $option['sort_items']['invoice'] ?? 'default' ) ),
+			'custom_styles' => (string) ( $option['custom_styles'] ?? '' ),
+		);
+		if ( class_exists( '\\WC_Product_Bundle' ) || function_exists( 'wc_pb_get_bundled_order_items' ) ) {
+			$config['bundle'] = array(
+				'options' => $es->get_product_bundle_options(),
+				'value'   => (string) ( $option['product_bundle_display']['invoice'] ?? 'all' ),
+			);
+		}
+		return $config;
+	}
+
+	/** POST /editor-config — sanitize + save only the sections present in the body. */
+	public function handle_save_editor_config( $request ) {
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return new \WP_Error( 'forbidden', 'Insufficient permissions', array( 'status' => 403 ) );
+		}
+		$json = $request->get_json_params();
+		if ( ! is_array( $json ) ) {
+			$json = array();
+		}
+		$option = get_option( 'woi_pdf_editor_settings', array() );
+		if ( ! is_array( $option ) ) {
+			$option = array();
+		}
+
+		if ( array_key_exists( 'columns', $json ) ) {
+			$option['fields_invoice_columns'] = \WOI\PDF\Editor\EditorConfigSanitizer::sanitize_blocks(
+				(array) $json['columns'], $this->editor_schema_columns()
+			);
+		}
+		if ( array_key_exists( 'totals', $json ) ) {
+			$option['fields_invoice_totals'] = \WOI\PDF\Editor\EditorConfigSanitizer::sanitize_blocks(
+				(array) $json['totals'], $this->editor_schema_totals()
+			);
+		}
+		if ( array_key_exists( 'custom', $json ) ) {
+			$option['fields_invoice_custom'] = $this->sanitize_custom_blocks( (array) $json['custom'] );
+		}
+		if ( array_key_exists( 'sort', $json ) ) {
+			$sort = sanitize_key( (string) $json['sort'] );
+			$option['sort_items']            = (array) ( $option['sort_items'] ?? array() );
+			$option['sort_items']['invoice'] = $sort ?: 'default';
+		}
+		if ( array_key_exists( 'bundle', $json ) ) {
+			$bundle = sanitize_key( (string) $json['bundle'] );
+			$option['product_bundle_display']            = (array) ( $option['product_bundle_display'] ?? array() );
+			$option['product_bundle_display']['invoice'] = $bundle ?: 'all';
+		}
+		if ( array_key_exists( 'custom_styles', $json ) ) {
+			$css = (string) $json['custom_styles'];
+			$option['custom_styles'] = function_exists( 'woi_pdf_templates_sanitize_column_style' )
+				? woi_pdf_templates_sanitize_column_style( $css, true )
+				: $css;
+		}
+
+		$option['settings_saved'] = '1';
+		$this->persist_editor_option( $option ); // triggers position-renumber hook
+
+		$response  = array(
+			'saved'         => true,
+			'columns'       => $this->read_invoice_columns(),
+			'totals'        => $this->read_invoice_totals(),
+			'custom_styles' => (string) ( get_option( 'woi_pdf_editor_settings', array() )['custom_styles'] ?? '' ),
+		);
+		$order_id = absint( $request->get_param( 'order_id' ) );
+		if ( $order_id ) {
+			$response['tokens'] = array_merge(
+				$this->render_line_items_token( 'invoice', $order_id ),
+				$this->render_totals_token( 'invoice', $order_id )
+			);
+		}
+		return $response;
+	}
+
+	/** Sanitize custom blocks, preserving the advanced `requirements` subtree. */
+	protected function sanitize_custom_blocks( array $incoming ): array {
+		$types     = array_map( 'strval', array_keys( $this->editor_custom_types() ) );
+		$positions = array_map( 'strval', array_keys( $this->editor_custom_positions() ) );
+		$clean = array();
+		$i     = 1;
+		foreach ( $incoming as $row ) {
+			$row = (array) $row;
+			$c   = array();
+			if ( isset( $row['type'] ) && in_array( (string) $row['type'], $types, true ) ) {
+				$c['type'] = (string) $row['type'];
+			}
+			if ( isset( $row['position'] ) && in_array( (string) $row['position'], $positions, true ) ) {
+				$c['position'] = (string) $row['position'];
+			}
+			if ( isset( $row['label'] ) )    { $c['label']    = sanitize_text_field( (string) $row['label'] ); }
+			if ( isset( $row['meta_key'] ) ) { $c['meta_key'] = sanitize_text_field( (string) $row['meta_key'] ); }
+			if ( isset( $row['text'] ) )     { $c['text']     = sanitize_textarea_field( (string) $row['text'] ); }
+			// Preserve the classic editor's advanced "requirements" subtree untouched.
+			if ( isset( $row['requirements'] ) && is_array( $row['requirements'] ) ) {
+				$c['requirements'] = map_deep( $row['requirements'], 'sanitize_text_field' );
+			}
+			if ( ! empty( $c ) ) {
+				$clean[ $i++ ] = $c;
+			}
+		}
+		return $clean;
+	}
+
+	protected function editor_schema_columns(): array {
+		return \WOI\PDF\Editor\EditorSettings::instance()->get_columns_field_options();
+	}
+
+	protected function editor_schema_totals(): array {
+		return \WOI\PDF\Editor\EditorSettings::instance()->get_totals_field_options();
+	}
+
+	protected function editor_custom_positions(): array {
+		return \WOI\PDF\Editor\EditorSettings::instance()->get_custom_block_positions();
+	}
+
+	protected function editor_custom_types(): array {
+		return \WOI\PDF\Editor\EditorSettings::instance()->get_custom_block_types();
+	}
+
+	/** Invoice totals config as a plain 0-indexed list (full rows preserved). */
+	protected function read_invoice_totals(): array {
+		$totals = array();
+		if ( class_exists( '\\WOI\\PDF\\Editor\\EditorSettings' ) ) {
+			$totals = \WOI\PDF\Editor\EditorSettings::instance()->get_settings( 'invoice', 'totals' );
+		}
+		$out = array();
+		foreach ( (array) $totals as $row ) {
+			$row = (array) $row;
+			if ( ! empty( $row['type'] ) ) {
+				$out[] = $row;
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Render ONLY the {{totals}} token for an order (live canvas partial). Mirrors
+	 * render_line_items_token() exactly: same filter bracketing, same get_document()
+	 * seam, same initiate_date() guard. Uses TemplateTokens::map() because render_totals
+	 * is private (no public totals() parallel to line_items()).
+	 *
+	 * @param string $doc_type
+	 * @param int    $order_id
+	 * @return array Partial token map ('{{totals}}' => html), or array().
+	 */
+	protected function render_totals_token( string $doc_type, int $order_id ): array {
+		if ( ! $order_id || ! function_exists( 'wc_get_order' ) ) { return array(); }
+		$order = wc_get_order( $order_id );
+		if ( empty( $order ) ) { return array(); }
+
+		add_filter( 'woi_pdf_document_use_historical_settings', '__return_false', 99 );
+		add_filter( 'woi_pdf_document_is_enabled', '__return_true', 99 );
+		$document = $this->get_document( $doc_type, $order );
+		remove_filter( 'woi_pdf_document_is_enabled', '__return_true', 99 );
+		remove_filter( 'woi_pdf_document_use_historical_settings', '__return_false', 99 );
+		if ( ! $document ) { return array(); }
+		if ( is_callable( array( $document, 'initiate_date' ) ) ) { $document->initiate_date(); }
+
+		add_filter( 'woi_pdf_use_path', '__return_false', 99 );
+		$tokens = $this->token_map( $document );
+		remove_filter( 'woi_pdf_use_path', '__return_false', 99 );
+		return isset( $tokens['{{totals}}'] ) ? array( '{{totals}}' => $tokens['{{totals}}'] ) : array();
+	}
+
+	/** Persist the option (separate seam so tests can capture without WP). */
+	protected function persist_editor_option( array $option ): void {
+		update_option( 'woi_pdf_editor_settings', $option );
 	}
 
 	/** Current invoice column config as a plain 0-indexed list. */
