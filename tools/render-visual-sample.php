@@ -127,11 +127,11 @@ function woi_sample_line_items(): string {
         array( 'class' => 'total',     'en' => 'Amount',     'ar' => 'المبلغ' ),
     );
     $rows = array(
-        array( '20022532', 'Classic Milano Cotton Belt', 'Personalisation: JC', 24, '40.00', '0%', '960.00' ),
-        array( '10000014', 'Force Automatic Wallet — Black', 'Colour: Black', 12, '25.00', '0%', '300.00' ),
-        array( '10017944', 'Classic Milano Auto-Lock Belt', '', 12, '14.00', '0%', '168.00' ),
-        array( '10017913', 'Classic Milano PU Pin Buckle Belt', '', 6, '9.00', '0%', '54.00' ),
-        array( '10017876', 'Force Casual Pin Buckle Belt', '', 12, '19.00', '0%', '228.00' ),
+        array( '20022532', 'Classic Milano Cotton Belt', 'Personalisation: JC', 24, '40.00&nbsp;د.إ', '0%', '960.00&nbsp;د.إ' ),
+        array( '10000014', 'Force Automatic Wallet — Black', 'Colour: Black', 12, '25.00&nbsp;د.إ', '0%', '300.00&nbsp;د.إ' ),
+        array( '10017944', 'Classic Milano Auto-Lock Belt', '', 12, '14.00&nbsp;د.إ', '0%', '168.00&nbsp;د.إ' ),
+        array( '10017913', 'Classic Milano PU Pin Buckle Belt', '', 6, '9.00&nbsp;د.إ', '0%', '54.00&nbsp;د.إ' ),
+        array( '10017876', 'Force Casual Pin Buckle Belt', '', 12, '19.00&nbsp;د.إ', '0%', '228.00&nbsp;د.إ' ),
     );
     $thumb = '<img src="' . woi_sample_thumb_datauri() . '" alt="">';
 

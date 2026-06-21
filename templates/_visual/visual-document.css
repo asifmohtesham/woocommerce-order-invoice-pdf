@@ -152,6 +152,19 @@ table.order-details { width: 100%; margin-top: 3mm; margin-bottom: 2.5mm; }
 .order-details th.vat-split, .order-details td.vat-split,
 .order-details th.total, .order-details td.total { text-align: right; }
 
+/* Keep money / numeric VALUES on one line — body{overflow-wrap:anywhere} (needed
+   for long descriptions) otherwise breaks "40.00 د.إ" mid-number regardless of
+   column width. nowrap makes the table reserve enough width for the figure. */
+.order-details td.quantity,
+.order-details td.price,
+.order-details td.regular_price,
+.order-details td.discount,
+.order-details td.tax_rate,
+.order-details td.vat,
+.order-details td.vat-split,
+.order-details td.weight,
+.order-details td.total { white-space: nowrap; overflow-wrap: normal; word-break: keep-all; }
+
 /* Column widths. Thumbnail is an ABSOLUTE width — mPDF ignores a % width here
    and collapses the column, letting the fixed-width image overflow the next
    cell. ~15mm column / 13mm image keeps it contained (the existing fix). */
