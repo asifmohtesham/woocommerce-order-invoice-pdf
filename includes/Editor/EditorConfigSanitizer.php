@@ -57,7 +57,7 @@ class EditorConfigSanitizer {
 	/**
 	 * @return string|null Sanitized value, or null to omit the key.
 	 */
-	public static function sanitize_option( string $widget, $value, array $field, string $opt_key = '' ) {
+	public static function sanitize_option( string $widget, $value, array $field, string $opt_key = '' ): ?string {
 		switch ( $widget ) {
 			case 'checkbox':
 				return ( $value && '0' !== (string) $value ) ? '1' : null;
