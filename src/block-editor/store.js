@@ -42,3 +42,11 @@ export function getColumns() {
 export function saveColumns( columns, orderId ) {
 	return post( 'visual-columns', orderId ? { columns, order_id: orderId } : { columns } );
 }
+
+export function getEditorConfig() {
+	return get( 'editor-config' );
+}
+
+export function saveEditorConfig( payload, orderId ) {
+	return post( 'editor-config', orderId ? { ...payload, order_id: orderId } : payload );
+}
