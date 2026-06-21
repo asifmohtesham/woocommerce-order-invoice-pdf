@@ -32,7 +32,18 @@ const CSS =
 	// styles, which we don't load). On this custom page the skeleton would otherwise
 	// have no layout CSS and block-stack header/content/sidebar vertically. Own the
 	// minimal native layout here so the sidebar sits as a RIGHT column beside the canvas.
-	'.woi-block-interface .interface-interface-skeleton{display:flex;flex-direction:column;height:100%}' +
+	// NB: `woi-block-interface` and `interface-interface-skeleton` are on the SAME
+	// element (InterfaceSkeleton's className is appended to its own class), so this
+	// must be a COMPOUND selector (no space) — a descendant selector never matched,
+	// leaving the skeleton content-height. That let a tall inspector (the line-item
+	// column editor) grow the page instead of scrolling the sidebar internally.
+	'.woi-block-interface.interface-interface-skeleton{display:flex;flex-direction:column;height:100%}' +
+	// InterfaceSkeleton wraps header + body in an __editor element. It defaults to
+	// flex:0 1 auto / display:block, so it grows with content and never constrains
+	// the body — which let a tall inspector grow the page. Make it the flex column
+	// that fills the skeleton so the body (and the sidebar) get a bounded height
+	// and scroll internally.
+	'.woi-block-interface .interface-interface-skeleton__editor{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}' +
 	'.woi-block-interface .interface-interface-skeleton__header{flex-shrink:0;border-top:1px solid #DEDAD1;border-bottom:1px solid #DEDAD1;background:#fff}' +
 	'.woi-block-interface .interface-interface-skeleton__body{flex:1;display:flex;flex-direction:row;min-height:0;overflow:hidden}' +
 	'.woi-block-interface .interface-interface-skeleton__content{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;overflow:auto}' +
