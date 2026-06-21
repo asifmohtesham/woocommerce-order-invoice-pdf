@@ -50,7 +50,8 @@ const TOKENS = [
 	{ name: 'woi/parties',           title: __( 'Bill / Ship to (section)', 'woocommerce-orders-invoice-pdf' ),token: '{{parties}}',        tag: 'div', preview: '[ Bill / Ship to ]' },
 	{ name: 'woi/lower',             title: __( 'Bank & totals (section)', 'woocommerce-orders-invoice-pdf' ), token: '{{lower}}',          tag: 'div', preview: '[ Bank & totals ]' },
 	{ name: 'woi/signature',         title: __( 'Signature / QR (section)', 'woocommerce-orders-invoice-pdf' ),token: '{{signature}}',      tag: 'div', preview: '[ Signature / QR ]' },
-	{ name: 'woi/footer',            title: __( 'Footer (section)', 'woocommerce-orders-invoice-pdf' ),        token: '{{footer}}',         tag: 'div', preview: '[ Footer ]' },
+	// Footer is rendered as an mPDF running page-footer by the document wrapper
+	// (accurate Page X of Y), so it is intentionally NOT a content block.
 ];
 
 export function registerTokenBlocks() {

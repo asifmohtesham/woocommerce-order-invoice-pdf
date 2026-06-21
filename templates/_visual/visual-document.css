@@ -13,7 +13,7 @@
    PHP-emitted snippet so the swap is reliable in mPDF.
    ===================================================================== */
 
-@page { margin: 15mm; }
+@page { margin: 15mm; margin-bottom: 18mm; footer: woiFooter; }
 
 body {
     font-family: "dejavusans", sans-serif;
@@ -251,6 +251,9 @@ table.woi-sign td { vertical-align: bottom; padding: 0; }
    --------------------------------------------------------------------- */
 .woi-footer { margin-top: 2mm; padding-top: 1.5mm; border-top: 0.5pt solid #D9D4C9; text-align: center; font-size: 8pt; color: #8A8378; }
 .woi-footer .woi-dot { color: #B6AFA1; }
+/* Running page-footer (mPDF htmlpagefooter) sits in the bottom page margin, so no
+   top margin/border is needed and it must not reserve vertical flow space. */
+.woi-running-footer { margin-top: 0; padding-top: 0; border-top: 0; }
 
 /* ---------------------------------------------------------------------
    BILINGUAL LABEL PAIRS — labels are inline; the <br> in the markup (see

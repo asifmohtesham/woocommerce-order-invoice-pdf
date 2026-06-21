@@ -267,6 +267,30 @@ class TemplateTokens {
             . '</tr></table>';
     }
 
+    /**
+     * mPDF running page-footer (accurate "Page X of Y" on every page). Emitted by
+     * the wrapper BEFORE the content so it applies from page 1. mPDF substitutes
+     * {PAGENO}/{nbpg} per page; the tags produce no inline output. The browser
+     * canvas never sees this (it doesn't use the wrapper).
+     */
+    public function running_footer( $document ): string {
+        $shop_name = esc_html( (string) $document->get_shop_name() );
+        $trn       = esc_html( (string) $document->get_shop_vat_number() );
+        $website   = esc_html( $this->shop_website() );
+        $page      = '<span class="woi-lbl-primary">Page {PAGENO} of {nbpg}</span> '
+            . '<span class="woi-lbl-secondary" dir="rtl">صفحة {PAGENO} من {nbpg}</span>';
+        $line = '<div class="woi-footer woi-running-footer">'
+            . '<span>' . $shop_name . '</span> <span class="woi-dot">•</span> '
+            . '<span>TRN ' . $trn . '</span> <span class="woi-dot">•</span> '
+            . '<span>' . $website . '</span> <span class="woi-dot">•</span> '
+            . '<span>' . $page . '</span>'
+            . '</div>';
+        // Define the named footer; visual-document.css assigns it to every page
+        // via @page { footer: woiFooter } (the reliable all-pages method — the
+        // <sethtmlpagefooter> tag only applies from the current page forward).
+        return '<htmlpagefooter name="woiFooter">' . $line . '</htmlpagefooter>';
+    }
+
     private function section_footer( $document ): string {
         $shop_name = esc_html( (string) $document->get_shop_name() );
         $trn       = esc_html( (string) $document->get_shop_vat_number() );

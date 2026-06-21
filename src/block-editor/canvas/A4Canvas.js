@@ -29,9 +29,12 @@ export function hasBlockCanvas() {
 
 // The A4 page itself. Prefers the isolated BlockCanvas iframe; falls back to an
 // in-DOM scoped render when BlockCanvas is unavailable in the installed WP.
-export default function A4Canvas( { previewCss } ) {
+export default function A4Canvas( { previewCss, optionsCss } ) {
 	if ( hasBlockCanvas() ) {
-		const styles = [ { css: previewCss || '' }, { css: A4_SHIM_CSS } ];
+		// optionsCss (accent/density/font/arabic/thumbs/header) goes LAST so it
+		// overrides the base previewCss; it updates when a Document option changes,
+		// which re-renders BlockCanvas and live-refreshes the iframe styles.
+		const styles = [ { css: previewCss || '' }, { css: A4_SHIM_CSS }, { css: optionsCss || '' } ];
 		return <BlockCanvas height="100%" styles={ styles } />;
 	}
 	return (

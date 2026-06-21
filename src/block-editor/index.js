@@ -12,6 +12,7 @@ import {
 	Button,
 	Popover,
 	SlotFillProvider,
+	Spinner,
 	TabPanel,
 	SelectControl,
 	ToggleControl,
@@ -50,6 +51,7 @@ import { STORE } from './previewStore';
 import OrderPicker from './OrderPicker';
 import Canvas from './canvas/Canvas';
 import injectCanvasStyles from './canvas/canvasStyles';
+import { optionsCss } from './optionsCss';
 import { downloadPdf } from './pdfPreview';
 
 // Register our blocks; group them under an "Invoice" heading in the inserter.
@@ -75,7 +77,8 @@ const DEFAULT_TEMPLATE_SECTIONS = [
 	'woi/line-items',
 	'woi/lower',
 	'woi/signature',
-	'woi/footer',
+	// Footer is an mPDF running page-footer (accurate Page X of Y), added by the
+	// document wrapper — not a content block.
 ];
 function buildDefaultTemplate() {
 	return DEFAULT_TEMPLATE_SECTIONS.map( ( name ) => createBlock( name ) );
@@ -221,19 +224,21 @@ function Editor( { initial, activeSource } ) {
 					className="woi-tb-btn"
 					variant="secondary"
 					onClick={ onDownloadPdf }
-					isBusy={ isDownloading }
-					aria-disabled={ isDownloading }
+					disabled={ isDownloading }
+					aria-busy={ isDownloading }
 				>
-					{ __( 'Download PDF', 'woocommerce-orders-invoice-pdf' ) }
+					{ isDownloading ? <Spinner /> : null }
+					{ isDownloading ? __( 'Generating…', 'woocommerce-orders-invoice-pdf' ) : __( 'Download PDF', 'woocommerce-orders-invoice-pdf' ) }
 				</Button>
 				<Button
 					className="woi-tb-btn"
 					variant="primary"
 					onClick={ onSave }
-					isBusy={ isSaving }
-					aria-disabled={ isSaving }
+					disabled={ isSaving }
+					aria-busy={ isSaving }
 				>
-					{ __( 'Save', 'woocommerce-orders-invoice-pdf' ) }
+					{ isSaving ? <Spinner /> : null }
+					{ isSaving ? __( 'Saving…', 'woocommerce-orders-invoice-pdf' ) : __( 'Save', 'woocommerce-orders-invoice-pdf' ) }
 				</Button>
 				<Button
 					icon={ fullscreenIcon }
@@ -373,6 +378,7 @@ function Editor( { initial, activeSource } ) {
 		<BlockTools>
 			<Canvas
 				previewCss={ ( window.woiBlocks && window.woiBlocks.previewCss ) || '' }
+				optionsCss={ optionsCss( docOptions ) }
 			/>
 		</BlockTools>
 	);

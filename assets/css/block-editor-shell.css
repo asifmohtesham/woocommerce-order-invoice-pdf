@@ -95,6 +95,23 @@
     border-radius: var(--ed-radius);
     font-weight: 600;
     font-size: 12.5px;
+    justify-content: center;
+}
+/* Loading spinner inside Save / Download buttons (the is-busy gradient is hidden
+   by the solid navy/ghost fills, so show an explicit spinner instead). */
+.woi-block-wrap .woi-block-header .woi-tb-btn .components-spinner {
+    margin: 0 6px 0 0;
+}
+.woi-block-wrap .woi-block-header .woi-tb-btn.is-primary .components-spinner {
+    color: #fff;
+}
+/* Keep the disabled (busy) primary button clearly navy, not washed out. */
+.woi-block-wrap .woi-block-header .woi-tb-btn.is-primary:disabled,
+.woi-block-wrap .woi-block-header .woi-tb-btn.is-primary[aria-busy="true"] {
+    background: var(--ed-navy);
+    border-color: var(--ed-navy);
+    color: #fff;
+    opacity: .85;
 }
 .woi-block-wrap .woi-block-header .woi-tb-btn.is-primary {
     background: var(--ed-navy);

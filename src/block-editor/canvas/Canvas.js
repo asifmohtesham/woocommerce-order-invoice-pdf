@@ -13,7 +13,7 @@ const A4_PAGE_PX = Math.round( A4_H * PX_PER_MM );
 // shows the whole page and the outer .woi-canvas-scroll owns the only scrollbar.
 // (The iframe document also gets html,body{overflow:hidden} via A4_SHIM_CSS so a
 // transient scrollbar can't trigger the horizontal/vertical scrollbar deadlock.)
-export default function Canvas( { previewCss } ) {
+export default function Canvas( { previewCss, optionsCss } ) {
 	const pageRef = useRef( null );
 	const [ contentMm, setContentMm ] = useState( A4_H );
 
@@ -64,7 +64,7 @@ export default function Canvas( { previewCss } ) {
 					<LeftRuler contentMm={ contentMm } />
 					<div className="woi-a4-page" ref={ pageRef }>
 						<PageGuides contentMm={ contentMm } />
-						<A4Canvas previewCss={ previewCss } />
+						<A4Canvas previewCss={ previewCss } optionsCss={ optionsCss } />
 					</div>
 				</div>
 			</div>

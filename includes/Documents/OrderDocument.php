@@ -1822,7 +1822,7 @@ abstract class OrderDocument implements DocumentInterface {
 			$merged  = apply_filters( 'woi_pdf_html_content', $merged );
 			$html    = $this->render_template(
 				WOI_PDF()->plugin_path() . '/templates/_visual/visual-document-wrapper.php',
-				array( 'content' => $merged )
+				array( 'content' => $merged, 'document' => $this )
 			);
 
 			// clean up special characters

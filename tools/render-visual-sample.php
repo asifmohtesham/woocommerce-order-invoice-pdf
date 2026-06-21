@@ -83,9 +83,19 @@ $tokens = array(
 $body = strtr( $starter, $tokens );
 $body = preg_replace( '/\{\{[^}]*\}\}/', '', $body );
 
+// Running page-footer (mirror TemplateTokens::running_footer) — registered before
+// content so it applies from page 1. Pass argv[6]=2page to force a second page.
+$footer = '<htmlpagefooter name="woiFooter"><div class="woi-footer woi-running-footer">'
+    . '<span>Milano Leather Trading LLC</span> <span class="woi-dot">•</span> '
+    . '<span>TRN 100579920800003</span> <span class="woi-dot">•</span> '
+    . '<span>www.milanoleather.ae</span> <span class="woi-dot">•</span> '
+    . '<span><span class="woi-lbl-primary">Page {PAGENO} of {nbpg}</span> <span class="woi-lbl-secondary" dir="rtl">صفحة {PAGENO} من {nbpg}</span></span>'
+    . '</div></htmlpagefooter>';
+$force2 = ( ( $argv[6] ?? '' ) === '2page' ) ? '<div style="height:170mm"></div><div class="woi-pagebreak"></div>' . $body : '';
+
 $html = '<!DOCTYPE html><html><head><meta charset="utf-8"><style>' . $css . '</style></head>'
       . '<body data-accent="' . $accent . '" data-header="' . $header . '" data-density="' . $density . '" data-arabic="' . $arabic . '" data-thumbs="' . $thumbs . '">'
-      . $body . '</body></html>';
+      . $footer . $body . $force2 . '</body></html>';
 
 /* ---- render via vendored mPDF (mirror MpdfMaker config) ---- */
 $cls = class_exists( '\WOI\PDF\Vendor\Mpdf\Mpdf' ) ? '\WOI\PDF\Vendor\Mpdf\Mpdf' : '\Mpdf\Mpdf';
