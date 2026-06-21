@@ -3,6 +3,7 @@ import { useBlockProps, useInnerBlocksProps, InnerBlocks, InspectorControls } fr
 import { PanelBody, RangeControl, SelectControl, ColorPalette, ToggleControl, Button } from '@wordpress/components';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
+import { APPEARANCE_ATTRS, appearanceStyle, AppearancePanel, AppearanceToolbar } from '../appearance';
 
 // Max cells in a Columns (table row) block. Mirrors core/columns' upper bound.
 const MAX_COLUMNS = 12;
@@ -153,9 +154,21 @@ export function registerColumnsBlocks() {
 		title: __( 'Columns (table row)', 'woocommerce-orders-invoice-pdf' ),
 		category: 'woi-invoice',
 		icon: 'columns',
+		attributes: {
+			...APPEARANCE_ATTRS,
+			border: { type: 'boolean', default: false },
+		},
 		supports: { html: false, reusable: false },
-		edit( { clientId } ) {
-			const blockProps = useBlockProps( { style: { display: 'flex', gap: '8px', alignItems: 'stretch' } } );
+		edit( { clientId, attributes, setAttributes } ) {
+			const blockProps = useBlockProps( {
+				style: {
+					display: 'flex',
+					gap: '8px',
+					alignItems: 'stretch',
+					...appearanceStyle( attributes ),
+					...( attributes.border ? { border: '1px solid #000' } : {} ),
+				},
+			} );
 			const innerProps = useInnerBlocksProps( blockProps, {
 				allowedBlocks: [ 'woi/column' ],
 				template: [ [ 'woi/column' ], [ 'woi/column' ] ],
@@ -190,6 +203,7 @@ export function registerColumnsBlocks() {
 
 			return (
 				<>
+					<AppearanceToolbar attributes={ attributes } setAttributes={ setAttributes } />
 					<InspectorControls>
 						<PanelBody title={ __( 'Columns', 'woocommerce-orders-invoice-pdf' ) }>
 							<RangeControl
@@ -202,15 +216,24 @@ export function registerColumnsBlocks() {
 							<Button variant="secondary" onClick={ equalizeWidths }>
 								{ __( 'Equalize column widths', 'woocommerce-orders-invoice-pdf' ) }
 							</Button>
+							<ToggleControl
+								label={ __( 'Row border', 'woocommerce-orders-invoice-pdf' ) }
+								checked={ attributes.border }
+								onChange={ ( v ) => setAttributes( { border: v } ) }
+							/>
 						</PanelBody>
+						<AppearancePanel attributes={ attributes } setAttributes={ setAttributes } />
 					</InspectorControls>
 					<div { ...innerProps } />
 				</>
 			);
 		},
-		save() {
+		save( { attributes } ) {
+			const style = appearanceStyle( attributes );
+			if ( attributes.border ) { style.border = '0.5pt solid #000'; }
+			const extra = Object.keys( style ).length ? { style } : {};
 			return (
-				<table { ...useBlockProps.save( { className: 'woi-row' } ) }>
+				<table { ...useBlockProps.save( { className: 'woi-row', ...extra } ) }>
 					<tbody>
 						<tr>
 							<InnerBlocks.Content />
