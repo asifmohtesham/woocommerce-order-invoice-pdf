@@ -78,8 +78,10 @@ class EditorConfigRestTest extends TestCase {
             'totals'        => array( array( 'type' => 'total', 'tax' => 'incl' ) ),
             'custom_styles' => '.x{color:red}',
         ) );
-        $rest->handle_save_editor_config( $req );
+        $res = $rest->handle_save_editor_config( $req );
         $this->assertSame( 'incl', $rest->saved['fields_invoice_totals'][1]['tax'] );
         $this->assertSame( '.x{color:red}', $rest->saved['custom_styles'] );
+        // Response echoes the saved custom_styles from the in-memory option (review I1).
+        $this->assertSame( '.x{color:red}', $res['custom_styles'] );
     }
 }

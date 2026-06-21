@@ -298,7 +298,7 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			'saved'         => true,
 			'columns'       => $this->read_invoice_columns(),
 			'totals'        => $this->read_invoice_totals(),
-			'custom_styles' => (string) ( get_option( 'woi_pdf_editor_settings', array() )['custom_styles'] ?? '' ),
+			'custom_styles' => (string) ( $option['custom_styles'] ?? '' ),
 		);
 		$order_id = absint( $request->get_param( 'order_id' ) );
 		if ( $order_id ) {
