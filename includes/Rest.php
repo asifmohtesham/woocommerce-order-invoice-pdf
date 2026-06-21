@@ -145,7 +145,13 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			return new \WP_Error( 'forbidden', 'Insufficient permissions', array( 'status' => 403 ) );
 		}
-		$incoming = (array) $request->get_param( 'columns' );
+		// Read the RAW JSON body: a declared 'array' arg schema (without an items
+		// schema) makes WP REST strip the per-column object keys it doesn't know,
+		// dropping price_type / field_name / etc. get_json_params keeps them.
+		$json     = $request->get_json_params();
+		$incoming = ( is_array( $json ) && isset( $json['columns'] ) )
+			? (array) $json['columns']
+			: (array) $request->get_param( 'columns' );
 		$clean    = array();
 		$i        = 1;
 		// UI-only / explicitly-handled keys; everything ELSE on the column (e.g.
