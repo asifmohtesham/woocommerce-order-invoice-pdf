@@ -47,6 +47,9 @@ export default function OptionField( { optionKey, field, value, onChange } ) {
 					__nextHasNoMarginBottom
 				/>
 			);
+		case 'documentation':
+			// Inert help text — mirrors PHP's <div class="option-documentation">.
+			return field.description ? <p className="woi-option-doc">{ field.description }</p> : null;
 		case 'text':
 		default:
 			return (
