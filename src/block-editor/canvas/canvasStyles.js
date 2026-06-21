@@ -48,6 +48,11 @@ const CSS =
 	'body.woi-block-fullscreen{overflow:hidden}' +
 	// secondary sidebar (list view) panel
 	'.woi-block-interface .interface-interface-skeleton__secondary-sidebar{flex:0 0 281px;width:281px;min-width:281px;overflow:auto;border-right:1px solid #e0e0e0;background:#fff}' +
+	// InterfaceSkeleton wraps the secondary-sidebar content in a framer-motion div
+	// with inline `width:fit-content`; the wp-interface stylesheet (which we don't
+	// load) would normally override it. Without that, the list view shrinks to its
+	// content (~100px) instead of filling the 281px panel. Force it to full width.
+	'.woi-block-interface .interface-interface-skeleton__secondary-sidebar > div{width:100% !important}' +
 	'.woi-block-listview{padding:8px}';
 
 export default function injectCanvasStyles() {
