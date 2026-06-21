@@ -56,6 +56,10 @@
     align-items: center;
     gap: 12px;
     width: 100%;
+    /* border-box so the 14px horizontal padding stays INSIDE the 100% width —
+       WP admin doesn't set a global border-box, so content-box here pushed the
+       toolbar 28px past its parent and forced a horizontal page scrollbar. */
+    box-sizing: border-box;
     padding: 8px 14px;
     background: var(--ed-surface);
 }
