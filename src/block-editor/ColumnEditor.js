@@ -89,6 +89,14 @@ export default function ColumnEditor( { onSaved } ) {
 							__nextHasNoMarginBottom
 						/>
 					</div>
+					<TextControl
+						label={ __( 'Field key (data source)', 'woocommerce-orders-invoice-pdf' ) }
+						value={ c.field || '' }
+						placeholder={ __( 'e.g. global_unique_id', 'woocommerce-orders-invoice-pdf' ) }
+						help={ __( 'Product property or meta key to read (mainly for custom-field columns).', 'woocommerce-orders-invoice-pdf' ) }
+						onChange={ ( v ) => setField( i, 'field', v ) }
+						__nextHasNoMarginBottom
+					/>
 				</div>
 			) ) }
 			<div className="woi-col-add">

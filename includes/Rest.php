@@ -148,11 +148,21 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 		$incoming = (array) $request->get_param( 'columns' );
 		$clean    = array();
 		$i        = 1;
-		$passthrough = array( 'show_meta', 'price_type', 'tax', 'discount', 'split', 'style_target', 'sort' );
+		// UI-only / explicitly-handled keys; everything ELSE on the column (e.g.
+		// price_type, tax, discount, show_meta, attribute_name) is preserved as-is
+		// so editing a column never strips its data wiring.
+		$handled = array( 'align', 'field', 'field_name', 'width', 'style', 'label', 'type' );
 		foreach ( $incoming as $col ) {
 			$col = (array) $col;
 			if ( empty( $col['type'] ) ) { continue; }
 			$c = array( 'type' => sanitize_key( $col['type'] ) );
+
+			// Preserve all other (type-specific) scalar options untouched.
+			foreach ( $col as $k => $v ) {
+				if ( in_array( $k, $handled, true ) || ! is_scalar( $v ) ) { continue; }
+				$c[ sanitize_key( $k ) ] = sanitize_text_field( (string) $v );
+			}
+
 			if ( isset( $col['label'] ) ) { $c['label'] = sanitize_text_field( (string) $col['label'] ); }
 			if ( isset( $col['width'] ) && function_exists( 'woi_pdf_templates_normalize_column_width' ) ) {
 				$w = woi_pdf_templates_normalize_column_width( $col['width'] );
@@ -165,9 +175,12 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			} elseif ( isset( $col['style'] ) ) {
 				$c['style'] = sanitize_text_field( (string) $col['style'] );
 			}
-			foreach ( $passthrough as $k ) {
-				if ( isset( $col[ $k ] ) && ! isset( $c[ $k ] ) ) { $c[ $k ] = sanitize_text_field( (string) $col[ $k ] ); }
-			}
+			// Field key — the data source (e.g. a product meta key / property such as
+			// global_unique_id). Stored as field_name, which the product_custom
+			// renderer reads via get_product_custom_field().
+			$field = isset( $col['field'] ) ? sanitize_text_field( (string) $col['field'] ) : '';
+			if ( '' !== $field ) { $c['field_name'] = $field; }
+
 			$clean[ $i++ ] = $c;
 		}
 
@@ -188,16 +201,16 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 		$out = array();
 		foreach ( (array) $columns as $col ) {
 			$col = (array) $col;
+			if ( empty( $col['type'] ) ) { continue; }
 			$align = '';
 			if ( ! empty( $col['style'] ) && preg_match( '/text-align\s*:\s*(left|center|right)/i', $col['style'], $m ) ) {
 				$align = strtolower( $m[1] );
 			}
-			$out[] = array(
-				'type'  => isset( $col['type'] ) ? (string) $col['type'] : '',
-				'label' => isset( $col['label'] ) ? (string) $col['label'] : '',
-				'width' => isset( $col['width'] ) ? (string) $col['width'] : '',
-				'align' => $align,
-			);
+			// Return the FULL column so type-specific options (price_type, tax,
+			// field_name, …) survive the editor round-trip; add normalized UI fields.
+			$col['align'] = $align;
+			$col['field'] = isset( $col['field_name'] ) ? (string) $col['field_name'] : '';
+			$out[]        = $col;
 		}
 		return $out;
 	}
