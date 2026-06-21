@@ -50,13 +50,15 @@ function renderPdfPages( stageEl, bytes, gen ) {
 
 // POST the current design to the preview endpoint and return the decoded PDF
 // bytes (Uint8Array). Saves the blocks first so the server renders the latest.
-function fetchPdfBytes( blocks, orderId ) {
+// `noWatermark` requests a clean file (the Download action; previews stay marked).
+function fetchPdfBytes( blocks, orderId, noWatermark ) {
 	return saveBlocks( serialize( blocks || [] ) ).then( () => {
 		const w = window.woiBlocks || {};
 		let body = 'action=woi_pdf_preview' +
 			'&security=' + encodeURIComponent( w.previewNonce ) +
 			'&document_type=' + encodeURIComponent( w.docType );
 		if ( orderId ) { body += '&order_id=' + encodeURIComponent( orderId ); }
+		if ( noWatermark ) { body += '&no_watermark=1'; }
 		return fetch( w.ajaxUrl, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -78,7 +80,7 @@ function fetchPdfBytes( blocks, orderId ) {
 // Generate the PDF and trigger a browser download. Returns a Promise that
 // resolves once the download has been kicked off (or rejects on failure).
 export function downloadPdf( { blocks, orderId, filename } ) {
-	return fetchPdfBytes( blocks, orderId ).then( ( bytes ) => {
+	return fetchPdfBytes( blocks, orderId, true ).then( ( bytes ) => {
 		const blob = new Blob( [ bytes ], { type: 'application/pdf' } );
 		const url = URL.createObjectURL( blob );
 		const a = document.createElement( 'a' );

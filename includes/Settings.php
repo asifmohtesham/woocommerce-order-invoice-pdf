@@ -244,6 +244,13 @@ class Settings {
 				throw new \Exception( esc_html__( 'You do not have sufficient permissions to access this page.', 'woocommerce-orders-invoice-pdf' ), 403 );
 			}
 
+			// Block-editor "Download PDF" requests a clean (un-watermarked) file —
+			// the SAMPLE watermark is for on-screen previews only. Scoped to this
+			// single AJAX request.
+			if ( ! empty( $_POST['no_watermark'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+				add_filter( 'woi_pdf_preview_watermark_enabled', '__return_false', 99 );
+			}
+
 			// get document type
 			if ( ! empty( $_POST['document_type'] ) ) {
 				$document_type = sanitize_text_field( wp_unslash( $_POST['document_type'] ) );

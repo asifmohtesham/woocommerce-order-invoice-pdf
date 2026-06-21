@@ -167,8 +167,14 @@ function Editor( { initial, activeSource } ) {
 		}
 		const next = buildDefaultTemplate();
 		dispatch( { type: 'RESET', blocks: next } );
+		// Also restore the default appearance (accent navy, sans font, etc.) so a
+		// reset is a full clean slate, not just the block structure.
+		setDocOptions( DEFAULT_DOC_OPTIONS );
 		try {
-			await saveBlocks( serialize( next ) );
+			await Promise.all( [
+				saveBlocks( serialize( next ) ),
+				saveDocOptions( DEFAULT_DOC_OPTIONS ),
+			] );
 		} catch ( e ) {
 			/* the editor still shows the reset design; save can be retried */
 		}
