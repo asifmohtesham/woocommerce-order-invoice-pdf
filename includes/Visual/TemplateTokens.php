@@ -380,7 +380,15 @@ class TemplateTokens {
                 if ( ! $show_thumbs && $this->is_thumbnail_class( $header_data['class'] ?? '' ) ) {
                     continue;
                 }
-                $html .= '<th class="' . esc_attr( $header_data['class'] ?? '' ) . '"><span class="woi-lbl-primary">' . esc_html( $header_data['title'] ?? '' ) . '</span>';
+                // Emit the configured column width / freeform style (same helper
+                // the classic templates use) so per-column widths from the editor
+                // are authoritative — without this the th only carries a class and
+                // the width falls back to the static CSS, so an editor width edit
+                // visibly "collapses back" once the server render replaces the
+                // optimistic patch. table-layout:fixed makes these widths stick.
+                $th_style = function_exists( 'woi_pdf_templates_maybe_apply_column_styles' )
+                    ? woi_pdf_templates_maybe_apply_column_styles( $header_data, 'header' ) : '';
+                $html .= '<th class="' . esc_attr( $header_data['class'] ?? '' ) . '"' . $th_style . '><span class="woi-lbl-primary">' . esc_html( $header_data['title'] ?? '' ) . '</span>';
                 if ( ! empty( $header_data['secondary'] ) ) {
                     // <br> (not display:block) is what makes mPDF stack the pair —
                     // mPDF ignores display:block on inline <span>s inside a <th>.
@@ -395,7 +403,9 @@ class TemplateTokens {
                     if ( ! $show_thumbs && $this->is_thumbnail_class( $column_data['class'] ?? '' ) ) {
                         continue;
                     }
-                    $html .= '<td class="' . esc_attr( $column_data['class'] ?? '' ) . '"><span>' . wp_kses_post( (string) ( $column_data['data'] ?? '' ) ) . '</span></td>';
+                    $td_style = function_exists( 'woi_pdf_templates_maybe_apply_column_styles' )
+                        ? woi_pdf_templates_maybe_apply_column_styles( $column_data, 'cells' ) : '';
+                    $html .= '<td class="' . esc_attr( $column_data['class'] ?? '' ) . '"' . $td_style . '><span>' . wp_kses_post( (string) ( $column_data['data'] ?? '' ) ) . '</span></td>';
                 }
                 $html .= '</tr>';
             }

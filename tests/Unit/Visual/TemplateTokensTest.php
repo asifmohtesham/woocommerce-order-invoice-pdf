@@ -106,6 +106,28 @@ class TemplateTokensTest extends TestCase {
     }
 
     /**
+     * A configured column width must be emitted as an inline style on the
+     * line-items th AND td (the same convention the classic templates use).
+     * Without this the editor's width edit is dropped on the server render and
+     * visibly "collapses back" to the static CSS width.
+     */
+    public function test_line_item_columns_emit_configured_width(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array {
+                return array( array( 'class' => 'sku', 'title' => 'SKU', 'width' => '20' ) );
+            }
+            protected function fetch_table_body( $d ): array {
+                return array( array( array( 'class' => 'sku', 'data' => 'A-1', 'width' => '20' ) ) );
+            }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $items = $tokens->map( $this->stub_document() )['{{line_items}}'];
+
+        $this->assertStringContainsString( '<th class="sku" style="width: 20%;"', $items );
+        $this->assertStringContainsString( '<td class="sku" style="width: 20%;"', $items );
+    }
+
+    /**
      * Block tokens carry trusted HTML (shop address <br/>, product markup,
      * wc_price() spans) and must render that markup — not show it as escaped
      * text — while plain-text scalars stay escaped. Stub esc_html to actually
