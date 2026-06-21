@@ -67,6 +67,7 @@ class BlockEditorPage {
         wp_enqueue_style( 'wp-block-editor' );
         wp_enqueue_style( 'wp-edit-blocks' );
         wp_enqueue_style( 'wp-components' );
+        wp_enqueue_style( 'wp-interface' );
         wp_enqueue_style( 'wp-format-library' );
 
         $store = new VisualTemplateStore();

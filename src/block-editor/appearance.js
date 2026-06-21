@@ -50,7 +50,7 @@ export function appearanceProps( attributes ) {
 export function AppearancePanel( { attributes, setAttributes } ) {
 	const { align, weight, fontSize, color, bg } = attributes;
 	return (
-		<PanelBody title={ __( 'Appearance', 'woocommerce-orders-invoice-pdf' ) } initialOpen={ false }>
+		<PanelBody title={ __( 'Appearance', 'woocommerce-orders-invoice-pdf' ) } initialOpen={ true }>
 			<SelectControl
 				label={ __( 'Text align', 'woocommerce-orders-invoice-pdf' ) }
 				value={ align || '' }
