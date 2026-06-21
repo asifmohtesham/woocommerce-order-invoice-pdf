@@ -104,8 +104,16 @@ function Editor( { initial, activeSource } ) {
 	} ), [] );
 	const { setOrder } = useDispatch( STORE );
 
-	// Re-fetch the current order's tokens so the canvas line-items reflect a
-	// column-config change (the tokens are server-rendered, not recomputed live).
+	// Apply freshly-rendered tokens (returned by the column save) to the store so
+	// the canvas line-items live-update — no extra round-trip.
+	const applyTokens = useCallback( ( tokens ) => {
+		if ( tokens ) {
+			setOrder( { tokens, orderLabel: orderLabel || '', orderId } );
+		}
+	}, [ orderId, orderLabel, setOrder ] );
+
+	// Fallback: re-fetch the current order's tokens (used when the save couldn't
+	// render them, e.g. no order selected is a no-op).
 	const refreshTokens = useCallback( () => {
 		if ( ! orderId ) { return; }
 		fetchOrderTokens( orderId ).then( ( res ) => {
@@ -387,7 +395,7 @@ function Editor( { initial, activeSource } ) {
 						</p>
 
 						<div className="insp-sec">{ __( 'Line items columns', 'woocommerce-orders-invoice-pdf' ) }</div>
-						<ColumnEditor onSaved={ refreshTokens } />
+						<ColumnEditor onTokens={ applyTokens } onSaved={ refreshTokens } orderId={ orderId } />
 						<p className="insp-note">
 							{ __( 'Reorder, rename, set width and alignment, add or remove columns. Applies to the line-items table.', 'woocommerce-orders-invoice-pdf' ) }
 						</p>

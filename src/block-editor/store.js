@@ -39,6 +39,6 @@ export function getColumns() {
 	return get( 'visual-columns' );
 }
 
-export function saveColumns( columns ) {
-	return post( 'visual-columns', { columns } );
+export function saveColumns( columns, orderId ) {
+	return post( 'visual-columns', orderId ? { columns, order_id: orderId } : { columns } );
 }

@@ -8,7 +8,7 @@ import { getColumns, saveColumns } from './store';
 // (order, title, width %, alignment) via REST; the server line-items renderer
 // reflects it. onSaved() lets the editor re-fetch the order tokens so the canvas
 // live-updates.
-export default function ColumnEditor( { onSaved } ) {
+export default function ColumnEditor( { onTokens, onSaved, orderId } ) {
 	const [ columns, setColumns ] = useState( null );
 	const [ types, setTypes ] = useState( {} );
 	const debounceRef = useRef( null );
@@ -21,10 +21,15 @@ export default function ColumnEditor( { onSaved } ) {
 
 	const persist = useCallback( ( next ) => {
 		if ( debounceRef.current ) { clearTimeout( debounceRef.current ); }
+		// Short debounce + the save returns freshly-rendered tokens for the open
+		// order, so the canvas live-updates in one round-trip (snappy).
 		debounceRef.current = setTimeout( () => {
-			saveColumns( next ).then( () => { if ( onSaved ) { onSaved(); } } ).catch( () => {} );
-		}, 600 );
-	}, [ onSaved ] );
+			saveColumns( next, orderId ).then( ( res ) => {
+				if ( res && res.tokens && onTokens ) { onTokens( res.tokens ); }
+				else if ( onSaved ) { onSaved(); }
+			} ).catch( () => {} );
+		}, 250 );
+	}, [ onTokens, onSaved, orderId ] );
 
 	const update = ( next ) => { setColumns( next ); persist( next ); };
 

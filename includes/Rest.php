@@ -195,7 +195,15 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 		$option['fields_invoice_columns'] = $clean;
 		update_option( 'woi_pdf_editor_settings', $option );
 
-		return array( 'saved' => true, 'columns' => $this->read_invoice_columns() );
+		$response = array( 'saved' => true, 'columns' => $this->read_invoice_columns() );
+
+		// Return freshly-rendered tokens for the open order so the editor canvas
+		// live-updates in a single round-trip (no separate token fetch).
+		$order_id = ( is_array( $json ) && ! empty( $json['order_id'] ) ) ? absint( $json['order_id'] ) : 0;
+		if ( $order_id ) {
+			$response['tokens'] = $this->render_order_tokens( 'invoice', $order_id );
+		}
+		return $response;
 	}
 
 	/** Current invoice column config as a plain 0-indexed list. */
@@ -232,7 +240,35 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 		return $types;
 	}
 
-		/**
+				/**
+		 * Render the token map for an order in preview mode (mirrors
+		 * handle_visual_preview_data). Used to return fresh tokens from the column
+		 * save so the editor canvas live-updates in one round-trip.
+		 *
+		 * @param string $doc_type
+		 * @param int    $order_id
+		 * @return array
+		 */
+		protected function render_order_tokens( string $doc_type, int $order_id ): array {
+			if ( ! $order_id || ! function_exists( 'wc_get_order' ) ) { return array(); }
+			$order = wc_get_order( $order_id );
+			if ( empty( $order ) ) { return array(); }
+
+			add_filter( 'woi_pdf_document_use_historical_settings', '__return_false', 99 );
+			add_filter( 'woi_pdf_document_is_enabled', '__return_true', 99 );
+			$document = $this->get_document( $doc_type, $order );
+			remove_filter( 'woi_pdf_document_is_enabled', '__return_true', 99 );
+			remove_filter( 'woi_pdf_document_use_historical_settings', '__return_false', 99 );
+			if ( ! $document ) { return array(); }
+			if ( is_callable( array( $document, 'initiate_date' ) ) ) { $document->initiate_date(); }
+
+			add_filter( 'woi_pdf_use_path', '__return_false', 99 );
+			$tokens = $this->token_map( $document );
+			remove_filter( 'woi_pdf_use_path', '__return_false', 99 );
+			return $tokens;
+		}
+
+/**
 		 * Registers REST API routes for handling order documents.
 		 *
 		 *  This function initializes the following REST API routes:
