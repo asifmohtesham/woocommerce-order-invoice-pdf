@@ -115,37 +115,44 @@
     box-shadow: inset 0 0 0 1px var(--ed-navy);
 }
 
-/* Center order-context chip. */
-.woi-block-wrap .woi-tb-doc {
-    flex: 1;
+/* Order picker — collapsed chip (#no pill + truncated customer name) + the
+   search icon that re-expands the input. Replaces the old center chip. */
+.woi-block-wrap .woi-op-collapsed {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
-    min-width: 0;
-    overflow: hidden;
+    gap: 4px;
 }
-.woi-block-wrap .woi-tb-docno {
+.woi-block-wrap .woi-op-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 320px;
+    border: 1px solid var(--ed-line);
+    background: var(--ed-surface);
+    border-radius: var(--ed-radius);
+    padding: 4px 6px 4px 4px;
+    cursor: pointer;
+    height: 32px;
+}
+.woi-block-wrap .woi-op-chip:hover {
+    background: var(--ed-bg);
+}
+.woi-block-wrap .woi-op-chipno {
     flex: none;
     font-weight: 700;
     font-size: 11.5px;
     color: var(--ed-navy);
     background: var(--ed-navy-tint);
-    padding: 3px 9px;
+    padding: 3px 8px;
     border-radius: 4px;
 }
-.woi-block-wrap .woi-tb-docname {
+.woi-block-wrap .woi-op-chipname {
     color: var(--ed-muted);
     font-size: 12px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 360px;
-}
-.woi-block-wrap .woi-tb-status {
-    font-size: 11px;
-    color: var(--ed-muted);
-    white-space: nowrap;
+    max-width: 230px;
 }
 
 /* -------------------------- left blocks panel (T3) ---------------------- */

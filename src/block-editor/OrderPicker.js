@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
-import { Spinner } from '@wordpress/components';
+import { Button, Spinner } from '@wordpress/components';
+import { search as searchIcon } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 import { safeHTML } from '@wordpress/dom';
 import { STORE } from './previewStore';
@@ -12,14 +13,25 @@ export default function OrderPicker() {
 	const [ results, setResults ] = useState( null );
 	const [ open, setOpen ] = useState( false );
 	const [ searching, setSearching ] = useState( false );
+	// After an order is loaded the search box collapses to a compact chip + a
+	// search icon; clicking either expands the input again to pick a new order.
+	const [ expanded, setExpanded ] = useState( false );
 	const debounceRef = useRef( null );
 	const boxRef = useRef( null );
+	const inputRef = useRef( null );
 
 	const { setOrder, setLoading } = useDispatch( STORE );
 	const { orderLabel, loading } = useSelect( ( select ) => ( {
 		orderLabel: select( STORE ).getOrderLabel(),
 		loading: select( STORE ).isLoading(),
 	} ), [] );
+
+	const collapsed = !! orderLabel && ! expanded;
+
+	// Focus the input when the search expands so the user can type immediately.
+	useEffect( () => {
+		if ( expanded && inputRef.current ) { inputRef.current.focus(); }
+	}, [ expanded ] );
 
 	const runSearch = useCallback( ( value ) => {
 		setSearching( true );
@@ -38,6 +50,7 @@ export default function OrderPicker() {
 		fetchOrderTokens( id ).then( ( res ) => {
 			if ( res && res.tokens ) {
 				setOrder( { tokens: res.tokens, orderLabel: res.order_label || label || '', orderId: id } );
+				setExpanded( false ); // collapse back to the chip once an order is picked
 			} else {
 				setLoading( false );
 			}
@@ -68,21 +81,55 @@ export default function OrderPicker() {
 		}
 	}, [ term, loadOrder, runSearch ] );
 
-	// Close the dropdown on outside click.
+	// Close the dropdown on outside click; collapse back to the chip if an order
+	// is already loaded (so the toolbar isn't left with a stray open input).
 	useEffect( () => {
 		function onDocClick( e ) {
-			if ( boxRef.current && ! boxRef.current.contains( e.target ) ) { setOpen( false ); }
+			if ( boxRef.current && ! boxRef.current.contains( e.target ) ) {
+				setOpen( false );
+				if ( orderLabel ) { setExpanded( false ); }
+			}
 		}
 		document.addEventListener( 'click', onDocClick );
 		return () => document.removeEventListener( 'click', onDocClick );
-	}, [] );
+	}, [ orderLabel ] );
 
 	const ids = results ? Object.keys( results ) : [];
 
+	// ---- Collapsed: order chip + search icon (post-load) ----
+	if ( collapsed ) {
+		let no = '';
+		let name = orderLabel;
+		const dash = orderLabel.indexOf( ' — ' );
+		if ( -1 !== dash ) { no = orderLabel.slice( 0, dash ); name = orderLabel.slice( dash + 3 ); }
+		return (
+			<div className="woi-order-picker woi-op-collapsed" ref={ boxRef }>
+				<button
+					type="button"
+					className="woi-op-chip"
+					onClick={ () => setExpanded( true ) }
+					title={ orderLabel }
+				>
+					{ no ? <span className="woi-op-chipno">{ no }</span> : null }
+					<span className="woi-op-chipname">{ name }</span>
+				</button>
+				{ loading ? <Spinner /> : (
+					<Button
+						icon={ searchIcon }
+						label={ __( 'Change order', 'woocommerce-orders-invoice-pdf' ) }
+						onClick={ () => setExpanded( true ) }
+					/>
+				) }
+			</div>
+		);
+	}
+
+	// ---- Expanded: search input + results dropdown ----
 	return (
 		<div className="woi-order-picker" ref={ boxRef } style={ { position: 'relative', minWidth: '280px' } }>
 			<div style={ { display: 'flex', alignItems: 'center', gap: '6px' } }>
 				<input
+					ref={ inputRef }
 					type="text"
 					value={ term }
 					onFocus={ onFocus }
@@ -93,11 +140,6 @@ export default function OrderPicker() {
 				/>
 				{ ( searching || loading ) ? <Spinner /> : null }
 			</div>
-			{ orderLabel ? (
-				<div style={ { fontSize: '11px', color: '#555', marginTop: '2px' } }>
-					{ __( 'Order:', 'woocommerce-orders-invoice-pdf' ) } { orderLabel }
-				</div>
-			) : null }
 			{ open && results ? (
 				<ul className="woi-order-results" style={ { position: 'absolute', zIndex: 100001, left: 0, right: 0, top: '100%', margin: 0, padding: '4px 0', listStyle: 'none', background: '#fff', border: '1px solid #ccc', boxShadow: '0 2px 8px rgba(0,0,0,.15)', maxHeight: '320px', overflow: 'auto' } }>
 					{ 0 === ids.length ? (

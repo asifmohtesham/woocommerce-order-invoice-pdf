@@ -1,4 +1,4 @@
-import { createRoot, useReducer, useState, useEffect, useRef } from '@wordpress/element';
+import { createRoot, useReducer, useState, useEffect } from '@wordpress/element';
 import {
 	BlockTools,
 	BlockEditorProvider,
@@ -50,7 +50,7 @@ import { STORE } from './previewStore';
 import OrderPicker from './OrderPicker';
 import Canvas from './canvas/Canvas';
 import injectCanvasStyles from './canvas/canvasStyles';
-import PreviewPanel from './PreviewPanel';
+import { downloadPdf } from './pdfPreview';
 
 // Register our blocks; group them under an "Invoice" heading in the inserter.
 registerBlockCollection( 'woi', {
@@ -67,29 +67,16 @@ injectCanvasStyles();
 function Editor( { initial, activeSource } ) {
 	const [ history, dispatch ] = useReducer( historyReducer, initial, initHistory );
 	const blocks = history.present;
-	const [ status, setStatus ] = useState( '' );
 	const [ source, setSource ] = useState( activeSource );
 	const [ isSidebarOpen, setIsSidebarOpen ] = useState( true );
 	const [ isListViewOpen, setIsListViewOpen ] = useState( false );
 	const [ isFullscreen, setIsFullscreen ] = useState( false );
-	const previewRef = useRef( null );
+	const [ isSaving, setIsSaving ] = useState( false );
+	const [ isDownloading, setIsDownloading ] = useState( false );
 
-	// Order context for the centered toolbar chip. orderLabel is built by the
-	// OrderPicker as "#<order_number> — <name>"; split it so the number renders
-	// in the navy pill and the (truncated) customer name beside it.
-	const { orderId, orderLabel } = useSelect( ( select ) => ( {
-		orderId: select( STORE ).getOrderId(),
-		orderLabel: select( STORE ).getOrderLabel(),
-	} ), [] );
-	let chipNo = orderId ? '#' + orderId : '';
-	let chipName = orderLabel || '';
-	if ( orderLabel ) {
-		const dash = orderLabel.indexOf( ' — ' );
-		if ( -1 !== dash ) {
-			chipNo = orderLabel.slice( 0, dash );
-			chipName = orderLabel.slice( dash + 3 );
-		}
-	}
+	// Selected order id (drives the Download PDF filename + which order the PDF
+	// renders). The order chip itself now lives inside the OrderPicker.
+	const orderId = useSelect( ( select ) => select( STORE ).getOrderId(), [] );
 
 	// Document appearance options (accent / letterhead / density / bilingual /
 	// thumbnails / font). Seeded from the server, persisted via saveDocOptions.
@@ -111,12 +98,20 @@ function Editor( { initial, activeSource } ) {
 		saveDocOptions( next ).catch( () => {} );
 	}
 
-	// Render the PDF preview (which sits below the full-height editor) and scroll
-	// it into view — driven from the header so it's discoverable without scrolling.
-	function onRenderPdf() {
-		if ( previewRef.current ) {
-			previewRef.current.reveal();
-			previewRef.current.render();
+	// The A4 block canvas IS the live preview now, so the header action just
+	// generates and downloads the PDF (no separate preview panel).
+	async function onDownloadPdf() {
+		setIsDownloading( true );
+		try {
+			await downloadPdf( {
+				blocks,
+				orderId,
+				filename: 'invoice' + ( orderId ? '-' + orderId : '' ) + '.pdf',
+			} );
+		} catch ( e ) {
+			/* errors surface via the browser; keep the button responsive */
+		} finally {
+			setIsDownloading( false );
 		}
 	}
 
@@ -127,12 +122,13 @@ function Editor( { initial, activeSource } ) {
 	}, [ isFullscreen ] );
 
 	async function onSave() {
-		setStatus( __( 'Saving…', 'woocommerce-orders-invoice-pdf' ) );
+		setIsSaving( true );
 		try {
 			await saveBlocks( serialize( blocks ) );
-			setStatus( __( 'Saved.', 'woocommerce-orders-invoice-pdf' ) );
 		} catch ( e ) {
-			setStatus( __( 'Save failed.', 'woocommerce-orders-invoice-pdf' ) );
+			/* keep the prior design; the busy state clears in finally */
+		} finally {
+			setIsSaving( false );
 		}
 	}
 
@@ -181,22 +177,24 @@ function Editor( { initial, activeSource } ) {
 				/>
 			</div>
 
-			<div className="woi-tb-doc">
-				{ orderId ? (
-					<>
-						<span className="woi-tb-docno">{ chipNo }</span>
-						<span className="woi-tb-docname">{ chipName }</span>
-					</>
-				) : null }
-			</div>
-
 			<div className="woi-tb-grp woi-tb-grp--right">
 				<OrderPicker />
-				<span className="woi-tb-status" aria-live="polite">{ status }</span>
-				<Button className="woi-tb-btn" variant="secondary" onClick={ onRenderPdf }>
-					{ __( 'Render PDF', 'woocommerce-orders-invoice-pdf' ) }
+				<Button
+					className="woi-tb-btn"
+					variant="secondary"
+					onClick={ onDownloadPdf }
+					isBusy={ isDownloading }
+					aria-disabled={ isDownloading }
+				>
+					{ __( 'Download PDF', 'woocommerce-orders-invoice-pdf' ) }
 				</Button>
-				<Button className="woi-tb-btn" variant="primary" onClick={ onSave }>
+				<Button
+					className="woi-tb-btn"
+					variant="primary"
+					onClick={ onSave }
+					isBusy={ isSaving }
+					aria-disabled={ isSaving }
+				>
 					{ __( 'Save', 'woocommerce-orders-invoice-pdf' ) }
 				</Button>
 				<Button
@@ -324,9 +322,6 @@ function Editor( { initial, activeSource } ) {
 
 	const content = (
 		<BlockTools>
-			<div style={ { padding: '8px' } }>
-				<Inserter rootClientId={ undefined } isAppender />
-			</div>
 			<Canvas
 				previewCss={ ( window.woiBlocks && window.woiBlocks.previewCss ) || '' }
 			/>
@@ -369,10 +364,9 @@ function Editor( { initial, activeSource } ) {
 							secondarySidebar: __( 'Block list view', 'woocommerce-orders-invoice-pdf' ),
 						} }
 					/>
-				</div>
 				<Popover.Slot />
+				</div>
 			</BlockEditorProvider>
-			<PreviewPanel ref={ previewRef } blocks={ blocks } source={ source } />
 		</SlotFillProvider>
 	);
 }

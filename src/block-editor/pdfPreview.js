@@ -48,6 +48,49 @@ function renderPdfPages( stageEl, bytes, gen ) {
 	} );
 }
 
+// POST the current design to the preview endpoint and return the decoded PDF
+// bytes (Uint8Array). Saves the blocks first so the server renders the latest.
+function fetchPdfBytes( blocks, orderId ) {
+	return saveBlocks( serialize( blocks || [] ) ).then( () => {
+		const w = window.woiBlocks || {};
+		let body = 'action=woi_pdf_preview' +
+			'&security=' + encodeURIComponent( w.previewNonce ) +
+			'&document_type=' + encodeURIComponent( w.docType );
+		if ( orderId ) { body += '&order_id=' + encodeURIComponent( orderId ); }
+		return fetch( w.ajaxUrl, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+			credentials: 'same-origin',
+			body,
+		} );
+	} ).then( ( r ) => { if ( ! r.ok ) { throw new Error( 'HTTP ' + r.status ); } return r.json(); } )
+		.then( ( res ) => {
+			if ( ! res.success || ! res.data || ! res.data.preview_data || 'pdf' !== res.data.output_format ) {
+				throw new Error( ( res.data && res.data.error ) ? res.data.error : 'PDF generation failed.' );
+			}
+			const binary = window.atob( res.data.preview_data );
+			const bytes = new Uint8Array( binary.length );
+			for ( let i = 0; i < binary.length; i++ ) { bytes[ i ] = binary.charCodeAt( i ); }
+			return bytes;
+		} );
+}
+
+// Generate the PDF and trigger a browser download. Returns a Promise that
+// resolves once the download has been kicked off (or rejects on failure).
+export function downloadPdf( { blocks, orderId, filename } ) {
+	return fetchPdfBytes( blocks, orderId ).then( ( bytes ) => {
+		const blob = new Blob( [ bytes ], { type: 'application/pdf' } );
+		const url = URL.createObjectURL( blob );
+		const a = document.createElement( 'a' );
+		a.href = url;
+		a.download = filename || 'invoice.pdf';
+		document.body.appendChild( a );
+		a.click();
+		a.remove();
+		setTimeout( () => URL.revokeObjectURL( url ), 1000 );
+	} );
+}
+
 // Save the current design, render the real mPDF, paint A4 canvases into stageEl.
 // onStatus( text ) reports progress/errors ('' clears). Returns a Promise.
 export function renderPdfPreview( { stageEl, blocks, orderId, onStatus } ) {
