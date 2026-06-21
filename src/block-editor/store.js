@@ -12,6 +12,17 @@ async function post( path, body ) {
 	return res.json();
 }
 
+async function get( path ) {
+	const res = await fetch( `${ restUrl }/${ path }`, {
+		headers: { 'X-WP-Nonce': nonce },
+		credentials: 'same-origin',
+	} );
+	if ( ! res.ok ) {
+		throw new Error( `Request failed: ${ res.status }` );
+	}
+	return res.json();
+}
+
 export function saveBlocks( markup ) {
 	return post( 'visual-blocks', { doc_type: docType, markup } );
 }
@@ -22,4 +33,12 @@ export function setActiveSource( source ) {
 
 export function saveDocOptions( options ) {
 	return post( 'visual-doc-options', { options } );
+}
+
+export function getColumns() {
+	return get( 'visual-columns' );
+}
+
+export function saveColumns( columns ) {
+	return post( 'visual-columns', { columns } );
 }

@@ -99,6 +99,118 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 				'options' => array( 'type' => 'object', 'required' => true ),
 			),
 		) );
+
+		register_rest_route( 'woi-pdf/v1', '/visual-columns', array(
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'handle_get_columns' ),
+				'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
+			),
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'handle_save_columns' ),
+				'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
+				'args'                => array(
+					'columns' => array( 'type' => 'array', 'required' => true ),
+				),
+			),
+		) );
+	}
+
+	/**
+	 * Read the line-items column config (order, titles, widths, alignment) plus
+	 * the available column types so the block editor can present a column editor.
+	 *
+	 * @param object $request
+	 * @return array|\WP_Error
+	 */
+	public function handle_get_columns( $request ) {
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return new \WP_Error( 'forbidden', 'Insufficient permissions', array( 'status' => 403 ) );
+		}
+		return array(
+			'columns' => $this->read_invoice_columns(),
+			'types'   => $this->available_column_types(),
+		);
+	}
+
+	/**
+	 * Save the line-items column config. Sanitises each column and preserves the
+	 * type-specific options the classic editor manages (price_type, tax, …).
+	 *
+	 * @param object $request
+	 * @return array|\WP_Error
+	 */
+	public function handle_save_columns( $request ) {
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return new \WP_Error( 'forbidden', 'Insufficient permissions', array( 'status' => 403 ) );
+		}
+		$incoming = (array) $request->get_param( 'columns' );
+		$clean    = array();
+		$i        = 1;
+		$passthrough = array( 'show_meta', 'price_type', 'tax', 'discount', 'split', 'style_target', 'sort' );
+		foreach ( $incoming as $col ) {
+			$col = (array) $col;
+			if ( empty( $col['type'] ) ) { continue; }
+			$c = array( 'type' => sanitize_key( $col['type'] ) );
+			if ( isset( $col['label'] ) ) { $c['label'] = sanitize_text_field( (string) $col['label'] ); }
+			if ( isset( $col['width'] ) && function_exists( 'woi_pdf_templates_normalize_column_width' ) ) {
+				$w = woi_pdf_templates_normalize_column_width( $col['width'] );
+				if ( '' !== $w ) { $c['width'] = $w; }
+			}
+			// Alignment is stored in the freeform `style` as text-align.
+			if ( ! empty( $col['align'] ) && in_array( $col['align'], array( 'left', 'center', 'right' ), true ) ) {
+				$c['style']        = 'text-align: ' . $col['align'] . ';';
+				$c['style_target'] = 'both';
+			} elseif ( isset( $col['style'] ) ) {
+				$c['style'] = sanitize_text_field( (string) $col['style'] );
+			}
+			foreach ( $passthrough as $k ) {
+				if ( isset( $col[ $k ] ) && ! isset( $c[ $k ] ) ) { $c[ $k ] = sanitize_text_field( (string) $col[ $k ] ); }
+			}
+			$clean[ $i++ ] = $c;
+		}
+
+		$option = get_option( 'woi_pdf_editor_settings', array() );
+		if ( ! is_array( $option ) ) { $option = array(); }
+		$option['fields_invoice_columns'] = $clean;
+		update_option( 'woi_pdf_editor_settings', $option );
+
+		return array( 'saved' => true, 'columns' => $this->read_invoice_columns() );
+	}
+
+	/** Current invoice column config as a plain 0-indexed list. */
+	protected function read_invoice_columns(): array {
+		$columns = array();
+		if ( class_exists( '\\WOI\\PDF\\Editor\\EditorSettings' ) ) {
+			$columns = \WOI\PDF\Editor\EditorSettings::instance()->get_settings( 'invoice', 'columns' );
+		}
+		$out = array();
+		foreach ( (array) $columns as $col ) {
+			$col = (array) $col;
+			$align = '';
+			if ( ! empty( $col['style'] ) && preg_match( '/text-align\s*:\s*(left|center|right)/i', $col['style'], $m ) ) {
+				$align = strtolower( $m[1] );
+			}
+			$out[] = array(
+				'type'  => isset( $col['type'] ) ? (string) $col['type'] : '',
+				'label' => isset( $col['label'] ) ? (string) $col['label'] : '',
+				'width' => isset( $col['width'] ) ? (string) $col['width'] : '',
+				'align' => $align,
+			);
+		}
+		return $out;
+	}
+
+	/** Map of available column type => default title. */
+	protected function available_column_types(): array {
+		$types = array();
+		if ( class_exists( '\\WOI\\PDF\\Editor\\EditorSettings' ) && method_exists( '\\WOI\\PDF\\Editor\\EditorSettings', 'get_columns_field_options' ) ) {
+			foreach ( (array) \WOI\PDF\Editor\EditorSettings::instance()->get_columns_field_options() as $type => $cfg ) {
+				$types[ (string) $type ] = isset( $cfg['title'] ) ? (string) $cfg['title'] : (string) $type;
+			}
+		}
+		return $types;
 	}
 
 		/**

@@ -277,3 +277,49 @@
 .woi-block-wrap .woi-doc-appearance .components-base-control {
     margin-bottom: 0;
 }
+
+/* Line-items column editor. */
+.woi-block-wrap .woi-col-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+.woi-block-wrap .woi-col-row {
+    border: 1px solid var(--ed-line);
+    border-radius: var(--ed-radius);
+    padding: 8px;
+    background: #FBFAF8;
+}
+.woi-block-wrap .woi-col-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+.woi-block-wrap .woi-col-type {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ed-ink);
+}
+.woi-block-wrap .woi-col-actions {
+    display: flex;
+    gap: 0;
+}
+.woi-block-wrap .woi-col-actions .components-button {
+    min-width: 24px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+}
+.woi-block-wrap .woi-col-grid {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+}
+.woi-block-wrap .woi-col-grid > * {
+    flex: 1;
+}
+.woi-block-wrap .woi-col-add {
+    margin-top: 2px;
+}

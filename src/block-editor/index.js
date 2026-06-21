@@ -1,4 +1,4 @@
-import { createRoot, useReducer, useState, useEffect } from '@wordpress/element';
+import { createRoot, useReducer, useState, useEffect, useCallback } from '@wordpress/element';
 import {
 	BlockTools,
 	BlockEditorProvider,
@@ -17,7 +17,7 @@ import {
 	SelectControl,
 	ToggleControl,
 } from '@wordpress/components';
-import { useSelect } from '@wordpress/data';
+import { useSelect, useDispatch } from '@wordpress/data';
 import { InterfaceSkeleton } from '@wordpress/interface';
 import {
 	cog,
@@ -53,6 +53,8 @@ import Canvas from './canvas/Canvas';
 import injectCanvasStyles from './canvas/canvasStyles';
 import { optionsCss } from './optionsCss';
 import { downloadPdf } from './pdfPreview';
+import { fetchOrderTokens } from './preview';
+import ColumnEditor from './ColumnEditor';
 
 // Register our blocks; group them under an "Invoice" heading in the inserter.
 registerBlockCollection( 'woi', {
@@ -96,7 +98,22 @@ function Editor( { initial, activeSource } ) {
 
 	// Selected order id (drives the Download PDF filename + which order the PDF
 	// renders). The order chip itself now lives inside the OrderPicker.
-	const orderId = useSelect( ( select ) => select( STORE ).getOrderId(), [] );
+	const { orderId, orderLabel } = useSelect( ( select ) => ( {
+		orderId: select( STORE ).getOrderId(),
+		orderLabel: select( STORE ).getOrderLabel(),
+	} ), [] );
+	const { setOrder } = useDispatch( STORE );
+
+	// Re-fetch the current order's tokens so the canvas line-items reflect a
+	// column-config change (the tokens are server-rendered, not recomputed live).
+	const refreshTokens = useCallback( () => {
+		if ( ! orderId ) { return; }
+		fetchOrderTokens( orderId ).then( ( res ) => {
+			if ( res && res.tokens ) {
+				setOrder( { tokens: res.tokens, orderLabel: orderLabel || '', orderId } );
+			}
+		} ).catch( () => {} );
+	}, [ orderId, orderLabel, setOrder ] );
 
 	// Document appearance options (accent / letterhead / density / bilingual /
 	// thumbnails / font). Seeded from the server, persisted via saveDocOptions.
@@ -367,6 +384,12 @@ function Editor( { initial, activeSource } ) {
 
 						<p className="insp-note">
 							{ __( 'Set the source to "Block editor" to render the PDF from this design. Appearance options apply to the rendered PDF.', 'woocommerce-orders-invoice-pdf' ) }
+						</p>
+
+						<div className="insp-sec">{ __( 'Line items columns', 'woocommerce-orders-invoice-pdf' ) }</div>
+						<ColumnEditor onSaved={ refreshTokens } />
+						<p className="insp-note">
+							{ __( 'Reorder, rename, set width and alignment, add or remove columns. Applies to the line-items table.', 'woocommerce-orders-invoice-pdf' ) }
 						</p>
 					</div>
 				)
