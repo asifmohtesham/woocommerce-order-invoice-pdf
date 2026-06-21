@@ -13,6 +13,19 @@ export const HTML_TOKENS = new Set( [
 	'{{shop_address_ar}}',
 	'{{line_items}}',
 	'{{totals}}',
+	// Redesign leaf tokens that merge to HTML.
+	'{{shipping_address}}',
+	'{{recipient_trn}}',
+	'{{bank_details}}',
+	'{{qr_code}}',
+	// Section tokens — each merges to a whole HTML section.
+	'{{letterhead}}',
+	'{{contact_strip}}',
+	'{{title_meta}}',
+	'{{parties}}',
+	'{{lower}}',
+	'{{signature}}',
+	'{{footer}}',
 ] );
 
 export function isHtmlToken( token ) {

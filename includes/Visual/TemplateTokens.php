@@ -58,6 +58,18 @@ class TemplateTokens {
             '{{qr_code}}'          => $this->render_qr_code( $document ),
             '{{line_items}}'       => $this->render_line_items( $document ),
             '{{totals}}'           => $this->render_totals( $document ),
+            // Section tokens: each emits a whole canonical visual-document.css
+            // section. The block editor exposes these as section blocks so a
+            // reset can seed the full redesign; the GrapesJS starter can use them
+            // too. They wrap the same leaf values, so merge() resolves them in one
+            // pass (no nested {{tokens}} left inside).
+            '{{letterhead}}'       => $this->section_letterhead( $document, $engine ),
+            '{{contact_strip}}'    => $this->section_contact_strip( $document ),
+            '{{title_meta}}'       => $this->section_title_meta( $document, $engine ),
+            '{{parties}}'          => $this->section_parties( $document ),
+            '{{lower}}'            => $this->section_lower( $document ),
+            '{{signature}}'        => $this->section_signature( $document ),
+            '{{footer}}'           => $this->section_footer( $document ),
         );
     }
 
@@ -153,6 +165,118 @@ class TemplateTokens {
             return '';
         }
         return trim( 'TRN:' . $trn . ' INV:' . $inv );
+    }
+
+    /* ===================== Section builders =====================
+     * Each returns one whole canonical visual-document.css section, with leaf
+     * values already resolved (no nested {{tokens}}). Mirrors the structure in
+     * assets/visual-editor/starter-invoice.html. Exposed as section tokens so the
+     * block editor can offer them as section blocks (the redesign default). */
+
+    /** Bilingual label pair, EN over AR via a real <br> (mPDF stacks on <br>). */
+    private function bilabel_br( string $en, string $ar ): string {
+        return '<span class="woi-lbl-primary">' . esc_html( $en ) . '</span><br>'
+            . '<span class="woi-lbl-secondary" dir="rtl">' . esc_html( $ar ) . '</span>';
+    }
+
+    /** Bilingual label pair, EN then AR inline (a space between). */
+    private function bilabel( string $en, string $ar ): string {
+        return '<span class="woi-lbl-primary">' . esc_html( $en ) . '</span> '
+            . '<span class="woi-lbl-secondary" dir="rtl">' . esc_html( $ar ) . '</span>';
+    }
+
+    private function section_letterhead( $document, $engine ): string {
+        $logo            = $document->has_header_logo() ? $this->capture( array( $document, 'header_logo' ) ) : '';
+        $shop_name       = esc_html( (string) $document->get_shop_name() );
+        $shop_address    = wp_kses_post( (string) $document->get_shop_address() );
+        $shop_name_ar    = esc_html( $engine->secondary_shop_name() );
+        $shop_address_ar = nl2br( esc_html( (string) $engine->secondary_shop_address() ) );
+        return '<table class="woi-letterhead"><tr>'
+            . '<td class="woi-lh-en"><div class="woi-co-name">' . $shop_name . '</div><div class="woi-co-lines">' . $shop_address . '</div></td>'
+            . '<td class="woi-lh-mark">' . $logo . '</td>'
+            . '<td class="woi-lh-ar" dir="rtl"><div class="woi-co-name">' . $shop_name_ar . '</div><div class="woi-co-lines">' . $shop_address_ar . '</div></td>'
+            . '</tr></table>';
+    }
+
+    private function section_contact_strip( $document ): string {
+        $trn   = esc_html( (string) $document->get_shop_vat_number() );
+        $phone = esc_html( (string) $document->get_shop_phone_number() );
+        $email = esc_html( (string) $document->get_shop_email_address() );
+        return '<table class="woi-contact"><tr>'
+            . '<td><span class="woi-contact-k">TRN</span> <span class="woi-contact-v">' . $trn . '</span></td>'
+            . '<td class="woi-contact-mid"><span class="woi-contact-k">Tel</span> <span class="woi-contact-v">' . $phone . '</span></td>'
+            . '<td class="woi-contact-end"><span class="woi-contact-k">Email</span> <span class="woi-contact-v">' . $email . '</span></td>'
+            . '</tr></table>';
+    }
+
+    private function section_title_meta( $document, $engine ): string {
+        $title    = esc_html( $document->get_title() );
+        $title_ar = esc_html( $engine->secondary_label( 'document', $document ) );
+        $inv      = $this->capture( fn() => $document->number( $document->get_type() ) );
+        $order    = esc_html( (string) $document->get_order_number() );
+        $date     = $this->capture( fn() => $document->date( $document->get_type() ) );
+        return '<table class="woi-titlebar"><tr>'
+            . '<td class="woi-title-cell"><div class="woi-title-en">' . $title . '</div><div class="woi-title-ar" dir="rtl">' . $title_ar . '</div></td>'
+            . '<td class="woi-meta-cell"><table class="woi-meta"><tbody>'
+            . '<tr><th>' . $this->bilabel_br( 'Invoice No.', 'رقم الفاتورة' ) . '</th><td>' . $inv . '</td></tr>'
+            . '<tr><th>' . $this->bilabel_br( 'Order No.', 'رقم الطلب' ) . '</th><td>' . $order . '</td></tr>'
+            . '<tr><th>' . $this->bilabel_br( 'Issue Date', 'تاريخ الإصدار' ) . '</th><td>' . $date . '</td></tr>'
+            . '</tbody></table></td></tr></table>';
+    }
+
+    private function section_parties( $document ): string {
+        $billing       = (string) $document->get_billing_address();
+        $recipient_trn = $this->recipient_trn( $document );
+        $shipping      = $this->shipping_address( $document );
+        return '<table class="woi-parties"><tr>'
+            . '<td class="woi-party"><div class="woi-party-label">' . $this->bilabel_br( 'Bill To', 'فاتورة إلى' ) . '</div><div class="woi-party-body">' . $billing . $recipient_trn . '</div></td>'
+            . '<td class="woi-party-gap"></td>'
+            . '<td class="woi-party"><div class="woi-party-label">' . $this->bilabel_br( 'Ship To', 'الشحن إلى' ) . '</div><div class="woi-party-body">' . $shipping . '</div></td>'
+            . '</tr></table>';
+    }
+
+    private function section_lower( $document ): string {
+        $bank      = $this->render_bank_details();
+        $shop_name = esc_html( (string) $document->get_shop_name() );
+        $totals    = $this->render_totals( $document );
+        $words     = esc_html( (string) apply_filters( 'woi_pdf_amount_in_words', '', $document ) );
+        return '<table class="woi-lower"><tr>'
+            . '<td class="woi-lower-left">'
+            . '<div class="woi-sub-label">' . $this->bilabel( 'Bank Details', 'تفاصيل البنك' ) . '</div>'
+            . $bank
+            . '<div class="woi-terms">'
+            . '<div class="woi-sub-label">' . $this->bilabel( 'Payment Terms', 'شروط الدفع' ) . '</div>'
+            . '<p>Payment due within 30 days of invoice date. Goods remain the property of ' . $shop_name . ' until paid in full.</p>'
+            . '<p class="ar" dir="rtl">يُستحق الدفع خلال ٣٠ يوماً من تاريخ الفاتورة. تبقى البضاعة ملكاً للشركة حتى سداد كامل المبلغ.</p>'
+            . '</div>'
+            . '</td>'
+            . '<td class="woi-lower-right">'
+            . $totals
+            . '<div class="woi-amount-words"><span class="woi-sub-label">' . $this->bilabel( 'Amount in words', 'المبلغ كتابةً' ) . '</span><span>' . $words . '</span></div>'
+            . '</td>'
+            . '</tr></table>';
+    }
+
+    private function section_signature( $document ): string {
+        $qr        = $this->render_qr_code( $document );
+        $shop_name = esc_html( (string) $document->get_shop_name() );
+        return '<table class="woi-sign"><tr>'
+            . '<td class="woi-qr">' . $qr . '<div class="woi-qr-cap">' . $this->bilabel( 'Scan to verify', 'امسح للتحقق' ) . '</div></td>'
+            . '<td class="woi-stamp"><div class="woi-stamp-ring">Company<br>Stamp</div></td>'
+            . '<td class="woi-signature"><div class="woi-sig-line"></div><div class="woi-sig-cap">' . $this->bilabel( 'Authorised Signatory', 'المُوقّع المُفوّض' ) . '</div><div class="woi-sig-co">For ' . $shop_name . '</div></td>'
+            . '</tr></table>';
+    }
+
+    private function section_footer( $document ): string {
+        $shop_name = esc_html( (string) $document->get_shop_name() );
+        $trn       = esc_html( (string) $document->get_shop_vat_number() );
+        $website   = esc_html( $this->shop_website() );
+        return '<div class="woi-footer">'
+            . '<span>' . $shop_name . '</span> <span class="woi-dot">•</span> '
+            . '<span>TRN ' . $trn . '</span> <span class="woi-dot">•</span> '
+            . '<span>' . $website . '</span> <span class="woi-dot">•</span> '
+            . '<span>' . $this->bilabel( 'Page 1 of 1', 'صفحة ١ من ١' ) . '</span>'
+            . '</div>';
     }
 
     /**

@@ -7,7 +7,7 @@ import {
 	ListView as StableListView,
 	__experimentalListView as ExperimentalListView,
 } from '@wordpress/block-editor';
-import { parse, serialize, registerBlockCollection } from '@wordpress/blocks';
+import { parse, serialize, createBlock, registerBlockCollection } from '@wordpress/blocks';
 import {
 	Button,
 	Popover,
@@ -63,6 +63,23 @@ registerColumnsBlocks();
 registerHeaderRowVariation();
 registerTableBlock();
 injectCanvasStyles();
+
+// The redesigned default invoice as a sequence of section blocks. Built with
+// createBlock (not parsed markup) so there's no save/markup validation mismatch.
+// Each section block emits its canonical visual-document.css section at render.
+const DEFAULT_TEMPLATE_SECTIONS = [
+	'woi/letterhead',
+	'woi/contact-strip',
+	'woi/title-meta',
+	'woi/parties',
+	'woi/line-items',
+	'woi/lower',
+	'woi/signature',
+	'woi/footer',
+];
+function buildDefaultTemplate() {
+	return DEFAULT_TEMPLATE_SECTIONS.map( ( name ) => createBlock( name ) );
+}
 
 function Editor( { initial, activeSource } ) {
 	const [ history, dispatch ] = useReducer( historyReducer, initial, initHistory );
@@ -139,6 +156,21 @@ function Editor( { initial, activeSource } ) {
 			setSource( r.source );
 		} catch ( e ) {
 			/* keep prior on failure */
+		}
+	}
+
+	// Replace the current design with the redesigned default (section blocks).
+	async function onResetTemplate() {
+		// eslint-disable-next-line no-alert
+		if ( ! window.confirm( __( 'Replace the current design with the default redesigned template? This overwrites the current blocks.', 'woocommerce-orders-invoice-pdf' ) ) ) {
+			return;
+		}
+		const next = buildDefaultTemplate();
+		dispatch( { type: 'RESET', blocks: next } );
+		try {
+			await saveBlocks( serialize( next ) );
+		} catch ( e ) {
+			/* the editor still shows the reset design; save can be retried */
 		}
 	}
 
@@ -243,6 +275,17 @@ function Editor( { initial, activeSource } ) {
 							<span>{ __( 'Page size', 'woocommerce-orders-invoice-pdf' ) }</span>
 							<span className="insp-val">{ __( 'A4 · Portrait', 'woocommerce-orders-invoice-pdf' ) }</span>
 						</div>
+						<Button
+							className="woi-reset-template"
+							variant="secondary"
+							onClick={ onResetTemplate }
+							style={ { marginTop: '8px' } }
+						>
+							{ __( 'Reset to default template', 'woocommerce-orders-invoice-pdf' ) }
+						</Button>
+						<p className="insp-note">
+							{ __( 'Loads the full redesigned invoice (letterhead, contact, title, bill/ship to, items, bank & totals, signature/QR, footer).', 'woocommerce-orders-invoice-pdf' ) }
+						</p>
 						<div className="insp-sec">{ __( 'Localisation', 'woocommerce-orders-invoice-pdf' ) }</div>
 						<div className="insp-field">
 							<span>{ __( 'Second language', 'woocommerce-orders-invoice-pdf' ) }</span>

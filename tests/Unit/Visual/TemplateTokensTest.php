@@ -302,6 +302,31 @@ class TemplateTokensTest extends TestCase {
     }
 
     /**
+     * Section tokens emit whole canonical visual-document.css sections with their
+     * leaf values already resolved (no nested {{tokens}} left for the single-pass
+     * merge). These power the block editor's section blocks / default template.
+     */
+    public function test_section_tokens_emit_canonical_sections(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $map = $tokens->map( $this->stub_document() );
+
+        $this->assertStringContainsString( '<table class="woi-letterhead">', $map['{{letterhead}}'] );
+        $this->assertStringContainsString( 'Acme Co', $map['{{letterhead}}'] );
+        $this->assertStringNotContainsString( '{{', $map['{{letterhead}}'] );
+        $this->assertStringContainsString( '<table class="woi-contact">', $map['{{contact_strip}}'] );
+        $this->assertStringContainsString( '<table class="woi-titlebar">', $map['{{title_meta}}'] );
+        $this->assertStringContainsString( 'woi-lbl-secondary', $map['{{title_meta}}'] );
+        $this->assertStringContainsString( '<table class="woi-parties">', $map['{{parties}}'] );
+        $this->assertStringContainsString( '<table class="woi-lower">', $map['{{lower}}'] );
+        $this->assertStringContainsString( '<table class="woi-sign">', $map['{{signature}}'] );
+        $this->assertStringContainsString( 'class="woi-footer"', $map['{{footer}}'] );
+    }
+
+    /**
      * Thumbnails author option OFF must drop the thumbnail column from both the
      * header and every body row (mPDF can't display:none a table column, so the
      * column is removed at the source).

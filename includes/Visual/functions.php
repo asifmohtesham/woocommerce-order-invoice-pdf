@@ -42,5 +42,12 @@ function woi_pdf_visual_sample_data(): array {
         '{{payment_method}}'    => 'Credit Card',
         '{{line_items}}'        => '<table class="order-details"><thead><tr><th>Item</th><th>Qty</th><th>Price</th></tr></thead><tbody><tr><td>Widget</td><td>2</td><td>AED 50</td></tr></tbody></table>',
         '{{totals}}'            => '<table class="totals-table"><tr><th>Total</th><td>AED 100</td></tr></table>',
+        // Redesign leaf tokens (sample values for the in-editor preview).
+        '{{shipping_address}}'  => 'John Buyer<br>Abu Dhabi, UAE',
+        '{{recipient_trn}}'     => '<div class="woi-party-trn">TRN&nbsp; 100123456700003</div>',
+        '{{bank_details}}'      => '<table class="woi-bank"><tbody><tr><th>Bank</th><td>Sample Bank</td></tr><tr><th>IBAN</th><td class="mono">AE00 0000 0000 0000</td></tr></tbody></table>',
+        '{{qr_code}}'           => '<div class="woi-qr-placeholder">QR</div>',
+        '{{amount_words}}'      => 'UAE Dirham One Hundred only.',
+        '{{shop_website}}'      => 'www.acme.example',
     );
 }

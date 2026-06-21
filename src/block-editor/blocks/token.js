@@ -32,6 +32,25 @@ const TOKENS = [
 	{ name: 'woi/billing-address',   title: __( 'Billing address', 'woocommerce-orders-invoice-pdf' ),   token: '{{billing_address}}',   tag: 'div', preview: 'John Buyer, Abu Dhabi, UAE' },
 	{ name: 'woi/line-items',        title: __( 'Line items table', 'woocommerce-orders-invoice-pdf' ),  token: '{{line_items}}',        tag: 'div', preview: '[ line items table ]' },
 	{ name: 'woi/totals',            title: __( 'Totals table', 'woocommerce-orders-invoice-pdf' ),      token: '{{totals}}',            tag: 'div', preview: '[ totals table ]' },
+
+	// Redesign leaf tokens.
+	{ name: 'woi/shipping-address',  title: __( 'Shipping address', 'woocommerce-orders-invoice-pdf' ),  token: '{{shipping_address}}',  tag: 'div', preview: 'Ship to address' },
+	{ name: 'woi/recipient-trn',     title: __( 'Customer TRN', 'woocommerce-orders-invoice-pdf' ),       token: '{{recipient_trn}}',     tag: 'div', preview: 'Customer TRN' },
+	{ name: 'woi/bank-details',      title: __( 'Bank details', 'woocommerce-orders-invoice-pdf' ),       token: '{{bank_details}}',      tag: 'div', preview: '[ bank details ]' },
+	{ name: 'woi/qr-code',           title: __( 'QR code', 'woocommerce-orders-invoice-pdf' ),            token: '{{qr_code}}',           tag: 'div', preview: '[ QR ]' },
+	{ name: 'woi/amount-words',      title: __( 'Amount in words', 'woocommerce-orders-invoice-pdf' ),    token: '{{amount_words}}',      tag: 'p',   preview: 'Amount in words' },
+	{ name: 'woi/shop-website',      title: __( 'Shop website', 'woocommerce-orders-invoice-pdf' ),       token: '{{shop_website}}',      tag: 'p',   preview: 'www.example.com' },
+
+	// Whole-section blocks — each emits a canonical visual-document.css section.
+	// The default template (Reset) is built from these so the block path renders
+	// the full redesign. Granular tokens above remain for custom composition.
+	{ name: 'woi/letterhead',        title: __( 'Letterhead (section)', 'woocommerce-orders-invoice-pdf' ),    token: '{{letterhead}}',     tag: 'div', preview: '[ Letterhead ]' },
+	{ name: 'woi/contact-strip',     title: __( 'Contact strip (section)', 'woocommerce-orders-invoice-pdf' ), token: '{{contact_strip}}',  tag: 'div', preview: '[ Contact strip ]' },
+	{ name: 'woi/title-meta',        title: __( 'Title & meta (section)', 'woocommerce-orders-invoice-pdf' ),  token: '{{title_meta}}',     tag: 'div', preview: '[ Title & meta ]' },
+	{ name: 'woi/parties',           title: __( 'Bill / Ship to (section)', 'woocommerce-orders-invoice-pdf' ),token: '{{parties}}',        tag: 'div', preview: '[ Bill / Ship to ]' },
+	{ name: 'woi/lower',             title: __( 'Bank & totals (section)', 'woocommerce-orders-invoice-pdf' ), token: '{{lower}}',          tag: 'div', preview: '[ Bank & totals ]' },
+	{ name: 'woi/signature',         title: __( 'Signature / QR (section)', 'woocommerce-orders-invoice-pdf' ),token: '{{signature}}',      tag: 'div', preview: '[ Signature / QR ]' },
+	{ name: 'woi/footer',            title: __( 'Footer (section)', 'woocommerce-orders-invoice-pdf' ),        token: '{{footer}}',         tag: 'div', preview: '[ Footer ]' },
 ];
 
 export function registerTokenBlocks() {
