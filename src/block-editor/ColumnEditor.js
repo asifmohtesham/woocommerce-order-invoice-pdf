@@ -1,30 +1,41 @@
 import { useState, useEffect, useRef, useCallback } from '@wordpress/element';
-import { Button, SelectControl, TextControl, Spinner } from '@wordpress/components';
+import { Button, SelectControl, TextControl, TextareaControl, Spinner } from '@wordpress/components';
 import { chevronUp, chevronDown, trash } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
-import { getColumns, saveColumns } from './store';
+import { getEditorConfig, saveEditorConfig } from './store';
+import { setTextAlign, getTextAlign, renderableOptions } from './optionSchema';
+import OptionField from './OptionField';
 
-// Line-items column editor. Reads/writes the existing invoice `columns` setting
-// (order, title, width %, alignment) via REST; the server line-items renderer
-// reflects it. onSaved() lets the editor re-fetch the order tokens so the canvas
-// live-updates.
+const ALIGN_OPTS = [
+	{ label: __( 'Default', 'woocommerce-orders-invoice-pdf' ), value: '' },
+	{ label: __( 'Left', 'woocommerce-orders-invoice-pdf' ), value: 'left' },
+	{ label: __( 'Center', 'woocommerce-orders-invoice-pdf' ), value: 'center' },
+	{ label: __( 'Right', 'woocommerce-orders-invoice-pdf' ), value: 'right' },
+];
+const STYLE_TARGET_OPTS = [
+	{ label: __( 'Apply style to entire column', 'woocommerce-orders-invoice-pdf' ), value: 'both' },
+	{ label: __( 'Apply style to column header', 'woocommerce-orders-invoice-pdf' ), value: 'header' },
+	{ label: __( 'Apply style to column cells', 'woocommerce-orders-invoice-pdf' ), value: 'cells' },
+];
+
 export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId } ) {
 	const [ columns, setColumns ] = useState( null );
-	const [ types, setTypes ] = useState( {} );
+	const [ schema, setSchema ] = useState( {} );
 	const debounceRef = useRef( null );
 
 	useEffect( () => {
-		getColumns()
-			.then( ( r ) => { setColumns( Array.isArray( r.columns ) ? r.columns : [] ); setTypes( r.types || {} ); } )
+		getEditorConfig()
+			.then( ( r ) => {
+				setColumns( Array.isArray( r.columns?.values ) ? r.columns.values : [] );
+				setSchema( r.columns?.schema || {} );
+			} )
 			.catch( () => setColumns( [] ) );
 	}, [] );
 
 	const persist = useCallback( ( next ) => {
 		if ( debounceRef.current ) { clearTimeout( debounceRef.current ); }
-		// Short debounce + the save returns freshly-rendered tokens for the open
-		// order, so the canvas live-updates in one round-trip (snappy).
 		debounceRef.current = setTimeout( () => {
-			saveColumns( next, orderId ).then( ( res ) => {
+			saveEditorConfig( { columns: next }, orderId ).then( ( res ) => {
 				if ( res && res.tokens && onTokens ) { onTokens( res.tokens ); }
 				else if ( onSaved ) { onSaved(); }
 			} ).catch( () => {} );
@@ -32,9 +43,6 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 	}, [ onTokens, onSaved, orderId ] );
 
 	const update = ( next ) => { setColumns( next ); persist( next ); };
-	// In-place value edit (title/width/align): apply optimistically for instant
-	// feedback, then persist. (Field-key needs the server; add/remove/reorder
-	// change structure, so they skip the optimistic path.)
 	const editField = ( next, instant ) => {
 		setColumns( next );
 		if ( instant && onLiveEdit ) { onLiveEdit( next ); }
@@ -45,7 +53,7 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 		return <div className="woi-col-editor"><Spinner /></div>;
 	}
 
-	const typeTitle = ( t ) => types[ t ] || t;
+	const typeTitle = ( t ) => ( schema[ t ] && schema[ t ].title ) || t;
 	const move = ( i, d ) => {
 		const j = i + d;
 		if ( j < 0 || j >= columns.length ) { return; }
@@ -53,69 +61,97 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 		const tmp = n[ i ]; n[ i ] = n[ j ]; n[ j ] = tmp;
 		update( n );
 	};
-	const setField = ( i, k, v ) => {
+	const setKey = ( i, k, v, instant ) => {
 		const next = columns.map( ( c, idx ) => ( idx === i ? { ...c, [ k ]: v } : c ) );
-		// title/width/align update the canvas instantly; field-key needs the server.
-		editField( next, 'title' === k || 'width' === k || 'align' === k );
+		editField( next, !! instant );
+	};
+	const setAlign = ( i, align ) => {
+		const next = columns.map( ( c, idx ) =>
+			( idx === i ? { ...c, style: setTextAlign( c.style || '', align ), style_target: c.style_target || 'both' } : c ) );
+		editField( next, true );
 	};
 	const remove = ( i ) => update( columns.filter( ( _, idx ) => idx !== i ) );
-	const add = ( t ) => { if ( t ) { update( [ ...columns, { type: t, label: '', width: '', align: '' } ] ); } };
+	const add = ( t ) => { if ( t ) { update( [ ...columns, { type: t } ] ); } };
 
+	const hasOption = ( type, key ) => !! ( schema[ type ] && schema[ type ].options && schema[ type ].options[ key ] );
 	const addOptions = [ { label: __( 'Add column…', 'woocommerce-orders-invoice-pdf' ), value: '' } ]
-		.concat( Object.keys( types ).map( ( t ) => ( { label: typeTitle( t ), value: t } ) ) );
+		.concat( Object.keys( schema ).filter( ( t ) => 'position' !== t ).map( ( t ) => ( { label: typeTitle( t ), value: t } ) ) );
 
 	return (
 		<div className="woi-col-editor">
-			{ columns.map( ( c, i ) => (
-				<div className="woi-col-row" key={ i }>
-					<div className="woi-col-head">
-						<span className="woi-col-type">{ typeTitle( c.type ) }</span>
-						<span className="woi-col-actions">
-							<Button icon={ chevronUp } label={ __( 'Move up', 'woocommerce-orders-invoice-pdf' ) } onClick={ () => move( i, -1 ) } disabled={ 0 === i } />
-							<Button icon={ chevronDown } label={ __( 'Move down', 'woocommerce-orders-invoice-pdf' ) } onClick={ () => move( i, 1 ) } disabled={ i === columns.length - 1 } />
-							<Button icon={ trash } label={ __( 'Remove', 'woocommerce-orders-invoice-pdf' ) } onClick={ () => remove( i ) } isDestructive />
-						</span>
+			{ columns.map( ( c, i ) => {
+				const opts = renderableOptions( schema[ c.type ], { exclude: [ 'label', 'width', 'style', 'style_target' ] } );
+				return (
+					<div className="woi-col-row" key={ i }>
+						<div className="woi-col-head">
+							<span className="woi-col-type">{ typeTitle( c.type ) }</span>
+							<span className="woi-col-actions">
+								<Button icon={ chevronUp } label={ __( 'Move up', 'woocommerce-orders-invoice-pdf' ) } onClick={ () => move( i, -1 ) } disabled={ 0 === i } />
+								<Button icon={ chevronDown } label={ __( 'Move down', 'woocommerce-orders-invoice-pdf' ) } onClick={ () => move( i, 1 ) } disabled={ i === columns.length - 1 } />
+								<Button icon={ trash } label={ __( 'Remove', 'woocommerce-orders-invoice-pdf' ) } onClick={ () => remove( i ) } isDestructive />
+							</span>
+						</div>
+						{ hasOption( c.type, 'label' ) && (
+							<TextControl
+								label={ __( 'Title', 'woocommerce-orders-invoice-pdf' ) }
+								value={ c.label || '' }
+								placeholder={ typeTitle( c.type ) }
+								onChange={ ( v ) => setKey( i, 'label', v, true ) }
+								__nextHasNoMarginBottom
+							/>
+						) }
+						<div className="woi-col-grid">
+							{ hasOption( c.type, 'width' ) && (
+								<TextControl
+									label={ __( 'Width %', 'woocommerce-orders-invoice-pdf' ) }
+									type="number"
+									value={ c.width || '' }
+									min={ 0 } max={ 100 }
+									onChange={ ( v ) => setKey( i, 'width', v, true ) }
+									__nextHasNoMarginBottom
+								/>
+							) }
+							{ hasOption( c.type, 'style' ) && (
+								<SelectControl
+									label={ __( 'Align', 'woocommerce-orders-invoice-pdf' ) }
+									value={ getTextAlign( c.style || '' ) }
+									options={ ALIGN_OPTS }
+									onChange={ ( v ) => setAlign( i, v ) }
+									__nextHasNoMarginBottom
+								/>
+							) }
+						</div>
+						{ opts.map( ( { key, field } ) => (
+							<OptionField
+								key={ key }
+								optionKey={ key }
+								field={ field }
+								value={ c[ key ] }
+								onChange={ ( v ) => setKey( i, key, v, false ) }
+							/>
+						) ) }
+						{ hasOption( c.type, 'style' ) && (
+							<TextareaControl
+								label={ __( 'Style (inline CSS)', 'woocommerce-orders-invoice-pdf' ) }
+								value={ c.style || '' }
+								rows={ 2 }
+								help={ __( 'e.g. color:#000; font-size:12px;', 'woocommerce-orders-invoice-pdf' ) }
+								onChange={ ( v ) => setKey( i, 'style', v, false ) }
+								__nextHasNoMarginBottom
+							/>
+						) }
+						{ hasOption( c.type, 'style_target' ) && (
+							<SelectControl
+								label={ __( 'Style target', 'woocommerce-orders-invoice-pdf' ) }
+								value={ c.style_target || 'both' }
+								options={ STYLE_TARGET_OPTS }
+								onChange={ ( v ) => setKey( i, 'style_target', v, false ) }
+								__nextHasNoMarginBottom
+							/>
+						) }
 					</div>
-					<TextControl
-						label={ __( 'Title', 'woocommerce-orders-invoice-pdf' ) }
-						value={ c.label || '' }
-						placeholder={ typeTitle( c.type ) }
-						onChange={ ( v ) => setField( i, 'label', v ) }
-						__nextHasNoMarginBottom
-					/>
-					<div className="woi-col-grid">
-						<TextControl
-							label={ __( 'Width %', 'woocommerce-orders-invoice-pdf' ) }
-							type="number"
-							value={ c.width || '' }
-							min={ 0 }
-							max={ 100 }
-							onChange={ ( v ) => setField( i, 'width', v ) }
-							__nextHasNoMarginBottom
-						/>
-						<SelectControl
-							label={ __( 'Align', 'woocommerce-orders-invoice-pdf' ) }
-							value={ c.align || '' }
-							options={ [
-								{ label: __( 'Default', 'woocommerce-orders-invoice-pdf' ), value: '' },
-								{ label: __( 'Left', 'woocommerce-orders-invoice-pdf' ), value: 'left' },
-								{ label: __( 'Center', 'woocommerce-orders-invoice-pdf' ), value: 'center' },
-								{ label: __( 'Right', 'woocommerce-orders-invoice-pdf' ), value: 'right' },
-							] }
-							onChange={ ( v ) => setField( i, 'align', v ) }
-							__nextHasNoMarginBottom
-						/>
-					</div>
-					<TextControl
-						label={ __( 'Field key (data source)', 'woocommerce-orders-invoice-pdf' ) }
-						value={ c.field || '' }
-						placeholder={ __( 'e.g. global_unique_id', 'woocommerce-orders-invoice-pdf' ) }
-						help={ __( 'Product property or meta key to read (mainly for custom-field columns).', 'woocommerce-orders-invoice-pdf' ) }
-						onChange={ ( v ) => setField( i, 'field', v ) }
-						__nextHasNoMarginBottom
-					/>
-				</div>
-			) ) }
+				);
+			} ) }
 			<div className="woi-col-add">
 				<SelectControl value="" options={ addOptions } onChange={ add } __nextHasNoMarginBottom />
 			</div>
