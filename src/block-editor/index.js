@@ -1,4 +1,4 @@
-import { createRoot, useReducer, useState, useEffect } from '@wordpress/element';
+import { createRoot, useReducer, useState, useEffect, useRef } from '@wordpress/element';
 import {
 	BlockTools,
 	BlockEditorProvider,
@@ -64,6 +64,16 @@ function Editor( { initial, activeSource } ) {
 	const [ isSidebarOpen, setIsSidebarOpen ] = useState( true );
 	const [ isListViewOpen, setIsListViewOpen ] = useState( false );
 	const [ isFullscreen, setIsFullscreen ] = useState( false );
+	const previewRef = useRef( null );
+
+	// Render the PDF preview (which sits below the full-height editor) and scroll
+	// it into view — driven from the header so it's discoverable without scrolling.
+	function onRenderPdf() {
+		if ( previewRef.current ) {
+			previewRef.current.reveal();
+			previewRef.current.render();
+		}
+	}
 
 	// Hide the admin background scroll while the editor is full screen.
 	useEffect( () => {
@@ -128,6 +138,9 @@ function Editor( { initial, activeSource } ) {
 			/>
 			<Button variant="primary" onClick={ onSave } style={ { marginLeft: '8px' } }>
 				{ __( 'Save', 'woocommerce-orders-invoice-pdf' ) }
+			</Button>
+			<Button variant="secondary" onClick={ onRenderPdf }>
+				{ __( 'Render PDF', 'woocommerce-orders-invoice-pdf' ) }
 			</Button>
 			<span aria-live="polite">{ status }</span>
 			<div style={ { marginLeft: 'auto', display: 'flex', gap: '4px', alignItems: 'center' } }>
@@ -231,7 +244,7 @@ function Editor( { initial, activeSource } ) {
 				</div>
 				<Popover.Slot />
 			</BlockEditorProvider>
-			<PreviewPanel blocks={ blocks } source={ source } />
+			<PreviewPanel ref={ previewRef } blocks={ blocks } source={ source } />
 		</SlotFillProvider>
 	);
 }
