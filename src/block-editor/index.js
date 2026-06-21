@@ -1,12 +1,14 @@
-import { createRoot, useState, useEffect } from '@wordpress/element';
+import { createRoot, useState } from '@wordpress/element';
 import {
 	BlockTools,
 	BlockEditorProvider,
-	Inserter,
 	BlockInspector,
+	Inserter,
 } from '@wordpress/block-editor';
 import { parse, serialize, registerBlockCollection } from '@wordpress/blocks';
-import { Button, Popover, SlotFillProvider } from '@wordpress/components';
+import { Button, Popover, SlotFillProvider, TabPanel } from '@wordpress/components';
+import { InterfaceSkeleton } from '@wordpress/interface';
+import { cog } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 import { registerTokenBlocks } from './blocks/token';
 import { registerTextBlock } from './blocks/text';
@@ -22,7 +24,6 @@ import OrderPicker from './OrderPicker';
 import Canvas from './canvas/Canvas';
 import injectCanvasStyles from './canvas/canvasStyles';
 import PreviewPanel from './PreviewPanel';
-import { injectLayoutStyles, LAYOUTS } from './layout';
 
 // Register our blocks; group them under an "Invoice" heading in the inserter.
 registerBlockCollection( 'woi', {
@@ -34,39 +35,13 @@ registerLayoutBlocks();
 registerColumnsBlocks();
 registerHeaderRowVariation();
 registerTableBlock();
-injectLayoutStyles();
 injectCanvasStyles();
-
-function readLayout() {
-	try {
-		return window.localStorage.getItem( 'woiBlockEditorLayout' ) || 'full';
-	} catch ( e ) {
-		return 'full';
-	}
-}
 
 function Editor( { initial, activeSource } ) {
 	const [ blocks, setBlocks ] = useState( initial );
 	const [ status, setStatus ] = useState( '' );
 	const [ source, setSource ] = useState( activeSource );
-	const [ layout, setLayout ] = useState( readLayout );
-	const [ overlayOpen, setOverlayOpen ] = useState( false );
-
-	// Toggle the body fullscreen class (hides WP chrome scroll) for full mode.
-	useEffect( () => {
-		document.body.classList.toggle(
-			'woi-block-fullscreen',
-			'full' === layout
-		);
-		return () => document.body.classList.remove( 'woi-block-fullscreen' );
-	}, [ layout ] );
-
-	function applyLayout( mode ) {
-		setLayout( mode );
-		try {
-			window.localStorage.setItem( 'woiBlockEditorLayout', mode );
-		} catch ( e ) {}
-	}
+	const [ isSidebarOpen, setIsSidebarOpen ] = useState( true );
 
 	async function onSave() {
 		setStatus( __( 'Saving…', 'woocommerce-orders-invoice-pdf' ) );
@@ -88,133 +63,92 @@ function Editor( { initial, activeSource } ) {
 		}
 	}
 
-	const previewHidden = 'overlay' === layout && ! overlayOpen;
+	const header = (
+		<div
+			className="woi-block-header"
+			style={ { display: 'flex', gap: '8px', alignItems: 'center', width: '100%' } }
+		>
+			<Button variant="primary" onClick={ onSave }>
+				{ __( 'Save', 'woocommerce-orders-invoice-pdf' ) }
+			</Button>
+			<span aria-live="polite">{ status }</span>
+			<OrderPicker />
+			<div style={ { marginLeft: 'auto' } }>
+				<Button
+					icon={ cog }
+					isPressed={ isSidebarOpen }
+					label={ __( 'Settings', 'woocommerce-orders-invoice-pdf' ) }
+					onClick={ () => setIsSidebarOpen( ( o ) => ! o ) }
+				/>
+			</div>
+		</div>
+	);
+
+	const sidebar = (
+		<TabPanel
+			className="woi-block-sidebar-tabs"
+			tabs={ [
+				{ name: 'document', title: __( 'Document', 'woocommerce-orders-invoice-pdf' ) },
+				{ name: 'block', title: __( 'Block', 'woocommerce-orders-invoice-pdf' ) },
+			] }
+			initialTabName="block"
+		>
+			{ ( tab ) =>
+				'block' === tab.name ? (
+					<BlockInspector />
+				) : (
+					<div className="woi-block-document-panel" style={ { padding: '16px' } }>
+						<label htmlFor="woi-pdf-source" style={ { display: 'block', marginBottom: '4px' } }>
+							{ __( 'PDF source:', 'woocommerce-orders-invoice-pdf' ) }
+						</label>
+						<select
+							id="woi-pdf-source"
+							value={ source }
+							onChange={ ( e ) => onSource( e.target.value ) }
+						>
+							<option value="grapesjs">{ __( 'GrapesJS', 'woocommerce-orders-invoice-pdf' ) }</option>
+							<option value="blocks">{ __( 'Block editor', 'woocommerce-orders-invoice-pdf' ) }</option>
+						</select>
+						<p style={ { marginTop: '12px', color: '#757575' } }>
+							{ __( 'Set the source to "Block editor" to render the PDF from this design.', 'woocommerce-orders-invoice-pdf' ) }
+						</p>
+					</div>
+				)
+			}
+		</TabPanel>
+	);
+
+	const content = (
+		<BlockTools>
+			<div style={ { padding: '8px' } }>
+				<Inserter rootClientId={ undefined } isAppender />
+			</div>
+			<Canvas
+				previewCss={ ( window.woiBlocks && window.woiBlocks.previewCss ) || '' }
+			/>
+		</BlockTools>
+	);
 
 	return (
-		<div className="woi-block-shell" data-layout={ layout }>
-			<div className="woi-block-main">
-				<div
-					className="woi-block-toolbar"
-					style={ {
-						display: 'flex',
-						gap: '8px',
-						alignItems: 'center',
-						marginBottom: '8px',
-						flexWrap: 'wrap',
-					} }
-				>
-					<Button variant="primary" onClick={ onSave }>
-						{ __( 'Save', 'woocommerce-orders-invoice-pdf' ) }
-					</Button>
-					<label htmlFor="woi-pdf-source">
-						{ __(
-							'PDF source:',
-							'woocommerce-orders-invoice-pdf'
-						) }
-					</label>
-					<select
-						id="woi-pdf-source"
-						value={ source }
-						onChange={ ( e ) => onSource( e.target.value ) }
-					>
-						<option value="grapesjs">
-							{ __(
-								'GrapesJS',
-								'woocommerce-orders-invoice-pdf'
-							) }
-						</option>
-						<option value="blocks">
-							{ __(
-								'Block editor',
-								'woocommerce-orders-invoice-pdf'
-							) }
-						</option>
-					</select>
-					<OrderPicker />
-					<span aria-live="polite">{ status }</span>
-					<span
-						className="woi-block-layout-switch"
-						role="group"
-						aria-label={ __(
-							'Editor layout',
-							'woocommerce-orders-invoice-pdf'
-						) }
-						style={ {
-							marginLeft: 'auto',
-							display: 'inline-flex',
-							gap: '4px',
+		<SlotFillProvider>
+			<BlockEditorProvider value={ blocks } onInput={ setBlocks } onChange={ setBlocks }>
+				<div className="woi-block-interface-wrap">
+					<InterfaceSkeleton
+						className="woi-block-interface"
+						header={ header }
+						content={ content }
+						sidebar={ isSidebarOpen ? sidebar : undefined }
+						labels={ {
+							header: __( 'Editor top bar', 'woocommerce-orders-invoice-pdf' ),
+							body: __( 'Editor content', 'woocommerce-orders-invoice-pdf' ),
+							sidebar: __( 'Editor settings', 'woocommerce-orders-invoice-pdf' ),
 						} }
-					>
-						{ LAYOUTS.map( ( l ) => (
-							<button
-								key={ l.id }
-								type="button"
-								className={
-									'button' +
-									( layout === l.id ? ' button-primary' : '' )
-								}
-								onClick={ () => applyLayout( l.id ) }
-							>
-								{ l.label }
-							</button>
-						) ) }
-						{ 'overlay' === layout ? (
-							<button
-								type="button"
-								className="button"
-								onClick={ () => setOverlayOpen( ( o ) => ! o ) }
-							>
-								{ overlayOpen
-									? __(
-											'Hide preview',
-											'woocommerce-orders-invoice-pdf'
-									  )
-									: __(
-											'Show preview',
-											'woocommerce-orders-invoice-pdf'
-									  ) }
-							</button>
-						) : null }
-					</span>
+					/>
 				</div>
-				<SlotFillProvider>
-					<BlockEditorProvider
-						value={ blocks }
-						onInput={ setBlocks }
-						onChange={ setBlocks }
-					>
-						<div className="woi-block-workspace">
-							<div className="woi-block-canvas">
-								<BlockTools>
-									<div style={ { padding: '8px' } }>
-										<Inserter
-											rootClientId={ undefined }
-											isAppender
-										/>
-									</div>
-									<Canvas
-										previewCss={
-											( window.woiBlocks &&
-												window.woiBlocks.previewCss ) ||
-											''
-										}
-									/>
-								</BlockTools>
-							</div>
-							<div className="woi-block-sidebar">
-								<BlockInspector />
-							</div>
-						</div>
-						<Popover.Slot />
-					</BlockEditorProvider>
-				</SlotFillProvider>
-			</div>
-			<PreviewPanel
-				blocks={ blocks }
-				source={ source }
-				hidden={ previewHidden }
-			/>
-		</div>
+				<Popover.Slot />
+			</BlockEditorProvider>
+			<PreviewPanel blocks={ blocks } source={ source } />
+		</SlotFillProvider>
 	);
 }
 

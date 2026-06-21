@@ -23,7 +23,12 @@ const CSS =
 	// page-break guides
 	'.woi-page-guides{position:absolute;inset:0;pointer-events:none;z-index:2}' +
 	'.woi-page-guide{position:absolute;left:0;right:0;border-top:1px dashed #c0392b}' +
-	'.woi-page-guide-label{position:absolute;right:2mm;top:1mm;font-size:8px;color:#c0392b;background:#fff;padding:0 2px}';
+	'.woi-page-guide-label{position:absolute;right:2mm;top:1mm;font-size:8px;color:#c0392b;background:#fff;padding:0 2px}' +
+	// native InterfaceSkeleton wrapper — give the skeleton a sized, positioned host
+	'.woi-block-interface-wrap{position:relative;height:80vh;min-height:600px;border:1px solid #ddd}' +
+	'.woi-block-interface{height:100%}' +
+	// PDF preview panel below the editor (was styled by the retired layout.js)
+	'.woi-block-preview{display:flex;flex-direction:column;min-height:440px;border:1px solid #ddd;border-top:0;margin-bottom:16px}';
 
 export default function injectCanvasStyles() {
 	if ( document.getElementById( 'woi-canvas-styles' ) ) { return; }
