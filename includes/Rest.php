@@ -285,9 +285,14 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			$option['product_bundle_display']['invoice'] = $bundle ?: 'all';
 		}
 		if ( array_key_exists( 'custom_styles', $json ) ) {
+			// custom_styles is a full stylesheet (selectors + braces), stored like
+			// the classic Customiser's textarea — NOT a single inline declaration.
+			// Use sanitize_textarea_field (preserves CSS, strips tag injection); do
+			// NOT route it through woi_pdf_templates_sanitize_column_style(), which is
+			// a per-declaration whitelist that would gut a real stylesheet.
 			$css = (string) $json['custom_styles'];
-			$option['custom_styles'] = function_exists( 'woi_pdf_templates_sanitize_column_style' )
-				? woi_pdf_templates_sanitize_column_style( $css, true )
+			$option['custom_styles'] = function_exists( 'sanitize_textarea_field' )
+				? sanitize_textarea_field( $css )
 				: $css;
 		}
 

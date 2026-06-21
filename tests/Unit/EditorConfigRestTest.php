@@ -74,14 +74,18 @@ class EditorConfigRestTest extends TestCase {
 
     public function test_save_totals_and_custom_styles_sections(): void {
         $rest = $this->rest();
+        // A REAL stylesheet (selectors + braces) must survive verbatim — it is
+        // stored like the classic Customiser textarea via sanitize_textarea_field,
+        // NOT gutted by the per-declaration column-style whitelist (final review I1).
+        $sheet = ".invoice-table th { color: red; font-size: 12px; }\n.foo > .bar { margin: 0; }";
         $req  = $this->request( array(
             'totals'        => array( array( 'type' => 'total', 'tax' => 'incl' ) ),
-            'custom_styles' => '.x{color:red}',
+            'custom_styles' => $sheet,
         ) );
         $res = $rest->handle_save_editor_config( $req );
         $this->assertSame( 'incl', $rest->saved['fields_invoice_totals'][1]['tax'] );
-        $this->assertSame( '.x{color:red}', $rest->saved['custom_styles'] );
+        $this->assertSame( $sheet, $rest->saved['custom_styles'] );
         // Response echoes the saved custom_styles from the in-memory option (review I1).
-        $this->assertSame( '.x{color:red}', $res['custom_styles'] );
+        $this->assertSame( $sheet, $res['custom_styles'] );
     }
 }
