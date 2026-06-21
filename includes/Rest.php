@@ -195,15 +195,7 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 		$option['fields_invoice_columns'] = $clean;
 		update_option( 'woi_pdf_editor_settings', $option );
 
-		return array(
-			'saved'   => true,
-			'columns' => $this->read_invoice_columns(),
-			'_debug'  => array(
-				'received_keys' => array_map( function ( $c ) { return array_keys( (array) $c ); }, array_values( $incoming ) ),
-				'clean'         => array_values( $clean ),
-				'reread_raw'    => isset( $option['fields_invoice_columns'] ) ? array_values( $option['fields_invoice_columns'] ) : array(),
-			),
-		);
+		return array( 'saved' => true, 'columns' => $this->read_invoice_columns() );
 	}
 
 	/** Current invoice column config as a plain 0-indexed list. */
