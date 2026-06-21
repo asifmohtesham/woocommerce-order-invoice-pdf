@@ -7,7 +7,7 @@ import { renderPdfPreview } from './pdfPreview';
 // PDF-only preview panel. The A4 block canvas is now the live HTML view, so the
 // former Live HTML tab and its own order search are gone; the order is chosen by
 // the toolbar OrderPicker and read from the woi/preview store.
-export default function PreviewPanel( { blocks, source, hidden } ) {
+export default function PreviewPanel( { blocks, source } ) {
 	const stageRef = useRef( null );
 	const orderId = useSelect( ( select ) => select( STORE ).getOrderId(), [] );
 
@@ -21,7 +21,7 @@ export default function PreviewPanel( { blocks, source, hidden } ) {
 	}, [ blocks, orderId ] );
 
 	return (
-		<div className="woi-block-preview" hidden={ hidden }>
+		<div className="woi-block-preview">
 			<div
 				className="woi-block-preview-bar"
 				style={ {

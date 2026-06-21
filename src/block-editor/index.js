@@ -1,15 +1,24 @@
-import { createRoot, useState } from '@wordpress/element';
+import { createRoot, useReducer, useState, useEffect } from '@wordpress/element';
 import {
 	BlockTools,
 	BlockEditorProvider,
 	BlockInspector,
 	Inserter,
+	ListView,
 } from '@wordpress/block-editor';
 import { parse, serialize, registerBlockCollection } from '@wordpress/blocks';
 import { Button, Popover, SlotFillProvider, TabPanel } from '@wordpress/components';
 import { InterfaceSkeleton } from '@wordpress/interface';
-import { cog } from '@wordpress/icons';
+import {
+	cog,
+	plus,
+	undo as undoIcon,
+	redo as redoIcon,
+	listView as listViewIcon,
+	fullscreen as fullscreenIcon,
+} from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
+import { historyReducer, initHistory, canUndo, canRedo } from './history';
 import { registerTokenBlocks } from './blocks/token';
 import { registerTextBlock } from './blocks/text';
 import { registerLayoutBlocks } from './blocks/layout';
@@ -38,10 +47,19 @@ registerTableBlock();
 injectCanvasStyles();
 
 function Editor( { initial, activeSource } ) {
-	const [ blocks, setBlocks ] = useState( initial );
+	const [ history, dispatch ] = useReducer( historyReducer, initial, initHistory );
+	const blocks = history.present;
 	const [ status, setStatus ] = useState( '' );
 	const [ source, setSource ] = useState( activeSource );
 	const [ isSidebarOpen, setIsSidebarOpen ] = useState( true );
+	const [ isListViewOpen, setIsListViewOpen ] = useState( false );
+	const [ isFullscreen, setIsFullscreen ] = useState( false );
+
+	// Hide the admin background scroll while the editor is full screen.
+	useEffect( () => {
+		document.body.classList.toggle( 'woi-block-fullscreen', isFullscreen );
+		return () => document.body.classList.remove( 'woi-block-fullscreen' );
+	}, [ isFullscreen ] );
 
 	async function onSave() {
 		setStatus( __( 'Saving…', 'woocommerce-orders-invoice-pdf' ) );
@@ -66,18 +84,54 @@ function Editor( { initial, activeSource } ) {
 	const header = (
 		<div
 			className="woi-block-header"
-			style={ { display: 'flex', gap: '8px', alignItems: 'center', width: '100%' } }
+			style={ { display: 'flex', gap: '4px', alignItems: 'center', width: '100%' } }
 		>
-			<Button variant="primary" onClick={ onSave }>
+			<Inserter
+				rootClientId={ undefined }
+				isAppender={ false }
+				renderToggle={ ( { onToggle, isOpen } ) => (
+					<Button
+						icon={ plus }
+						label={ __( 'Add block', 'woocommerce-orders-invoice-pdf' ) }
+						onClick={ onToggle }
+						aria-expanded={ isOpen }
+					/>
+				) }
+			/>
+			<Button
+				icon={ undoIcon }
+				label={ __( 'Undo', 'woocommerce-orders-invoice-pdf' ) }
+				onClick={ () => dispatch( { type: 'UNDO' } ) }
+				disabled={ ! canUndo( history ) }
+			/>
+			<Button
+				icon={ redoIcon }
+				label={ __( 'Redo', 'woocommerce-orders-invoice-pdf' ) }
+				onClick={ () => dispatch( { type: 'REDO' } ) }
+				disabled={ ! canRedo( history ) }
+			/>
+			<Button
+				icon={ listViewIcon }
+				label={ __( 'List view', 'woocommerce-orders-invoice-pdf' ) }
+				isPressed={ isListViewOpen }
+				onClick={ () => setIsListViewOpen( ( o ) => ! o ) }
+			/>
+			<Button variant="primary" onClick={ onSave } style={ { marginLeft: '8px' } }>
 				{ __( 'Save', 'woocommerce-orders-invoice-pdf' ) }
 			</Button>
 			<span aria-live="polite">{ status }</span>
-			<OrderPicker />
-			<div style={ { marginLeft: 'auto' } }>
+			<div style={ { marginLeft: 'auto', display: 'flex', gap: '4px', alignItems: 'center' } }>
+				<OrderPicker />
+				<Button
+					icon={ fullscreenIcon }
+					label={ __( 'Toggle full screen', 'woocommerce-orders-invoice-pdf' ) }
+					isPressed={ isFullscreen }
+					onClick={ () => setIsFullscreen( ( f ) => ! f ) }
+				/>
 				<Button
 					icon={ cog }
-					isPressed={ isSidebarOpen }
 					label={ __( 'Settings', 'woocommerce-orders-invoice-pdf' ) }
+					isPressed={ isSidebarOpen }
 					onClick={ () => setIsSidebarOpen( ( o ) => ! o ) }
 				/>
 			</div>
@@ -129,19 +183,31 @@ function Editor( { initial, activeSource } ) {
 		</BlockTools>
 	);
 
+	const secondarySidebar = isListViewOpen ? (
+		<div className="woi-block-listview">
+			<ListView />
+		</div>
+	) : undefined;
+
 	return (
 		<SlotFillProvider>
-			<BlockEditorProvider value={ blocks } onInput={ setBlocks } onChange={ setBlocks }>
-				<div className="woi-block-interface-wrap">
+			<BlockEditorProvider
+				value={ blocks }
+				onInput={ ( next ) => dispatch( { type: 'INPUT', blocks: next } ) }
+				onChange={ ( next ) => dispatch( { type: 'CHANGE', blocks: next } ) }
+			>
+				<div className={ 'woi-block-interface-wrap' + ( isFullscreen ? ' is-fullscreen' : '' ) }>
 					<InterfaceSkeleton
 						className="woi-block-interface"
 						header={ header }
 						content={ content }
 						sidebar={ isSidebarOpen ? sidebar : undefined }
+						secondarySidebar={ secondarySidebar }
 						labels={ {
 							header: __( 'Editor top bar', 'woocommerce-orders-invoice-pdf' ),
 							body: __( 'Editor content', 'woocommerce-orders-invoice-pdf' ),
 							sidebar: __( 'Editor settings', 'woocommerce-orders-invoice-pdf' ),
+							secondarySidebar: __( 'Block list view', 'woocommerce-orders-invoice-pdf' ),
 						} }
 					/>
 				</div>

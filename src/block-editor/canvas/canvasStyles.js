@@ -38,7 +38,13 @@ const CSS =
 	'.woi-block-interface .interface-interface-skeleton__content{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;overflow:auto}' +
 	'.woi-block-interface .interface-interface-skeleton__sidebar{flex:0 0 281px;width:281px;min-width:281px;overflow:auto;border-left:1px solid #e0e0e0;background:#fff}' +
 	// PDF preview panel below the editor (was styled by the retired layout.js)
-	'.woi-block-preview{display:flex;flex-direction:column;min-height:440px;border:1px solid #ddd;border-top:0;margin-bottom:16px}';
+	'.woi-block-preview{display:flex;flex-direction:column;min-height:440px;border:1px solid #ddd;border-top:0;margin-bottom:16px}' +
+	// full-screen: lift the skeleton host out of admin flow to cover the viewport
+	'.woi-block-interface-wrap.is-fullscreen{position:fixed;inset:0;height:auto;min-height:0;z-index:100000;border:0;background:#fff}' +
+	'body.woi-block-fullscreen{overflow:hidden}' +
+	// secondary sidebar (list view) panel
+	'.woi-block-interface .interface-interface-skeleton__secondary-sidebar{flex:0 0 281px;width:281px;min-width:281px;overflow:auto;border-right:1px solid #e0e0e0;background:#fff}' +
+	'.woi-block-listview{padding:8px}';
 
 export default function injectCanvasStyles() {
 	if ( document.getElementById( 'woi-canvas-styles' ) ) { return; }
