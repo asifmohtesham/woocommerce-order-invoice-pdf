@@ -31,3 +31,6 @@ composer.phar
 
 # Node
 node_modules/
+
+# local render harness output
+tmp-visual-sample.pdf

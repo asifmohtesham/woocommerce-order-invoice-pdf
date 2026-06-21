@@ -90,6 +90,15 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 				'source' => array( 'type' => 'string', 'required' => true ),
 			),
 		) );
+
+		register_rest_route( 'woi-pdf/v1', '/visual-doc-options', array(
+			'methods'             => 'POST',
+			'callback'            => array( $this, 'handle_visual_doc_options' ),
+			'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
+			'args'                => array(
+				'options' => array( 'type' => 'object', 'required' => true ),
+			),
+		) );
 	}
 
 		/**
@@ -682,6 +691,29 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			$store = new \WOI\PDF\Visual\VisualTemplateStore();
 			$store->set_active_source( (string) $request->get_param( 'source' ) );
 			return array( 'source' => $store->get_active_source() );
+		}
+
+		/**
+		 * Save the visual document appearance options (accent / letterhead /
+		 * density / bilingual / thumbnails / font). Values are whitelisted on read
+		 * by woi_pdf_visual_doc_options(), so saving sanitised scalars is enough.
+		 *
+		 * @param object $request Request object with get_param().
+		 * @return array|\WP_Error
+		 */
+		public function handle_visual_doc_options( $request ) {
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				return new \WP_Error( 'forbidden', 'Insufficient permissions', array( 'status' => 403 ) );
+			}
+			$incoming = (array) $request->get_param( 'options' );
+			$clean    = array();
+			foreach ( array( 'accent', 'header', 'density', 'arabic', 'thumbs', 'font' ) as $key ) {
+				if ( isset( $incoming[ $key ] ) ) {
+					$clean[ $key ] = sanitize_text_field( (string) $incoming[ $key ] );
+				}
+			}
+			update_option( 'woi_pdf_visual_doc_options', $clean );
+			return array( 'options' => woi_pdf_visual_doc_options( 'invoice' ) );
 		}
 
 	}

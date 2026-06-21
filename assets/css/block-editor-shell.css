@@ -1,0 +1,251 @@
+/**
+ * Block Invoice Template — editor chrome restyle (screen: woi-pdf-blocks).
+ *
+ * Re-skins the Gutenberg admin shell (InterfaceSkeleton header/sidebars/canvas)
+ * to the conservative-corporate redesign in the design handoff. Scoped under
+ * .woi-block-wrap so it never bleeds into other admin screens. The skeleton's
+ * own layout is hand-rolled in src/block-editor/canvas/canvasStyles.js (injected
+ * at runtime); this sheet owns the *presentation* (colours, type, chrome).
+ *
+ * Design tokens (chrome) — see docs/design_handoff_block_invoice_redesign/README.md
+ */
+.woi-block-wrap {
+    --ed-bg: #ECEAE4;
+    --ed-surface: #FFFFFF;
+    --ed-line: #DEDAD1;
+    --ed-ink: #2A2722;
+    --ed-muted: #8A8378;
+    --ed-navy: #140858;
+    --ed-navy-hover: #1d0c77;
+    --ed-navy-tint: #EEEBF5;
+    --ed-mat: #B6B0A4;
+    --ed-radius: 6px;
+    --ed-shadow: 0 8px 34px rgba(0, 0, 0, .24);
+}
+
+/* WordPress wraps the page in .wrap with a 10px right gutter; reclaim it so the
+   editor shell can run full-width. */
+.woi-block-wrap.wrap {
+    margin-right: 0;
+    max-width: none;
+}
+
+/* ----------------------------- page heading ----------------------------- */
+.woi-block-head {
+    padding: 4px 0 13px;
+}
+.woi-block-head h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ed-ink);
+    letter-spacing: -0.01em;
+    padding: 0;
+    margin: 0;
+}
+.woi-block-head p {
+    color: var(--ed-muted);
+    font-size: 12.5px;
+    margin: 4px 0 0;
+    max-width: 720px;
+    line-height: 1.45;
+}
+
+/* ----------------------------- toolbar (T2) ----------------------------- */
+.woi-block-wrap .woi-block-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 8px 14px;
+    background: var(--ed-surface);
+}
+.woi-block-wrap .woi-tb-grp {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex: none;
+}
+.woi-block-wrap .woi-tb-grp--right {
+    margin-left: auto;
+}
+
+/* Icon buttons: 32px square, 6px radius, subtle hover. */
+.woi-block-wrap .woi-block-header .components-button.has-icon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: var(--ed-radius);
+    color: var(--ed-ink);
+}
+.woi-block-wrap .woi-block-header .components-button.has-icon:hover:not(:disabled) {
+    background: var(--ed-bg);
+}
+.woi-block-wrap .woi-block-header .components-button.has-icon.is-pressed {
+    background: var(--ed-navy-tint);
+    color: var(--ed-navy);
+}
+
+/* Save (primary) = navy solid; Render PDF (secondary) = ghost navy. */
+.woi-block-wrap .woi-block-header .woi-tb-btn {
+    height: 32px;
+    border-radius: var(--ed-radius);
+    font-weight: 600;
+    font-size: 12.5px;
+}
+.woi-block-wrap .woi-block-header .woi-tb-btn.is-primary {
+    background: var(--ed-navy);
+    border-color: var(--ed-navy);
+}
+.woi-block-wrap .woi-block-header .woi-tb-btn.is-primary:hover:not(:disabled) {
+    background: var(--ed-navy-hover);
+    border-color: var(--ed-navy-hover);
+}
+.woi-block-wrap .woi-block-header .woi-tb-btn.is-secondary {
+    color: var(--ed-navy);
+    box-shadow: inset 0 0 0 1px #C8C2DE;
+    background: transparent;
+}
+.woi-block-wrap .woi-block-header .woi-tb-btn.is-secondary:hover:not(:disabled) {
+    background: #F3F1FA;
+    color: var(--ed-navy);
+    box-shadow: inset 0 0 0 1px var(--ed-navy);
+}
+
+/* Center order-context chip. */
+.woi-block-wrap .woi-tb-doc {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-width: 0;
+    overflow: hidden;
+}
+.woi-block-wrap .woi-tb-docno {
+    flex: none;
+    font-weight: 700;
+    font-size: 11.5px;
+    color: var(--ed-navy);
+    background: var(--ed-navy-tint);
+    padding: 3px 9px;
+    border-radius: 4px;
+}
+.woi-block-wrap .woi-tb-docname {
+    color: var(--ed-muted);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 360px;
+}
+.woi-block-wrap .woi-tb-status {
+    font-size: 11px;
+    color: var(--ed-muted);
+    white-space: nowrap;
+}
+
+/* -------------------------- left blocks panel (T3) ---------------------- */
+.woi-block-wrap .woi-block-listview {
+    padding: 0 8px 16px;
+}
+.woi-block-wrap .woi-panel-title {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .09em;
+    color: var(--ed-muted);
+    font-weight: 700;
+    padding: 15px 8px 9px;
+}
+/* Gutenberg ListView rows → outline rows: rounded, hover tint, navy active. */
+.woi-block-wrap .woi-block-listview .block-editor-list-view-leaf .block-editor-list-view-block__contents-container {
+    border-radius: 7px;
+}
+.woi-block-wrap .woi-block-listview .block-editor-list-view-block-select-button {
+    border-radius: 7px;
+    color: var(--ed-ink);
+    font-size: 12.5px;
+}
+.woi-block-wrap .woi-block-listview .block-editor-list-view-leaf:hover .block-editor-list-view-block-select-button,
+.woi-block-wrap .woi-block-listview .block-editor-list-view-block-select-button:hover {
+    background: var(--ed-bg);
+}
+.woi-block-wrap .woi-block-listview .block-editor-list-view-leaf.is-selected .block-editor-list-view-block-select-button,
+.woi-block-wrap .woi-block-listview .block-editor-list-view-leaf.is-selected td {
+    background: var(--ed-navy-tint);
+}
+.woi-block-wrap .woi-block-listview .block-editor-list-view-leaf.is-selected .block-editor-block-icon {
+    color: var(--ed-navy);
+}
+
+/* ---------------------------- inspector (T5) ---------------------------- */
+/* Document | Block tabs: active = navy text + 2px navy underline. */
+.woi-block-wrap .woi-block-sidebar-tabs .components-tab-panel__tabs {
+    border-bottom: 1px solid var(--ed-line);
+}
+.woi-block-wrap .woi-block-sidebar-tabs .components-tab-panel__tabs-item {
+    flex: 1;
+    padding: 12px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ed-muted);
+}
+.woi-block-wrap .woi-block-sidebar-tabs .components-tab-panel__tabs-item.is-active {
+    color: var(--ed-navy);
+    box-shadow: inset 0 -2px 0 0 var(--ed-navy);
+}
+.woi-block-wrap .woi-block-sidebar-tabs .components-tab-panel__tabs-item::after {
+    display: none; /* drop the default underline indicator; we draw our own */
+}
+
+/* Document panel + restyled field rows (also applied to BlockInspector rows). */
+.woi-block-wrap .woi-block-document-panel {
+    padding: 15px 16px 28px;
+}
+.woi-block-wrap .insp-sec {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ed-muted);
+    font-weight: 700;
+    margin: 16px 0 8px;
+}
+.woi-block-wrap .insp-sec:first-child {
+    margin-top: 0;
+}
+.woi-block-wrap .insp-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 12px;
+    color: var(--ed-ink);
+}
+.woi-block-wrap .insp-field .insp-val {
+    color: var(--ed-muted);
+}
+.woi-block-wrap .insp-field select {
+    max-width: 150px;
+}
+.woi-block-wrap .insp-note {
+    font-size: 11px;
+    color: var(--ed-muted);
+    line-height: 1.5;
+    margin-top: 10px;
+}
+
+/* BlockInspector controls: tighten to the redesign rhythm. */
+.woi-block-wrap .interface-interface-skeleton__sidebar .block-editor-block-inspector {
+    padding-top: 4px;
+}
+
+/* Document-tab appearance controls (accent / letterhead / density / font / toggles). */
+.woi-block-wrap .woi-doc-appearance {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 4px;
+}
+.woi-block-wrap .woi-doc-appearance .components-base-control {
+    margin-bottom: 0;
+}

@@ -50,9 +50,109 @@ class TemplateTokens {
             '{{order_number}}'     => esc_html( (string) $document->get_order_number() ),
             '{{payment_method}}'   => esc_html( (string) $document->get_payment_method() ),
             '{{billing_address}}'  => (string) $document->get_billing_address(),
+            '{{shipping_address}}' => $this->shipping_address( $document ),
+            '{{recipient_trn}}'    => $this->recipient_trn( $document ),
+            '{{shop_website}}'     => esc_html( $this->shop_website() ),
+            '{{bank_details}}'     => $this->render_bank_details(),
+            '{{amount_words}}'     => esc_html( (string) apply_filters( 'woi_pdf_amount_in_words', '', $document ) ),
+            '{{qr_code}}'          => $this->render_qr_code( $document ),
             '{{line_items}}'       => $this->render_line_items( $document ),
             '{{totals}}'           => $this->render_totals( $document ),
         );
+    }
+
+    /** Shipping address markup (guarded — not every document stub exposes it). */
+    private function shipping_address( $document ): string {
+        if ( ! method_exists( $document, 'get_shipping_address' ) ) {
+            return '';
+        }
+        return wp_kses_post( (string) $document->get_shipping_address() );
+    }
+
+    /**
+     * Recipient (buyer) TRN line for the Bill To card. Resolves from the order
+     * via the existing helper; returns '' when there is no order / no TRN so the
+     * card simply omits the line.
+     */
+    private function recipient_trn( $document ): string {
+        $order = $document->order ?? null;
+        if ( empty( $order ) || ! function_exists( 'woi_pdf_get_recipient_trn' ) ) {
+            return '';
+        }
+        $trn = (string) woi_pdf_get_recipient_trn( $order );
+        if ( '' === $trn ) {
+            return '';
+        }
+        $label = (string) apply_filters( 'woi_pdf_recipient_trn_label', 'TRN' );
+        return '<div class="woi-party-trn">' . esc_html( $label ) . '&nbsp; ' . esc_html( $trn ) . '</div>';
+    }
+
+    /** Host of the site URL for the footer (e.g. "shop.example.com"). */
+    private function shop_website(): string {
+        $url = function_exists( 'home_url' ) ? (string) home_url() : '';
+        return $url ? (string) preg_replace( '#^https?://#', '', rtrim( $url, '/' ) ) : '';
+    }
+
+    /**
+     * Bank details table from WooCommerce BACS accounts (first configured
+     * account). Returns '' when none is set so the section collapses cleanly.
+     */
+    private function render_bank_details(): string {
+        $accounts = get_option( 'woocommerce_bacs_accounts', array() );
+        if ( empty( $accounts ) || ! is_array( $accounts ) ) {
+            return '';
+        }
+        $account = null;
+        foreach ( $accounts as $candidate ) {
+            if ( is_array( $candidate ) ) { $account = $candidate; break; }
+        }
+        if ( null === $account ) {
+            return '';
+        }
+
+        $rows = array(
+            array( 'Bank',         (string) ( $account['bank_name'] ?? '' ),      false ),
+            array( 'Account Name', (string) ( $account['account_name'] ?? '' ),   false ),
+            array( 'IBAN',         (string) ( $account['iban'] ?? '' ),           true ),
+            array( 'Account No.',  (string) ( $account['account_number'] ?? '' ), true ),
+            array( 'SWIFT',        (string) ( $account['bic'] ?? '' ),            true ),
+        );
+
+        $html = '<table class="woi-bank"><tbody>';
+        foreach ( $rows as $row ) {
+            if ( '' === $row[1] ) { continue; }
+            $td_class = $row[2] ? ' class="mono"' : '';
+            $html .= '<tr><th>' . esc_html( $row[0] ) . '</th><td' . $td_class . '>' . esc_html( $row[1] ) . '</td></tr>';
+        }
+        return $html . '</tbody></table>';
+    }
+
+    /**
+     * QR slot. Emits mPDF's native <barcode type="QR"> when the mpdf/qrcode
+     * package is installed (composer require mpdf/qrcode) AND a payload is
+     * available; otherwise a styled placeholder so the document never fatals
+     * (an unguarded <barcode> with the package missing throws during render).
+     * Override the payload with the `woi_pdf_qr_payload` filter.
+     */
+    private function render_qr_code( $document ): string {
+        $payload  = (string) apply_filters( 'woi_pdf_qr_payload', $this->default_qr_payload( $document ), $document );
+        // The (Strauss-prefixed) mpdf/qrcode package must be present; an unguarded
+        // <barcode type="QR"> throws an MpdfException during render when it isn't.
+        $has_qr   = class_exists( '\\WOI\\PDF\\Vendor\\Mpdf\\QrCode\\QrCode' ) || class_exists( '\\Mpdf\\QrCode\\QrCode' );
+        if ( $has_qr && '' !== $payload ) {
+            return '<barcode code="' . esc_attr( $payload ) . '" type="QR" error="M" size="0.5" disableborder="1" />';
+        }
+        return '<div class="woi-qr-placeholder">QR</div>';
+    }
+
+    /** Default QR payload: supplier TRN + invoice number (FTA-style minimal). */
+    private function default_qr_payload( $document ): string {
+        $inv = trim( $this->capture( fn() => $document->number( $document->get_type() ) ) );
+        $trn = (string) $document->get_shop_vat_number();
+        if ( '' === $inv && '' === $trn ) {
+            return '';
+        }
+        return trim( 'TRN:' . $trn . ' INV:' . $inv );
     }
 
     /**
@@ -89,6 +189,21 @@ class TemplateTokens {
     /** Overridable seam: fetch totals rows (testable without Patchwork). */
     protected function fetch_totals( $document ): array { return (array) woi_pdf_templates_get_totals( $document ); }
 
+    /** Whether the visual document's thumbnail column is enabled (author option). */
+    private function show_thumbnails( $document ): bool {
+        if ( ! function_exists( 'woi_pdf_visual_doc_options' ) ) {
+            return true;
+        }
+        $type = method_exists( $document, 'get_type' ) ? (string) $document->get_type() : 'invoice';
+        $opts = woi_pdf_visual_doc_options( $type );
+        return 'off' !== ( $opts['thumbs'] ?? 'on' );
+    }
+
+    /** True when a column class list designates the product-thumbnail column. */
+    private function is_thumbnail_class( $class ): bool {
+        return false !== strpos( (string) $class, 'thumbnail' );
+    }
+
     /**
      * Build the line-items table, mirroring the Standard UAE invoice markup.
      * Returns '' if any renderer throws so one error cannot fatal the whole PDF.
@@ -98,8 +213,16 @@ class TemplateTokens {
             $headers = $this->fetch_table_headers( $document );
             $body    = $this->fetch_table_body( $document );
 
+            // Thumbnails author option: mPDF cannot display:none a table column,
+            // so drop the thumbnail header + cells at the source when it is off.
+            // Scoped to the visual document (the classic template is untouched).
+            $show_thumbs = $this->show_thumbnails( $document );
+
             $html = '<table class="order-details"><thead><tr>';
             foreach ( $headers as $header_data ) {
+                if ( ! $show_thumbs && $this->is_thumbnail_class( $header_data['class'] ?? '' ) ) {
+                    continue;
+                }
                 $html .= '<th class="' . esc_attr( $header_data['class'] ?? '' ) . '"><span class="woi-lbl-primary">' . esc_html( $header_data['title'] ?? '' ) . '</span>';
                 if ( ! empty( $header_data['secondary'] ) ) {
                     // <br> (not display:block) is what makes mPDF stack the pair —
@@ -112,6 +235,9 @@ class TemplateTokens {
             foreach ( $body as $item_columns ) {
                 $html .= '<tr>';
                 foreach ( (array) $item_columns as $column_data ) {
+                    if ( ! $show_thumbs && $this->is_thumbnail_class( $column_data['class'] ?? '' ) ) {
+                        continue;
+                    }
                     $html .= '<td class="' . esc_attr( $column_data['class'] ?? '' ) . '"><span>' . wp_kses_post( (string) ( $column_data['data'] ?? '' ) ) . '</span></td>';
                 }
                 $html .= '</tr>';

@@ -70,6 +70,17 @@ class BlockEditorPage {
         wp_enqueue_style( 'wp-interface' );
         wp_enqueue_style( 'wp-format-library' );
 
+        // Redesign chrome: screen-scoped stylesheet for the Block Invoice
+        // Template editor (toolbar, blocks outline, inspector). Loaded after the
+        // core editor sheets so it can override their look. Depends on
+        // 'wp-block-editor' so the horizontal toolbar layout is present first.
+        wp_enqueue_style(
+            'woi-block-editor-shell',
+            WOI_PDF()->plugin_url() . '/assets/css/block-editor-shell.css',
+            array( 'wp-block-editor' ),
+            WOI_PDF_VERSION
+        );
+
         $store = new VisualTemplateStore();
         wp_localize_script( 'woi-block-editor', 'woiBlocks', array(
             'restUrl'           => esc_url_raw( rest_url( 'woi-pdf/v1' ) ),
@@ -77,6 +88,7 @@ class BlockEditorPage {
             'docType'           => 'invoice',
             'storedMarkup'      => $store->get_blocks_markup( 'invoice' ),
             'activeSource'      => $store->get_active_source(),
+            'docOptions'        => function_exists( 'woi_pdf_visual_doc_options' ) ? woi_pdf_visual_doc_options( 'invoice' ) : array(),
             'backUrl'           => esc_url_raw( admin_url( 'admin.php?page=woi_pdf_options_page' ) ),
             // --- Live preview (Slice 3A) ---
             'ajaxUrl'           => esc_url_raw( admin_url( 'admin-ajax.php' ) ),
@@ -90,8 +102,11 @@ class BlockEditorPage {
     }
 
     public function render_page(): void {
-        echo '<div class="wrap"><h1>' . esc_html__( 'Block Invoice Template', 'woocommerce-orders-invoice-pdf' ) . '</h1>';
-        echo '<p>' . esc_html__( 'Design the invoice with WordPress blocks. Set this as the active template source to render the PDF from this design. Requires "Visual template (invoice)" enabled in Invoice Settings.', 'woocommerce-orders-invoice-pdf' ) . '</p>';
+        echo '<div class="wrap woi-block-wrap">';
+        echo '<div class="woi-block-head">';
+        echo '<h1>' . esc_html__( 'Block Invoice Template', 'woocommerce-orders-invoice-pdf' ) . '</h1>';
+        echo '<p>' . esc_html__( 'Design the invoice with content blocks. Set it as the active template source to render the PDF from this design.', 'woocommerce-orders-invoice-pdf' ) . '</p>';
+        echo '</div>';
         echo '<div id="woi-block-editor-root"></div>';
         echo '</div>';
     }

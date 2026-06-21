@@ -85,6 +85,7 @@ class ComposerStaticInitc879be829c23a266847f108d9a6d87a6
         'M' => 
         array (
             'MyCLabs\\Enum\\' => 13,
+            'Mpdf\\QrCode\\' => 12,
             'Mpdf\\PsrLogAwareTrait\\' => 22,
             'Mpdf\\PsrHttpMessageShim\\' => 24,
             'Mpdf\\' => 5,
@@ -279,6 +280,10 @@ class ComposerStaticInitc879be829c23a266847f108d9a6d87a6
         'MyCLabs\\Enum\\' => 
         array (
             0 => __DIR__ . '/..' . '/myclabs/php-enum/src',
+        ),
+        'Mpdf\\QrCode\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/mpdf/qrcode/src',
         ),
         'Mpdf\\PsrLogAwareTrait\\' => 
         array (

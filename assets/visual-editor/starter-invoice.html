@@ -1,15 +1,86 @@
-<table style="width:100%"><tr>
-  <td style="text-align:left">{{shop_name}}<br>{{shop_address}}<br>TRN: {{trn}} · {{shop_phone}} · {{shop_email}}</td>
-  <td style="text-align:center">{{logo}}</td>
-  <td style="text-align:right" dir="rtl">{{shop_name_ar}}<br>{{shop_address_ar}}</td>
+<table class="woi-letterhead"><tr>
+  <td class="woi-lh-en">
+    <div class="woi-co-name">{{shop_name}}</div>
+    <div class="woi-co-lines">{{shop_address}}</div>
+  </td>
+  <td class="woi-lh-mark">{{logo}}</td>
+  <td class="woi-lh-ar" dir="rtl">
+    <div class="woi-co-name">{{shop_name_ar}}</div>
+    <div class="woi-co-lines">{{shop_address_ar}}</div>
+  </td>
 </tr></table>
-<div class="woi-doc-title">
-  <span class="title-en">{{document_title}}</span>
-  <span class="title-ar" dir="rtl">{{document_title_ar}}</span>
-</div>
-<table style="width:100%"><tr>
-  <td>{{billing_address}}</td>
-  <td>Invoice #: {{invoice_number}}<br>Date: {{invoice_date}}<br>Order: {{order_number}}<br>Payment: {{payment_method}}</td>
+
+<table class="woi-contact"><tr>
+  <td><span class="woi-contact-k">TRN</span> <span class="woi-contact-v">{{trn}}</span></td>
+  <td class="woi-contact-mid"><span class="woi-contact-k">Tel</span> <span class="woi-contact-v">{{shop_phone}}</span></td>
+  <td class="woi-contact-end"><span class="woi-contact-k">Email</span> <span class="woi-contact-v">{{shop_email}}</span></td>
 </tr></table>
+
+<table class="woi-titlebar"><tr>
+  <td class="woi-title-cell">
+    <div class="woi-title-en">{{document_title}}</div>
+    <div class="woi-title-ar" dir="rtl">{{document_title_ar}}</div>
+  </td>
+  <td class="woi-meta-cell">
+    <table class="woi-meta"><tbody>
+      <tr><th><span class="woi-lbl-primary">Invoice No.</span><br><span class="woi-lbl-secondary" dir="rtl">رقم الفاتورة</span></th><td>{{invoice_number}}</td></tr>
+      <tr><th><span class="woi-lbl-primary">Order No.</span><br><span class="woi-lbl-secondary" dir="rtl">رقم الطلب</span></th><td>{{order_number}}</td></tr>
+      <tr><th><span class="woi-lbl-primary">Issue Date</span><br><span class="woi-lbl-secondary" dir="rtl">تاريخ الإصدار</span></th><td>{{invoice_date}}</td></tr>
+    </tbody></table>
+  </td>
+</tr></table>
+
+<table class="woi-parties"><tr>
+  <td class="woi-party">
+    <div class="woi-party-label"><span class="woi-lbl-primary">Bill To</span><br><span class="woi-lbl-secondary" dir="rtl">فاتورة إلى</span></div>
+    <div class="woi-party-body">{{billing_address}}{{recipient_trn}}</div>
+  </td>
+  <td class="woi-party-gap"></td>
+  <td class="woi-party">
+    <div class="woi-party-label"><span class="woi-lbl-primary">Ship To</span><br><span class="woi-lbl-secondary" dir="rtl">الشحن إلى</span></div>
+    <div class="woi-party-body">{{shipping_address}}</div>
+  </td>
+</tr></table>
+
 {{line_items}}
-{{totals}}
+
+<table class="woi-lower"><tr>
+  <td class="woi-lower-left">
+    <div class="woi-sub-label"><span class="woi-lbl-primary">Bank Details</span> <span class="woi-lbl-secondary" dir="rtl">تفاصيل البنك</span></div>
+    {{bank_details}}
+    <div class="woi-terms">
+      <div class="woi-sub-label"><span class="woi-lbl-primary">Payment Terms</span> <span class="woi-lbl-secondary" dir="rtl">شروط الدفع</span></div>
+      <p>Payment due within 30 days of invoice date. Goods remain the property of {{shop_name}} until paid in full.</p>
+      <p class="ar" dir="rtl">يُستحق الدفع خلال ٣٠ يوماً من تاريخ الفاتورة. تبقى البضاعة ملكاً للشركة حتى سداد كامل المبلغ.</p>
+    </div>
+  </td>
+  <td class="woi-lower-right">
+    {{totals}}
+    <div class="woi-amount-words">
+      <span class="woi-sub-label"><span class="woi-lbl-primary">Amount in words</span> <span class="woi-lbl-secondary" dir="rtl">المبلغ كتابةً</span></span>
+      <span>{{amount_words}}</span>
+    </div>
+  </td>
+</tr></table>
+
+<table class="woi-sign"><tr>
+  <td class="woi-qr">
+    {{qr_code}}
+    <div class="woi-qr-cap"><span class="woi-lbl-primary">Scan to verify</span> <span class="woi-lbl-secondary" dir="rtl">امسح للتحقق</span></div>
+  </td>
+  <td class="woi-stamp">
+    <div class="woi-stamp-ring">Company<br>Stamp</div>
+  </td>
+  <td class="woi-signature">
+    <div class="woi-sig-line"></div>
+    <div class="woi-sig-cap"><span class="woi-lbl-primary">Authorised Signatory</span> <span class="woi-lbl-secondary" dir="rtl">المُوقّع المُفوّض</span></div>
+    <div class="woi-sig-co">For {{shop_name}}</div>
+  </td>
+</tr></table>
+
+<div class="woi-footer">
+  <span>{{shop_name}}</span> <span class="woi-dot">•</span>
+  <span>TRN {{trn}}</span> <span class="woi-dot">•</span>
+  <span>{{shop_website}}</span> <span class="woi-dot">•</span>
+  <span><span class="woi-lbl-primary">Page 1 of 1</span> <span class="woi-lbl-secondary" dir="rtl">صفحة ١ من ١</span></span>
+</div>

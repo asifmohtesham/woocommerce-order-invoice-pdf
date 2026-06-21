@@ -501,3 +501,21 @@ table.order-details th, table.order-details td { border: 0.5pt solid #000; paddi
    custom-styles hook (mPDF-bundled xbriyaz/lateef); fallback default here. */
 .woi-bilingual-secondary { font-family: xbriyaz; }
 .woi-lbl-inline .woi-lbl-secondary::before { content: "\005C"; padding: 0 3px; } /* backslash separator */
+
+/* --- Redesign parity (2026-06): mirror the visual invoice's conservative navy
+   accent onto the classic boxed template — accent title, soft header fill +
+   accent rules on the line-items header, and an accent-ruled grand total.
+   mPDF server-side only (no browser enqueue → no cache-bust needed). Appended
+   last so it wins on source order without disturbing the tuned rules above. --- */
+.document-type-label { color: #140858; font-weight: bold; }
+.order-details th {
+	background: #F6F3EC;
+	border-top: 1.5px solid #140858;
+	border-bottom: 1.5px solid #140858;
+}
+tr.grand-total td, tr.grand-total th {
+	border-top: 1.5px solid #140858;
+	border-bottom: 2px solid #140858;
+	color: #140858;
+	font-weight: bold;
+}

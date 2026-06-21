@@ -19,3 +19,7 @@ export function saveBlocks( markup ) {
 export function setActiveSource( source ) {
 	return post( 'visual-active-source', { source } );
 }
+
+export function saveDocOptions( options ) {
+	return post( 'visual-doc-options', { options } );
+}

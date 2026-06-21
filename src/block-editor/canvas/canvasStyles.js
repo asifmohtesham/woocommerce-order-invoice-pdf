@@ -1,5 +1,5 @@
 const CSS =
-	'.woi-canvas-scroll{flex:1;min-height:0;overflow:auto;background:#525659;padding:24px}' +
+	'.woi-canvas-scroll{flex:1;min-height:0;overflow:auto;background:#B6B0A4;padding:34px}' +
 	'.woi-a4-frame{position:relative;width:max-content;margin:0 auto;padding-left:8mm;padding-top:6mm}' +
 	'.woi-a4-frame-body{position:relative;display:block}' +
 	// top ruler
@@ -16,7 +16,7 @@ const CSS =
 	'.woi-ruler--left .woi-ruler-mark.is-page{color:#c0392b;font-weight:700}' +
 	// page
 	'.woi-a4-page{position:relative;margin-left:8mm;width:210mm;min-height:297mm;background:#fff;' +
-		'box-shadow:0 1px 6px rgba(0,0,0,.4)}' +
+		'box-shadow:0 8px 34px rgba(0,0,0,.24)}' +
 	'.woi-a4-page .block-editor-block-canvas,.woi-a4-page iframe{width:210mm;border:0;display:block}' +
 	// fallback (no BlockCanvas): apply preview CSS scoped, padded like the page
 	'.woi-a4-fallback{padding:15mm;box-sizing:border-box;min-height:297mm}' +
@@ -33,10 +33,10 @@ const CSS =
 	// have no layout CSS and block-stack header/content/sidebar vertically. Own the
 	// minimal native layout here so the sidebar sits as a RIGHT column beside the canvas.
 	'.woi-block-interface .interface-interface-skeleton{display:flex;flex-direction:column;height:100%}' +
-	'.woi-block-interface .interface-interface-skeleton__header{flex-shrink:0;border-bottom:1px solid #e0e0e0;background:#fff}' +
+	'.woi-block-interface .interface-interface-skeleton__header{flex-shrink:0;border-top:1px solid #DEDAD1;border-bottom:1px solid #DEDAD1;background:#fff}' +
 	'.woi-block-interface .interface-interface-skeleton__body{flex:1;display:flex;flex-direction:row;min-height:0;overflow:hidden}' +
 	'.woi-block-interface .interface-interface-skeleton__content{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;overflow:auto}' +
-	'.woi-block-interface .interface-interface-skeleton__sidebar{flex:0 0 281px;width:281px;min-width:281px;overflow:auto;border-left:1px solid #e0e0e0;background:#fff}' +
+	'.woi-block-interface .interface-interface-skeleton__sidebar{flex:0 0 288px;width:288px;min-width:288px;overflow:auto;border-left:1px solid #DEDAD1;background:#fff}' +
 	// PDF preview panel below the editor (was styled by the retired layout.js)
 	'.woi-block-preview{display:flex;flex-direction:column;min-height:440px;border:1px solid #ddd;border-top:0;margin-bottom:16px}' +
 	// full-screen: lift the skeleton host out of admin flow to cover the viewport.
@@ -47,7 +47,7 @@ const CSS =
 	'.woi-block-interface-wrap.is-fullscreen{position:fixed;inset:0;height:100vh;width:100vw;z-index:100000;border:0;background:#fff;overflow:hidden}' +
 	'body.woi-block-fullscreen{overflow:hidden}' +
 	// secondary sidebar (list view) panel
-	'.woi-block-interface .interface-interface-skeleton__secondary-sidebar{flex:0 0 281px;width:281px;min-width:281px;overflow:auto;border-right:1px solid #e0e0e0;background:#fff}' +
+	'.woi-block-interface .interface-interface-skeleton__secondary-sidebar{flex:0 0 262px;width:262px;min-width:262px;overflow:auto;border-right:1px solid #DEDAD1;background:#fff}' +
 	// InterfaceSkeleton wraps the secondary-sidebar content in a framer-motion div
 	// with inline `width:fit-content`; the wp-interface stylesheet (which we don't
 	// load) would normally override it. Without that, the list view shrinks to its

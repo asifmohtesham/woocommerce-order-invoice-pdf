@@ -222,6 +222,123 @@ class TemplateTokensTest extends TestCase {
     }
 
     /**
+     * The redesigned document adds Ship To / recipient TRN / bank / QR / website
+     * tokens. With a minimal stub (no order, no BACS) they must be present and
+     * degrade to safe values rather than fatal — the QR falls back to a styled
+     * placeholder so a missing mpdf/qrcode package never breaks the render.
+     */
+    public function test_new_section_tokens_present_and_degrade_safely(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $map = $tokens->map( $this->stub_document() );
+
+        $this->assertArrayHasKey( '{{shipping_address}}', $map );
+        $this->assertArrayHasKey( '{{recipient_trn}}', $map );
+        $this->assertArrayHasKey( '{{bank_details}}', $map );
+        $this->assertArrayHasKey( '{{shop_website}}', $map );
+        $this->assertArrayHasKey( '{{amount_words}}', $map );
+        $this->assertArrayHasKey( '{{qr_code}}', $map );
+
+        // No order / no TRN / no BACS → empty, not an error.
+        $this->assertSame( '', $map['{{recipient_trn}}'] );
+        $this->assertSame( '', $map['{{bank_details}}'] );
+        // mpdf/qrcode is a (Strauss-prefixed) dependency, so the QR token emits a
+        // native <barcode type="QR"> with the default payload. The placeholder is
+        // the safety net only when the package is somehow absent.
+        $this->assertStringContainsString( '<barcode', $map['{{qr_code}}'] );
+        $this->assertStringContainsString( 'type="QR"', $map['{{qr_code}}'] );
+    }
+
+    /** An empty QR payload must fall back to the placeholder, never an empty <barcode>. */
+    public function test_qr_falls_back_to_placeholder_when_payload_empty(): void {
+        // Force an empty payload via the filter; capture the document number too.
+        Functions\when( 'apply_filters' )->alias( function ( $hook, $value ) {
+            return 'woi_pdf_qr_payload' === $hook ? '' : $value;
+        } );
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $map = $tokens->map( $this->stub_document() );
+        $this->assertStringContainsString( 'woi-qr-placeholder', $map['{{qr_code}}'] );
+        $this->assertStringNotContainsString( '<barcode', $map['{{qr_code}}'] );
+    }
+
+    /**
+     * Bank details render from the first WooCommerce BACS account, with IBAN /
+     * account number / SWIFT in the mono class for tabular alignment.
+     */
+    public function test_bank_details_render_from_bacs_account(): void {
+        Functions\when( 'get_option' )->alias( function ( $key ) {
+            if ( 'woocommerce_bacs_accounts' === $key ) {
+                return array(
+                    array(
+                        'bank_name'      => 'Emirates NBD',
+                        'account_name'   => 'Milano Leather Trading LLC',
+                        'iban'           => 'AE07 0331 2345 6789',
+                        'account_number' => '1023456789001',
+                        'bic'            => 'EBILAEAD',
+                    ),
+                );
+            }
+            return array( 'shop_name_ar' => 'متجر', 'shop_address_ar' => 'دبي' );
+        } );
+
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $map = $tokens->map( $this->stub_document() );
+
+        $this->assertStringContainsString( '<table class="woi-bank">', $map['{{bank_details}}'] );
+        $this->assertStringContainsString( 'Emirates NBD', $map['{{bank_details}}'] );
+        $this->assertStringContainsString( '<td class="mono">AE07 0331 2345 6789</td>', $map['{{bank_details}}'] );
+        $this->assertStringContainsString( 'EBILAEAD', $map['{{bank_details}}'] );
+    }
+
+    /**
+     * Thumbnails author option OFF must drop the thumbnail column from both the
+     * header and every body row (mPDF can't display:none a table column, so the
+     * column is removed at the source).
+     */
+    public function test_thumbs_off_drops_thumbnail_column(): void {
+        Functions\when( 'get_option' )->alias( function ( $key ) {
+            if ( 'woi_pdf_visual_doc_options' === $key ) {
+                return array( 'thumbs' => 'off' );
+            }
+            return array( 'shop_name_ar' => 'متجر', 'shop_address_ar' => 'دبي' );
+        } );
+
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array {
+                return array(
+                    array( 'class' => 'position', 'title' => 'Sr.' ),
+                    array( 'class' => 'thumbnail', 'title' => '' ),
+                    array( 'class' => 'sku', 'title' => 'SKU' ),
+                );
+            }
+            protected function fetch_table_body( $d ): array {
+                return array( array(
+                    array( 'class' => 'position', 'data' => '1' ),
+                    array( 'class' => 'thumbnail', 'data' => '<img src="x.png">' ),
+                    array( 'class' => 'sku', 'data' => 'A-1' ),
+                ) );
+            }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $map = $tokens->map( $this->stub_document() );
+
+        $this->assertStringNotContainsString( 'class="thumbnail"', $map['{{line_items}}'] );
+        $this->assertStringNotContainsString( 'x.png', $map['{{line_items}}'] );
+        $this->assertStringContainsString( 'A-1', $map['{{line_items}}'] );
+    }
+
+    /**
      * Fix C: a throwing block renderer must degrade to '' and must not prevent
      * other tokens from resolving.
      */

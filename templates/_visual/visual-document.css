@@ -1,84 +1,310 @@
+/* =====================================================================
+   Visual Tax Invoice — A4 bilingual (EN + Arabic RTL) UAE document.
+
+   Single source of truth for BOTH the mPDF PDF and the browser Live HTML
+   preview (read via woi_pdf_visual_document_css()). mPDF supports a LIMITED
+   CSS subset — NO flex/grid. Layout is done with tables, block/inline,
+   absolute mm widths, and real <br> for stacking. Keep it that way.
+
+   ACCENT COLOUR: the conservative default is navy #140858. It is written as a
+   literal everywhere below (mPDF does not support CSS custom properties /
+   var()). Red (#9E0A0E) and mono (#3A3A3A) variants are applied as overrides
+   under body[data-accent="…"] further down, and (for the PDF) reinforced by a
+   PHP-emitted snippet so the swap is reliable in mPDF.
+   ===================================================================== */
+
 @page { margin: 15mm; }
-body { font-family: "dejavusans", sans-serif; font-size: 11pt; color: #222; overflow-wrap: anywhere; }
-/* Arabic shaping is handled natively by mPDF; the secondary-language
-   font stack is registered by MpdfMaker. RTL spans carry dir="rtl". */
+
+body {
+    font-family: "dejavusans", sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.4;
+    color: #1C1A17;
+    overflow-wrap: anywhere;
+}
+
+/* Arabic shaping is handled natively by mPDF; the secondary-language font
+   stack is registered by MpdfMaker. RTL spans carry dir="rtl". */
 .woi-bilingual-secondary, [dir="rtl"] { direction: rtl; }
+
 table { border-collapse: collapse; width: 100%; }
 
-/* --- Invoice table fidelity (ported from Standard UAE Tax Invoice/style.css) --- */
+/* Tabular figures — SKU, money, IBAN, TRN, dates. Mono keeps columns aligned.
+   dejavusansmono ships with mPDF, so no extra font registration is needed. */
+.mono,
+.woi-num,
+.woi-meta td,
+.woi-contact-v,
+.order-details td.sku,
+.order-details td.price,
+.order-details td.regular_price,
+.order-details td.total,
+.order-details td.quantity,
+.order-details td.tax_rate,
+.order-details td.vat,
+.order-details td.vat-split,
+table.totals-table td.price {
+    font-family: "dejavusansmono", monospace;
+}
 
-/* Line-items table */
-table.order-details { width: 100%; margin-top: 3mm; margin-bottom: 5mm; }
-table.order-details th, table.order-details td { border: 0.5pt solid #000; padding: 2px 4px; }
-.order-details th {
-    font-weight: normal;
-    text-align: inherit;
-    border-bottom: 1px solid #000;
-    border-top: 1px solid #000;
-    padding-top: 0;
+/* Muted helper colour. */
+.woi-muted { color: #8A8378; }
+
+/* ---------------------------------------------------------------------
+   LETTERHEAD — 3 columns: EN company | centred mark | AR company (RTL).
+   --------------------------------------------------------------------- */
+table.woi-letterhead { width: 100%; }
+table.woi-letterhead td { vertical-align: top; padding: 0; }
+.woi-letterhead .woi-lh-en { width: 38%; text-align: left; }
+.woi-letterhead .woi-lh-mark { width: 24%; text-align: center; }
+.woi-letterhead .woi-lh-ar { width: 38%; text-align: right; }
+.woi-co-name { font-size: 13pt; font-weight: bold; color: #140858; line-height: 1.3; margin-bottom: 3px; }
+.woi-lh-ar .woi-co-name { font-size: 13.5pt; }
+.woi-co-lines { font-size: 9pt; line-height: 1.5; color: #1C1A17; }
+.woi-lh-mark img { max-height: 18mm; width: auto; }
+
+/* Left-aligned letterhead variant (mark at far left). */
+body[data-header="left"] .woi-letterhead .woi-lh-en { width: 38%; }
+body[data-header="left"] .woi-letterhead .woi-lh-mark { text-align: left; }
+
+/* ---------------------------------------------------------------------
+   CONTACT STRIP — TRN / Tel / Email, bounded by a 1.5px accent top rule.
+   --------------------------------------------------------------------- */
+table.woi-contact { width: 100%; margin-top: 2.5mm; border-top: 1.5px solid #140858; border-bottom: 0.5pt solid #D9D4C9; }
+table.woi-contact td { padding: 1.6mm 0; font-size: 9pt; vertical-align: middle; }
+.woi-contact td.woi-contact-mid { text-align: center; }
+.woi-contact td.woi-contact-end { text-align: right; }
+.woi-contact-k { font-size: 7.5pt; text-transform: uppercase; letter-spacing: .06em; color: #8A8378; font-weight: bold; }
+.woi-contact-v { font-size: 9pt; color: #1C1A17; }
+
+/* ---------------------------------------------------------------------
+   TITLE + META — big TAX INVOICE (accent) + Arabic subtitle | meta table.
+   --------------------------------------------------------------------- */
+table.woi-titlebar { width: 100%; margin-top: 3mm; }
+table.woi-titlebar td { vertical-align: bottom; padding: 0; }
+.woi-titlebar .woi-title-cell { text-align: left; }
+.woi-titlebar .woi-meta-cell { text-align: right; }
+.woi-title-en { font-size: 23pt; font-weight: bold; letter-spacing: .04em; color: #140858; line-height: 1; }
+.woi-title-ar { font-size: 14pt; color: #8A8378; margin-top: 2mm; }
+
+/* legacy alias kept for any older block markup using .woi-doc-title */
+.woi-doc-title { text-align: center; margin: 4mm 0; }
+.woi-doc-title .title-en { font-size: 23pt; font-weight: bold; color: #140858; }
+.woi-doc-title .title-ar { font-size: 14pt; color: #8A8378; margin-left: 6mm; }
+
+table.woi-meta { width: auto; margin-left: auto; border-collapse: collapse; }
+.woi-meta th { text-align: left; color: #8A8378; font-weight: bold; font-size: 8pt; text-transform: uppercase; letter-spacing: .04em; padding: 1mm 5mm 1mm 0; white-space: nowrap; vertical-align: top; }
+.woi-meta th .woi-lbl-secondary { color: #8A8378; font-weight: normal; font-size: 8pt; }
+.woi-meta td { text-align: right; color: #1C1A17; font-size: 9.5pt; padding: 1mm 0; white-space: nowrap; }
+
+/* ---------------------------------------------------------------------
+   PARTIES — Bill To / Ship To bordered cards, 2px accent top border.
+   --------------------------------------------------------------------- */
+table.woi-parties { width: 100%; margin-top: 3mm; }
+table.woi-parties td.woi-party {
+    width: 50%;
+    vertical-align: top;
+    border: 0.5pt solid #D9D4C9;
+    border-top: 2px solid #140858;
+    padding: 2.4mm 3mm;
+}
+table.woi-parties td.woi-party-gap { width: 4mm; border: 0; padding: 0; }
+.woi-party-label { font-size: 7.5pt; text-transform: uppercase; letter-spacing: .08em; color: #140858; font-weight: bold; margin-bottom: 1.5mm; }
+.woi-party-name { font-size: 11pt; font-weight: bold; color: #1C1A17; }
+.woi-party-body { font-size: 9pt; line-height: 1.5; color: #1C1A17; margin-top: 1mm; }
+.woi-party-trn { color: #8A8378; font-size: 8.5pt; margin-top: 1mm; }
+
+/* ---------------------------------------------------------------------
+   LINE ITEMS — table.order-details (markup from TemplateTokens).
+   Header: soft fill bounded top+bottom by 1.5px accent rules. Body: 0.5pt
+   hairline separators; last row a heavier rule. Keep the thumbnail mm fix.
+   --------------------------------------------------------------------- */
+table.order-details { width: 100%; margin-top: 3mm; margin-bottom: 2.5mm; }
+.order-details thead th {
+    background: #F6F3EC;
+    color: #1C1A17;
+    font-weight: bold;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    text-align: left;
+    border-top: 1.5px solid #140858;
+    border-bottom: 1.5px solid #140858;
+    padding: 2mm 2mm;
+    vertical-align: middle;
     overflow-wrap: normal;
 }
-.order-details td, .order-details th { padding: 0.375em; }
+.order-details thead th .woi-lbl-secondary { display: inline; font-size: 7.5pt; font-weight: normal; color: #8A8378; }
+.order-details tbody td {
+    border-bottom: 0.5pt solid #D9D4C9;
+    padding: 1.5mm 2mm;
+    vertical-align: middle;
+    font-size: 9.5pt;
+}
+.order-details tbody tr:last-child td { border-bottom: 1.5px solid #B6AFA1; }
 
-/* Column widths (cells default class == column type) */
-.order-details .quantity,
-.order-details .weight { width: 8%; }
-/* Thumbnail column: an ABSOLUTE width — mPDF ignores a % width here and
-   collapses the column, letting the fixed-width product image overflow into
-   the next column. An absolute mm width mPDF does honour, so the image stays
-   contained. ~15mm ≈ the old 8% on A4. */
-.order-details th.thumbnail,
-.order-details td.thumbnail { width: 15mm; }
-.order-details .sku,
-.order-details .price,
-.order-details .regular_price,
-.order-details .vat,
-.order-details .discount,
-.order-details .tax_rate,
+/* right-align figure columns */
+.order-details th.quantity, .order-details td.quantity,
+.order-details th.price, .order-details td.price,
+.order-details th.regular_price, .order-details td.regular_price,
+.order-details th.tax_rate, .order-details td.tax_rate,
+.order-details th.vat, .order-details td.vat,
+.order-details th.vat-split, .order-details td.vat-split,
+.order-details th.total, .order-details td.total { text-align: right; }
+
+/* Column widths. Thumbnail is an ABSOLUTE width — mPDF ignores a % width here
+   and collapses the column, letting the fixed-width image overflow the next
+   cell. ~15mm column / 13mm image keeps it contained (the existing fix). */
+.order-details .position { width: 5%; color: #8A8378; }
+.order-details th.thumbnail, .order-details td.thumbnail { width: 15mm; }
+.order-details .quantity, .order-details .weight { width: 8%; }
+.order-details .sku, .order-details .price, .order-details .regular_price,
+.order-details .vat, .order-details .discount, .order-details .tax_rate,
 .order-details .total { width: 10%; }
 .order-details .vat-split { width: 12%; }
-.order-details .position { width: 5%; }
+.order-details .tax_rate, .order-details td.tax_rate { color: #8A8378; }
+.order-details td.total { font-weight: bold; }
 
-/* Product thumbnails. display:block stacks multiple gallery images vertically
-   (centred) so they never overflow the column inline. !important beats
-   WooCommerce's inline width/height attrs (the canonical template does this too). */
+/* display:block stacks multiple gallery images vertically (centred) so they
+   never overflow inline. !important beats WooCommerce's inline width/height. */
 td.thumbnail img { display: block; width: 13mm !important; height: auto !important; margin: 0 auto; }
 
 /* Item meta (variations / personalisation lines) */
-.wc-item-meta { margin: 4px 0; font-size: 7pt; line-height: 115%; }
+.wc-item-meta { margin: 1mm 0 0; font-size: 7pt; line-height: 115%; color: #8A8378; }
 .wc-item-meta p { display: inline; }
 .wc-item-meta li { margin: 0; margin-left: 5px; }
-dl { margin: 4px 0; }
-dt, dd, dd p { display: inline; font-size: 7pt; line-height: 115%; }
+dl { margin: 1mm 0; }
+dt, dd, dd p { display: inline; font-size: 7pt; line-height: 115%; color: #8A8378; }
 dd { margin-left: 5px; }
+.order-details .woi-item-name { font-weight: bold; color: #1C1A17; }
 
-/* Totals table */
-table.totals-table { width: 100%; border-collapse: separate; }
-table.totals-table th, table.totals-table td { border: 0; padding: 4px; }
-table.totals-table th.description { text-align: inherit; vertical-align: top; min-width: 2cm; }
-table.totals-table td.price { text-align: right; }
-tr.grand-total td, tr.grand-total th { border-top: 1px solid #000; border-bottom: 1px solid #000; }
+/* Compact density (author option). */
+body[data-density="compact"] .order-details tbody td { padding: 1mm 2mm; }
+body[data-density="compact"] td.thumbnail img { width: 10mm !important; }
 
-/* Bilingual label pairs (Arabic column headers / totals labels).
-   Labels are inline; a <br> in the markup (see TemplateTokens) does the
-   stacking. mPDF ignores display:block on inline <span>s inside a <th>, so
-   the line break must be a real <br>, not CSS. */
+/* Thumbnails off (author option) — hide the column. */
+body[data-thumbs="off"] .order-details .thumbnail { display: none; }
+
+/* ---------------------------------------------------------------------
+   LOWER — bank details + payment terms (left) | totals (right).
+   --------------------------------------------------------------------- */
+table.woi-lower { width: 100%; margin-top: 3mm; }
+table.woi-lower td { vertical-align: top; padding: 0; }
+.woi-lower .woi-lower-left { width: 56%; padding-right: 8mm; }
+.woi-lower .woi-lower-right { width: 44%; }
+.woi-sub-label { font-size: 7.5pt; text-transform: uppercase; letter-spacing: .08em; color: #140858; font-weight: bold; margin-bottom: 1.5mm; }
+
+table.woi-bank { width: 100%; border-collapse: collapse; }
+table.woi-bank th { text-align: left; color: #8A8378; font-weight: normal; font-size: 9pt; padding: 0.6mm 4mm 0.6mm 0; white-space: nowrap; vertical-align: top; width: 36%; }
+table.woi-bank td { padding: 0.6mm 0; color: #1C1A17; font-size: 9pt; }
+.woi-terms { margin-top: 3mm; }
+.woi-terms p { font-size: 8.5pt; color: #1C1A17; margin: 1mm 0; line-height: 1.5; }
+.woi-terms p.ar { color: #8A8378; }
+
+/* ---------------------------------------------------------------------
+   TOTALS — table.totals-table. Subtotal / VAT / Shipping hairlines; bold
+   grand total (tr.grand-total) bounded by accent rules.
+   --------------------------------------------------------------------- */
+table.totals-table { width: 100%; border-collapse: collapse; page-break-inside: avoid; }
+table.totals-table th, table.totals-table td { padding: 1.6mm 2mm; border-bottom: 0.5pt solid #D9D4C9; }
+table.totals-table th.description { text-align: left; vertical-align: top; font-weight: normal; color: #1C1A17; font-size: 9.5pt; }
+.totals-table th .woi-lbl-secondary { display: inline; font-size: 8pt; font-weight: normal; color: #8A8378; }
+table.totals-table td.price { text-align: right; color: #1C1A17; font-size: 9.5pt; }
+tr.grand-total th, tr.grand-total td {
+    border-top: 1.5px solid #140858;
+    border-bottom: 2px solid #140858;
+    font-size: 12pt;
+    font-weight: bold;
+    color: #140858;
+    padding-top: 2.5mm;
+    padding-bottom: 2.5mm;
+}
+tr.grand-total th .woi-lbl-secondary { color: #140858; }
+.woi-amount-words { margin-top: 2.5mm; font-size: 8.5pt; color: #8A8378; }
+.woi-amount-words .woi-sub-label { display: block; }
+
+/* ---------------------------------------------------------------------
+   SIGNATURE / STAMP / QR.
+   --------------------------------------------------------------------- */
+table.woi-sign { width: 100%; margin-top: 2mm; }
+table.woi-sign td { vertical-align: bottom; padding: 0; }
+.woi-sign .woi-qr { width: 24mm; text-align: center; }
+.woi-sign .woi-stamp { text-align: center; }
+.woi-sign .woi-signature { text-align: right; }
+.woi-qr img { width: 20mm; height: 20mm; }
+.woi-qr .barcode { margin: 0 auto; }
+.woi-qr-placeholder { width: 20mm; height: 20mm; margin: 0 auto; border: 0.5pt solid #D9D4C9; background: #FBFAF6; color: #B6AFA1; font-size: 8pt; text-align: center; line-height: 20mm; letter-spacing: .1em; }
+.woi-qr-cap { font-size: 7pt; color: #8A8378; text-transform: uppercase; letter-spacing: .05em; margin-top: 1mm; }
+.woi-stamp-ring {
+    width: 20mm; height: 20mm; margin: 0 auto;
+    border: 1.5px dashed #B6AFA1; border-radius: 50%;
+    text-align: center; color: #8A8378;
+    font-size: 6.5pt; text-transform: uppercase; letter-spacing: .06em;
+    line-height: 20mm;
+}
+.woi-sig-line { border-bottom: 0.5pt solid #1C1A17; height: 9mm; margin-bottom: 1.5mm; }
+.woi-sig-cap { font-weight: bold; font-size: 9.5pt; color: #1C1A17; }
+.woi-sig-co { font-size: 8pt; color: #8A8378; margin-top: 0.5mm; }
+
+/* ---------------------------------------------------------------------
+   FOOTER — centred, muted: company · TRN · web · page.
+   --------------------------------------------------------------------- */
+.woi-footer { margin-top: 2mm; padding-top: 1.5mm; border-top: 0.5pt solid #D9D4C9; text-align: center; font-size: 8pt; color: #8A8378; }
+.woi-footer .woi-dot { color: #B6AFA1; }
+
+/* ---------------------------------------------------------------------
+   BILINGUAL LABEL PAIRS — labels are inline; the <br> in the markup (see
+   TemplateTokens) does the stacking. mPDF ignores display:block on inline
+   <span>s inside a <th>, so the line break MUST be a real <br>, not CSS.
+   --------------------------------------------------------------------- */
 .woi-lbl-primary { display: inline; }
 .woi-lbl-secondary { display: inline; direction: rtl; }
 
-/* --- Layout blocks (visual editor) --- */
+/* Arabic off (author option) — hide all secondary spans + RTL-only columns. */
+body[data-arabic="off"] .woi-lbl-secondary,
+body[data-arabic="off"] .woi-title-ar,
+body[data-arabic="off"] .woi-lh-ar,
+body[data-arabic="off"] .woi-terms p.ar { display: none; }
+
+/* ---------------------------------------------------------------------
+   LAYOUT BLOCKS (visual editor primitives).
+   --------------------------------------------------------------------- */
 .woi-pagebreak { page-break-after: always; height: 0; }
 .woi-spacer { height: 12mm; }
 .woi-row { width: 100%; }
 .woi-row td { vertical-align: top; }
-.totals-table { page-break-inside: avoid; }
-
-/* --- Document title --- */
-.woi-doc-title { text-align: center; margin: 4mm 0; }
-.woi-doc-title .title-en,
-.woi-doc-title .title-ar { font-size: 16pt; font-weight: bold; }
-.woi-doc-title .title-ar { margin-left: 6mm; }
 
 /* Block-editor sized logo: fill the wrapper's width and drop the default 3cm
    inline max-height cap so the chosen width controls the size. */
 .woi-img-sized img { width: 100% !important; height: auto !important; max-height: none !important; }
+
+/* ---------------------------------------------------------------------
+   ACCENT VARIANTS (author option). Overrides for red / mono. For the PDF
+   these are reinforced by a PHP-emitted snippet (mPDF attribute-selector
+   support is partial); the browser preview uses these directly.
+   --------------------------------------------------------------------- */
+body[data-accent="red"] .woi-co-name,
+body[data-accent="red"] .woi-title-en,
+body[data-accent="red"] .woi-doc-title .title-en,
+body[data-accent="red"] .woi-party-label,
+body[data-accent="red"] .woi-sub-label,
+body[data-accent="red"] tr.grand-total th,
+body[data-accent="red"] tr.grand-total td,
+body[data-accent="red"] tr.grand-total th .woi-lbl-secondary { color: #9E0A0E; }
+body[data-accent="red"] table.woi-contact,
+body[data-accent="red"] .order-details thead th { border-top-color: #9E0A0E; border-bottom-color: #9E0A0E; }
+body[data-accent="red"] table.woi-parties td.woi-party { border-top-color: #9E0A0E; }
+body[data-accent="red"] tr.grand-total th, body[data-accent="red"] tr.grand-total td { border-top-color: #9E0A0E; border-bottom-color: #9E0A0E; }
+
+body[data-accent="mono"] .woi-co-name,
+body[data-accent="mono"] .woi-title-en,
+body[data-accent="mono"] .woi-doc-title .title-en,
+body[data-accent="mono"] .woi-party-label,
+body[data-accent="mono"] .woi-sub-label,
+body[data-accent="mono"] tr.grand-total th,
+body[data-accent="mono"] tr.grand-total td,
+body[data-accent="mono"] tr.grand-total th .woi-lbl-secondary { color: #3A3A3A; }
+body[data-accent="mono"] table.woi-contact,
+body[data-accent="mono"] .order-details thead th { border-top-color: #3A3A3A; border-bottom-color: #3A3A3A; }
+body[data-accent="mono"] table.woi-parties td.woi-party { border-top-color: #3A3A3A; }
+body[data-accent="mono"] tr.grand-total th, body[data-accent="mono"] tr.grand-total td { border-top-color: #3A3A3A; border-bottom-color: #3A3A3A; }

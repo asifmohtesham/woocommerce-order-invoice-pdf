@@ -3041,6 +3041,112 @@ if ( ! function_exists( 'woi_pdf_visual_document_css' ) ) {
 	}
 }
 
+if ( ! function_exists( 'woi_pdf_visual_doc_options' ) ) {
+	/**
+	 * Presentation options for the visual invoice document, emitted as data-*
+	 * attributes on <body> by the wrapper and read by visual-document.css
+	 * (accent colour, letterhead layout, table density, bilingual on/off,
+	 * thumbnails on/off, font family).
+	 *
+	 * Stored under the `woi_pdf_visual_doc_options` option and overridable via
+	 * the same-named filter. The Arabic toggle defaults to the BilingualEngine
+	 * setting so it stays consistent with the rest of the plugin.
+	 *
+	 * @param string $document_type Document slug (default 'invoice').
+	 * @return array{accent:string,header:string,density:string,arabic:string,thumbs:string,font:string}
+	 */
+	function woi_pdf_visual_doc_options( $document_type = 'invoice' ) {
+		// Note: the bilingual column/totals secondaries still follow the existing
+		// "Second language" setting (BilingualEngine). This `arabic` flag gates the
+		// redesign's own hardcoded bilingual labels (letterhead/parties/terms/etc.)
+		// and defaults on; it needs a document object to read is_enabled(), which
+		// isn't available where these options are resolved (the wrapper).
+		$defaults = array(
+			'accent'  => 'navy',          // navy | red | mono
+			'header'  => 'center',        // center | left
+			'density' => 'comfortable',   // comfortable | compact
+			'arabic'  => 'on',            // on | off
+			'thumbs'  => 'on',            // on | off
+			'font'    => 'grotesque',     // grotesque | serif | mono
+		);
+
+		$saved = get_option( 'woi_pdf_visual_doc_options', array() );
+		if ( is_array( $saved ) ) {
+			$defaults = array_merge( $defaults, array_intersect_key( $saved, $defaults ) );
+		}
+
+		$options = apply_filters( 'woi_pdf_visual_doc_options', $defaults, $document_type );
+
+		// Whitelist values so a stray option can never inject markup.
+		$allowed = array(
+			'accent'  => array( 'navy', 'red', 'mono' ),
+			'header'  => array( 'center', 'left' ),
+			'density' => array( 'comfortable', 'compact' ),
+			'arabic'  => array( 'on', 'off' ),
+			'thumbs'  => array( 'on', 'off' ),
+			'font'    => array( 'grotesque', 'serif', 'mono' ),
+		);
+		foreach ( $allowed as $key => $valid ) {
+			if ( ! isset( $options[ $key ] ) || ! in_array( $options[ $key ], $valid, true ) ) {
+				$options[ $key ] = $defaults[ $key ];
+			}
+		}
+		return $options;
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_visual_options_css' ) ) {
+	/**
+	 * Author-option override CSS for the visual document, injected AFTER the base
+	 * stylesheet. mPDF does not apply descendant attribute selectors
+	 * (body[data-accent="red"] .x), so every option that the base CSS expresses
+	 * with a body[data-*] selector is re-expressed here with FLAT selectors mPDF
+	 * does honour. This is the authoritative option layer for the PDF.
+	 *
+	 * @param array $opts From woi_pdf_visual_doc_options() (accent/density/arabic/font/header).
+	 * @return string CSS text (no <style> wrapper).
+	 */
+	function woi_pdf_visual_options_css( array $opts ) {
+		$accent_map = array( 'navy' => '#140858', 'red' => '#9E0A0E', 'mono' => '#3A3A3A' );
+		$c          = $accent_map[ $opts['accent'] ?? 'navy' ] ?? $accent_map['navy'];
+
+		$css = array();
+
+		// --- Accent (always emitted, deterministic) ---
+		$css[] = '.woi-co-name,.woi-title-en,.woi-doc-title .title-en,.woi-party-label,.woi-sub-label,'
+			. 'tr.grand-total th,tr.grand-total td,tr.grand-total th .woi-lbl-secondary{color:' . $c . '}';
+		$css[] = 'table.woi-contact{border-top-color:' . $c . '}';
+		$css[] = '.order-details thead th{border-top-color:' . $c . ';border-bottom-color:' . $c . '}';
+		$css[] = 'table.woi-parties td.woi-party{border-top-color:' . $c . '}';
+		$css[] = 'tr.grand-total th,tr.grand-total td{border-top-color:' . $c . ';border-bottom-color:' . $c . '}';
+
+		// --- Font family ---
+		if ( 'serif' === ( $opts['font'] ?? '' ) ) {
+			$css[] = '.woi-title-en,.woi-doc-title .title-en,.woi-co-name,.woi-party-name,.woi-sig-cap{font-family:"dejavuserif",serif}';
+		} elseif ( 'mono' === ( $opts['font'] ?? '' ) ) {
+			$css[] = 'body{font-family:"dejavusansmono",monospace}';
+		}
+
+		// --- Table density ---
+		if ( 'compact' === ( $opts['density'] ?? '' ) ) {
+			$css[] = '.order-details tbody td{padding:1mm 2mm}';
+			$css[] = 'td.thumbnail img{width:10mm !important}';
+		}
+
+		// --- Bilingual off: hide every secondary / Arabic-only element ---
+		if ( 'off' === ( $opts['arabic'] ?? 'on' ) ) {
+			$css[] = '.woi-lbl-secondary,.woi-title-ar,.woi-lh-ar,.woi-terms p.ar{display:none}';
+		}
+
+		// --- Left letterhead variant: mark to the left, not centred ---
+		if ( 'left' === ( $opts['header'] ?? '' ) ) {
+			$css[] = '.woi-letterhead .woi-lh-mark{text-align:left}';
+		}
+
+		return implode( "\n", $css );
+	}
+}
+
 if ( ! function_exists( 'woi_pdf_templates_get_footer_settings' ) ) {
 	function woi_pdf_templates_get_footer_settings( $document, $default_height = '5cm' ) {
 		$footer_height = str_replace( ' ', '', \WOI\PDF\Editor\EditorSettings::instance()->get_footer_height() );

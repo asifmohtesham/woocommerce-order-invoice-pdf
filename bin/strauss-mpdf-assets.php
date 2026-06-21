@@ -76,3 +76,13 @@ foreach ($keep as $f) {
 }
 
 fwrite(STDOUT, "[mpdf-assets] copied {$dataCount} data files and {$fontCount} font files into vendor/strauss/mpdf/mpdf\n");
+
+// 3. mpdf/qrcode data/ — the QR encoder require()s data/qrvN_M.dat via a
+//    hardcoded __DIR__/../data path, but Strauss only copies the package's src/.
+//    Copy the .dat tables next to the prefixed src so <barcode type="QR"> works.
+$qrSrc  = $root . '/vendor/mpdf/qrcode';
+$qrDest = $root . '/vendor/strauss/mpdf/qrcode';
+if (is_dir($qrSrc) && is_dir($qrDest)) {
+    $qrCount = woi_copy_dir($qrSrc . '/data', $qrDest . '/data');
+    fwrite(STDOUT, "[mpdf-assets] copied {$qrCount} qrcode data files into vendor/strauss/mpdf/qrcode\n");
+}
