@@ -27,6 +27,16 @@ const CSS =
 	// native InterfaceSkeleton wrapper — give the skeleton a sized, positioned host
 	'.woi-block-interface-wrap{position:relative;height:80vh;min-height:600px;border:1px solid #ddd}' +
 	'.woi-block-interface{height:100%}' +
+	// WordPress does NOT register a standalone 'wp-interface' STYLE handle (the
+	// .interface-interface-skeleton flex rules ship inside wp-edit-post/wp-editor
+	// styles, which we don't load). On this custom page the skeleton would otherwise
+	// have no layout CSS and block-stack header/content/sidebar vertically. Own the
+	// minimal native layout here so the sidebar sits as a RIGHT column beside the canvas.
+	'.woi-block-interface .interface-interface-skeleton{display:flex;flex-direction:column;height:100%}' +
+	'.woi-block-interface .interface-interface-skeleton__header{flex-shrink:0;border-bottom:1px solid #e0e0e0;background:#fff}' +
+	'.woi-block-interface .interface-interface-skeleton__body{flex:1;display:flex;flex-direction:row;min-height:0;overflow:hidden}' +
+	'.woi-block-interface .interface-interface-skeleton__content{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;overflow:auto}' +
+	'.woi-block-interface .interface-interface-skeleton__sidebar{flex:0 0 281px;width:281px;min-width:281px;overflow:auto;border-left:1px solid #e0e0e0;background:#fff}' +
 	// PDF preview panel below the editor (was styled by the retired layout.js)
 	'.woi-block-preview{display:flex;flex-direction:column;min-height:440px;border:1px solid #ddd;border-top:0;margin-bottom:16px}';
 
