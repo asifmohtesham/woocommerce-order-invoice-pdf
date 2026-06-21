@@ -3068,6 +3068,8 @@ if ( ! function_exists( 'woi_pdf_visual_doc_options' ) ) {
 			'arabic'  => 'on',            // on | off
 			'thumbs'  => 'on',            // on | off
 			'font'    => 'grotesque',     // grotesque | serif | mono
+			'borders' => 'off',           // on | off — line-item column gridlines
+			'stripes' => 'off',           // on | off — striped (zebra) row colour
 		);
 
 		$saved = get_option( 'woi_pdf_visual_doc_options', array() );
@@ -3085,6 +3087,8 @@ if ( ! function_exists( 'woi_pdf_visual_doc_options' ) ) {
 			'arabic'  => array( 'on', 'off' ),
 			'thumbs'  => array( 'on', 'off' ),
 			'font'    => array( 'grotesque', 'serif', 'mono' ),
+			'borders' => array( 'on', 'off' ),
+			'stripes' => array( 'on', 'off' ),
 		);
 		foreach ( $allowed as $key => $valid ) {
 			if ( ! isset( $options[ $key ] ) || ! in_array( $options[ $key ], $valid, true ) ) {
@@ -3141,6 +3145,16 @@ if ( ! function_exists( 'woi_pdf_visual_options_css' ) ) {
 		// --- Left letterhead variant: mark to the left, not centred ---
 		if ( 'left' === ( $opts['header'] ?? '' ) ) {
 			$css[] = '.woi-letterhead .woi-lh-mark{text-align:left}';
+		}
+
+		// --- Column borders: vertical gridlines on the line-items table ---
+		if ( 'on' === ( $opts['borders'] ?? 'off' ) ) {
+			$css[] = '.order-details thead th,.order-details tbody td{border-left:0.5pt solid #D9D4C9;border-right:0.5pt solid #D9D4C9}';
+		}
+
+		// --- Striped rows: zebra background on alternating line items ---
+		if ( 'on' === ( $opts['stripes'] ?? 'off' ) ) {
+			$css[] = '.order-details tbody tr:nth-child(even) td{background-color:#F6F3EC}';
 		}
 
 		return implode( "\n", $css );

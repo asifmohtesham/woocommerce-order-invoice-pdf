@@ -147,6 +147,8 @@ function Editor( { initial, activeSource } ) {
 		arabic: 'on',
 		thumbs: 'on',
 		font: 'grotesque',
+		borders: 'off',
+		stripes: 'off',
 	};
 	const [ docOptions, setDocOptions ] = useState( {
 		...DEFAULT_DOC_OPTIONS,
@@ -401,6 +403,18 @@ function Editor( { initial, activeSource } ) {
 								label={ __( 'Product thumbnails', 'woocommerce-orders-invoice-pdf' ) }
 								checked={ 'on' === docOptions.thumbs }
 								onChange={ ( v ) => onDocOption( 'thumbs', v ? 'on' : 'off' ) }
+								__nextHasNoMarginBottom
+							/>
+							<ToggleControl
+								label={ __( 'Column borders', 'woocommerce-orders-invoice-pdf' ) }
+								checked={ 'on' === docOptions.borders }
+								onChange={ ( v ) => onDocOption( 'borders', v ? 'on' : 'off' ) }
+								__nextHasNoMarginBottom
+							/>
+							<ToggleControl
+								label={ __( 'Striped rows', 'woocommerce-orders-invoice-pdf' ) }
+								checked={ 'on' === docOptions.stripes }
+								onChange={ ( v ) => onDocOption( 'stripes', v ? 'on' : 'off' ) }
 								__nextHasNoMarginBottom
 							/>
 						</div>

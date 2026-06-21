@@ -24,6 +24,8 @@ $header  = $argv[2] ?? 'center';
 $density = $argv[3] ?? 'comfortable';
 $arabic  = $argv[4] ?? 'on';
 $thumbs  = $argv[5] ?? 'on';
+$borders = $argv[6] ?? 'off';
+$stripes = $argv[7] ?? 'off';
 
 $css_path = dirname( __DIR__ ) . '/templates/_visual/visual-document.css';
 $css = file_get_contents( $css_path );
@@ -33,6 +35,7 @@ if ( function_exists( 'woi_pdf_visual_options_css' ) ) {
     $css .= "\n" . woi_pdf_visual_options_css( array(
         'accent' => $accent, 'header' => $header, 'density' => $density,
         'arabic' => $arabic, 'thumbs' => $thumbs, 'font' => 'grotesque',
+        'borders' => $borders, 'stripes' => $stripes,
     ) );
 }
 

@@ -50,5 +50,15 @@ export function optionsCss( opts ) {
 		css.push( '.order-details .thumbnail{display:none}' );
 	}
 
+	// Column borders — vertical gridlines on the line-items table.
+	if ( 'on' === o.borders ) {
+		css.push( '.order-details thead th,.order-details tbody td{border-left:0.5pt solid #D9D4C9;border-right:0.5pt solid #D9D4C9}' );
+	}
+
+	// Striped rows — zebra background on alternating line items.
+	if ( 'on' === o.stripes ) {
+		css.push( '.order-details tbody tr:nth-child(even) td{background-color:#F6F3EC}' );
+	}
+
 	return css.join( '\n' );
 }

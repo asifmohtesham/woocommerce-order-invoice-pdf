@@ -875,7 +875,7 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			}
 			$incoming = (array) $request->get_param( 'options' );
 			$clean    = array();
-			foreach ( array( 'accent', 'header', 'density', 'arabic', 'thumbs', 'font' ) as $key ) {
+			foreach ( array( 'accent', 'header', 'density', 'arabic', 'thumbs', 'font', 'borders', 'stripes' ) as $key ) {
 				if ( isset( $incoming[ $key ] ) ) {
 					$clean[ $key ] = sanitize_text_field( (string) $incoming[ $key ] );
 				}
