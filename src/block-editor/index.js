@@ -3,6 +3,7 @@ import {
 	BlockTools,
 	BlockEditorProvider,
 	Inserter,
+	BlockInspector,
 } from '@wordpress/block-editor';
 import { parse, serialize, registerBlockCollection } from '@wordpress/blocks';
 import { Button, Popover, SlotFillProvider } from '@wordpress/components';
@@ -182,22 +183,27 @@ function Editor( { initial, activeSource } ) {
 						onInput={ setBlocks }
 						onChange={ setBlocks }
 					>
-						<div className="woi-block-canvas">
-							<BlockTools>
-								<div style={ { padding: '8px' } }>
-									<Inserter
-										rootClientId={ undefined }
-										isAppender
+						<div className="woi-block-workspace">
+							<div className="woi-block-canvas">
+								<BlockTools>
+									<div style={ { padding: '8px' } }>
+										<Inserter
+											rootClientId={ undefined }
+											isAppender
+										/>
+									</div>
+									<Canvas
+										previewCss={
+											( window.woiBlocks &&
+												window.woiBlocks.previewCss ) ||
+											''
+										}
 									/>
-								</div>
-								<Canvas
-									previewCss={
-										( window.woiBlocks &&
-											window.woiBlocks.previewCss ) ||
-										''
-									}
-								/>
-							</BlockTools>
+								</BlockTools>
+							</div>
+							<div className="woi-block-sidebar">
+								<BlockInspector />
+							</div>
 						</div>
 						<Popover.Slot />
 					</BlockEditorProvider>

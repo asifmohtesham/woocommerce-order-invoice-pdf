@@ -17,7 +17,11 @@ export const LAYOUT_CSS =
 	'.woi-block-shell[data-layout="stack"]{flex-direction:column}' +
 	'.woi-block-shell[data-layout="stack"] .woi-block-main{padding-right:0}' +
 	'.woi-block-shell[data-layout="stack"] .woi-block-preview{flex:0 0 auto;min-width:0;border-left:0;border-top:1px solid #ddd;min-height:50vh}' +
-	'.woi-block-shell[data-layout="overlay"] .woi-block-preview{position:fixed;top:var(--wp-admin--admin-bar--height,32px);right:0;bottom:0;width:40%;max-width:640px;z-index:99980;border-left:1px solid #c3c4c7;box-shadow:-8px 0 24px rgba(0,0,0,.18)}';
+	'.woi-block-shell[data-layout="overlay"] .woi-block-preview{position:fixed;top:var(--wp-admin--admin-bar--height,32px);right:0;bottom:0;width:40%;max-width:640px;z-index:99980;border-left:1px solid #c3c4c7;box-shadow:-8px 0 24px rgba(0,0,0,.18)}' +
+	'.woi-block-workspace{display:flex;gap:8px;align-items:stretch;min-height:0;min-width:0}' +
+	'.woi-block-canvas{flex:1;min-width:0;display:flex;flex-direction:column}' +
+	'.woi-block-sidebar{flex:0 0 280px;overflow:auto;min-height:0;background:#fff;border-left:1px solid #ddd}' +
+	'.woi-block-shell[data-layout="stack"] .woi-block-sidebar{flex-basis:260px}';
 
 export function injectLayoutStyles() {
 	if ( document.getElementById( 'woi-block-layout-css' ) ) { return; }
