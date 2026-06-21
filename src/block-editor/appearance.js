@@ -1,4 +1,5 @@
 import { PanelBody, SelectControl, RangeControl, ColorPalette } from '@wordpress/components';
+import { BlockControls, AlignmentControl } from '@wordpress/block-editor';
 import { __ } from '@wordpress/i18n';
 import { APPEARANCE_ATTRS, appearanceStyle, appearanceProps } from './appearanceStyle';
 
@@ -11,9 +12,23 @@ const PALETTE = [
 	{ name: __( 'Light grey', 'woocommerce-orders-invoice-pdf' ), color: '#f3f4f5' },
 ];
 
+// Block-toolbar text-alignment control, shown on selection for discoverability.
+// Writes the SAME `align` attribute the Appearance panel uses, so they stay in
+// sync. AlignmentControl uses undefined for "none"; our attr uses ''.
+export function AppearanceToolbar( { attributes, setAttributes } ) {
+	return (
+		<BlockControls group="block">
+			<AlignmentControl
+				value={ attributes.align || undefined }
+				onChange={ ( v ) => setAttributes( { align: v || '' } ) }
+			/>
+		</BlockControls>
+	);
+}
+
 // The Inspector "Appearance" panel, shared by every text-bearing block.
 export function AppearancePanel( { attributes, setAttributes } ) {
-	const { align, weight, fontSize, color, bg } = attributes;
+	const { align, weight, fontSize, color, bg, padding, margin, width } = attributes;
 	return (
 		<PanelBody title={ __( 'Appearance', 'woocommerce-orders-invoice-pdf' ) } initialOpen={ true }>
 			<SelectControl
@@ -48,6 +63,27 @@ export function AppearancePanel( { attributes, setAttributes } ) {
 			<ColorPalette value={ color || '' } colors={ PALETTE } onChange={ ( c ) => setAttributes( { color: c || '' } ) } />
 			<p style={ { margin: '12px 0 4px' } }>{ __( 'Background colour', 'woocommerce-orders-invoice-pdf' ) }</p>
 			<ColorPalette value={ bg || '' } colors={ PALETTE } onChange={ ( c ) => setAttributes( { bg: c || '' } ) } />
+			<RangeControl
+				label={ __( 'Padding (px) — 0 = none', 'woocommerce-orders-invoice-pdf' ) }
+				value={ padding || 0 }
+				onChange={ ( v ) => setAttributes( { padding: v || 0 } ) }
+				min={ 0 }
+				max={ 48 }
+			/>
+			<RangeControl
+				label={ __( 'Margin (px) — 0 = none', 'woocommerce-orders-invoice-pdf' ) }
+				value={ margin || 0 }
+				onChange={ ( v ) => setAttributes( { margin: v || 0 } ) }
+				min={ 0 }
+				max={ 48 }
+			/>
+			<RangeControl
+				label={ __( 'Width (%) — 0 = auto', 'woocommerce-orders-invoice-pdf' ) }
+				value={ width ? ( parseInt( width, 10 ) || 0 ) : 0 }
+				onChange={ ( v ) => setAttributes( { width: v ? v + '%' : '' } ) }
+				min={ 0 }
+				max={ 100 }
+			/>
 		</PanelBody>
 	);
 }

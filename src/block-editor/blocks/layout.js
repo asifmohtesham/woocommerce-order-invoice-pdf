@@ -2,7 +2,7 @@ import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps, RichText, InspectorControls } from '@wordpress/block-editor';
 import { PanelBody, SelectControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { APPEARANCE_ATTRS, appearanceStyle, appearanceProps, AppearancePanel } from '../appearance';
+import { APPEARANCE_ATTRS, appearanceStyle, appearanceProps, AppearancePanel, AppearanceToolbar } from '../appearance';
 
 /**
  * Static layout blocks. Each save() emits the same class-keyed markup the
@@ -63,6 +63,7 @@ export function registerLayoutBlocks() {
 			const tagName = 'h' + ( attributes.level || 2 );
 			return (
 				<>
+					<AppearanceToolbar attributes={ attributes } setAttributes={ setAttributes } />
 					<InspectorControls>
 						<PanelBody title={ __( 'Heading', 'woocommerce-orders-invoice-pdf' ) }>
 							<SelectControl

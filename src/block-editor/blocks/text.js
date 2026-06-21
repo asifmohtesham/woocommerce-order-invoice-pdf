@@ -1,7 +1,7 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps, RichText, InspectorControls } from '@wordpress/block-editor';
 import { __ } from '@wordpress/i18n';
-import { APPEARANCE_ATTRS, appearanceStyle, appearanceProps, AppearancePanel } from '../appearance';
+import { APPEARANCE_ATTRS, appearanceStyle, appearanceProps, AppearancePanel, AppearanceToolbar } from '../appearance';
 
 export function registerTextBlock() {
 	registerBlockType( 'woi/text', {
@@ -14,6 +14,7 @@ export function registerTextBlock() {
 		edit( { attributes, setAttributes } ) {
 			return (
 				<>
+					<AppearanceToolbar attributes={ attributes } setAttributes={ setAttributes } />
 					<InspectorControls>
 						<AppearancePanel attributes={ attributes } setAttributes={ setAttributes } />
 					</InspectorControls>

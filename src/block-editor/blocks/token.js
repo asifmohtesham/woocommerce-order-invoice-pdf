@@ -5,7 +5,7 @@ import { __ } from '@wordpress/i18n';
 import { safeHTML } from '@wordpress/dom';
 import { STORE } from '../previewStore';
 import { isHtmlToken, tokenValue } from '../tokenMerge';
-import { APPEARANCE_ATTRS, appearanceStyle, appearanceProps, AppearancePanel } from '../appearance';
+import { APPEARANCE_ATTRS, appearanceStyle, appearanceProps, AppearancePanel, AppearanceToolbar } from '../appearance';
 
 /**
  * Slice-1 token blocks. Each is static: save() emits a fixed wrapper holding the
@@ -61,7 +61,13 @@ export function registerTokenBlocks() {
 				} else {
 					inner = <Tag { ...blockProps }>{ value }</Tag>;
 				}
-				return <>{ panel }{ inner }</>;
+				return (
+					<>
+						<AppearanceToolbar attributes={ attributes } setAttributes={ setAttributes } />
+						{ panel }
+						{ inner }
+					</>
+				);
 			},
 			save( { attributes } ) {
 				const Tag = tag;
