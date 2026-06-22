@@ -1,0 +1,4 @@
+# Shell scripts and git hooks MUST stay LF — a CRLF shebang line breaks the
+# interpreter ("bad interpreter") when the hook/script runs under sh.
+*.sh        text eol=lf
+tools/hooks/* text eol=lf

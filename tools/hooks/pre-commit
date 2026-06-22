@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# WOI PDF — concurrency guard.
+#
+# Blocks committing directly onto master/main so feature work happens on a
+# branch (ideally in its own git worktree — see CLAUDE.md "Concurrent
+# development"). Shared across the main checkout AND all linked worktrees
+# because it is installed via `core.hooksPath = tools/hooks`.
+#
+# Escape hatch for intentional release/merge commits on master:
+#   WOI_ALLOW_MASTER=1 git commit ...
+#
+# Note: fast-forward `git merge --ff-only` creates no commit (no hook fires);
+# a true merge commit triggers pre-merge-commit, not this hook. So normal
+# landing flows are unaffected — this only catches accidental direct commits.
+
+branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+
+if { [ "$branch" = "master" ] || [ "$branch" = "main" ]; } && [ "${WOI_ALLOW_MASTER:-0}" != "1" ]; then
+	cat >&2 <<'MSG'
+✗ Refusing to commit directly on master/main.
+
+  Feature work belongs on its own branch — ideally an isolated worktree so
+  concurrent instances don't stomp each other:
+
+    tools/new-feature.sh <name>        # creates ../woi-<name> off origin/master
+
+  Intentional release/merge commit on master? Re-run with the escape hatch:
+
+    WOI_ALLOW_MASTER=1 git commit ...
+MSG
+	exit 1
+fi
+
+exit 0
