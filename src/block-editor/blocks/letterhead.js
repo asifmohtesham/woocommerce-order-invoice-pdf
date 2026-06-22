@@ -3,8 +3,9 @@ import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
 import { PanelBody, ToggleControl, SelectControl, RangeControl, ColorPalette, Button } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
+import { safeHTML } from '@wordpress/dom';
 import { STORE } from '../previewStore';
-import { tokenValue } from '../tokenMerge';
+import { tokenValue, isHtmlToken } from '../tokenMerge';
 import { appearanceProps } from '../appearance';
 import { saveLetterhead, saveDocOptions } from '../store';
 import { LH_TEXT_FIELDS, LH_DEFAULT, lhValueStyle } from './letterheadModel';
@@ -54,21 +55,30 @@ export function LetterheadEdit() {
 					if ( el.visible === false ) {
 						return <div key={ f.key } onClick={ () => setSelected( f.key ) } style={ { opacity: 0.35, cursor: 'pointer', fontSize: 11 } }>{ f.label } { __( '(hidden)', 'woocommerce-orders-invoice-pdf' ) }</div>;
 					}
-					return (
-						<div key={ f.key }
-							onClick={ () => setSelected( f.key ) }
-							style={ { textAlign: el.align || ( side === 'ar' ? 'right' : 'left' ), outline: selected === f.key ? '1px solid #007cba' : 'none', cursor: 'pointer', padding: '1px 3px', ...lhValueStyle( el ) } }>
-							{ tokenValue( f.token, tokens ) || f.label }
-						</div>
-					);
+					// shop_address / shop_address_ar carry HTML (<br/> line breaks) and
+					// must render as HTML, not literal text — matches the generic token
+					// edit. Plain-text fields (names) render as text.
+					const val = tokenValue( f.token, tokens );
+					const elProps = {
+						onClick: () => setSelected( f.key ),
+						style: { textAlign: el.align || ( side === 'ar' ? 'right' : 'left' ), outline: selected === f.key ? '1px solid #007cba' : 'none', cursor: 'pointer', padding: '1px 3px', ...lhValueStyle( el ) },
+					};
+					return ( val && isHtmlToken( f.token ) )
+						? <div key={ f.key } { ...elProps } dangerouslySetInnerHTML={ { __html: safeHTML( val ) } } />
+						: <div key={ f.key } { ...elProps }>{ val || f.label }</div>;
 				} ) }
 			</div>
 		);
 	};
+	// The logo token is the real server <img> (HTML); render it, falling back to a
+	// placeholder only when no logo is set / no order is selected.
+	const logoVal = tokenValue( '{{logo}}', tokens );
 	const logoCell = cfg.elements.logo.visible === false ? null : (
 		<div key="logo" className="woi-lh-logo" onClick={ () => setSelected( 'logo' ) }
 			style={ { flex: '0 0 20%', textAlign: 'center', outline: selected === 'logo' ? '1px solid #007cba' : 'none', cursor: 'pointer' } }>
-			<span style={ { fontSize: 11, color: '#8A8378' } }>{ __( '[ logo ]', 'woocommerce-orders-invoice-pdf' ) }</span>
+			{ logoVal
+				? <span dangerouslySetInnerHTML={ { __html: safeHTML( logoVal ) } } />
+				: <span style={ { fontSize: 11, color: '#8A8378' } }>{ __( '[ logo ]', 'woocommerce-orders-invoice-pdf' ) }</span> }
 		</div>
 	);
 	const textCols = cfg.swapText ? [ colFor( 'ar' ), colFor( 'en' ) ] : [ colFor( 'en' ), colFor( 'ar' ) ];
