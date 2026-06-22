@@ -7,6 +7,7 @@ import { safeHTML } from '@wordpress/dom';
 import { STORE } from '../previewStore';
 import { isHtmlToken, tokenValue } from '../tokenMerge';
 import { APPEARANCE_ATTRS, appearanceStyle, appearanceProps, AppearancePanel, AppearanceToolbar } from '../appearance';
+import { ContactStripEdit, contactStripSave, CONTACT_DEFAULT_ITEMS, CONTACT_DEPRECATED } from './contactStrip';
 
 /**
  * Token blocks. Each is static: save() emits a fixed wrapper holding the literal
@@ -45,7 +46,7 @@ const TOKENS = [
 	// The default template (Reset) is built from these so the block path renders
 	// the full redesign. Granular tokens above remain for custom composition.
 	{ name: 'woi/letterhead',        title: __( 'Letterhead (section)', 'woocommerce-orders-invoice-pdf' ),    token: '{{letterhead}}',     tag: 'div', preview: '[ Letterhead ]' },
-	{ name: 'woi/contact-strip',     title: __( 'Contact strip (section)', 'woocommerce-orders-invoice-pdf' ), token: '{{contact_strip}}',  tag: 'div', preview: '[ Contact strip ]' },
+	{ name: 'woi/contact-strip',     title: __( 'Contact strip (section)', 'woocommerce-orders-invoice-pdf' ), token: '{{contact_strip}}',  tag: 'div', preview: '[ Contact strip ]', contact: true },
 	{ name: 'woi/title-meta',        title: __( 'Title & meta (section)', 'woocommerce-orders-invoice-pdf' ),  token: '{{title_meta}}',     tag: 'div', preview: '[ Title & meta ]' },
 	{ name: 'woi/parties',           title: __( 'Bill / Ship to (section)', 'woocommerce-orders-invoice-pdf' ),token: '{{parties}}',        tag: 'div', preview: '[ Bill / Ship to ]' },
 	{ name: 'woi/lower',             title: __( 'Bank & totals (section)', 'woocommerce-orders-invoice-pdf' ), token: '{{lower}}',          tag: 'div', preview: '[ Bank & totals ]' },
@@ -55,7 +56,57 @@ const TOKENS = [
 ];
 
 export function registerTokenBlocks() {
-	TOKENS.forEach( ( { name, title, token, tag, preview, image } ) => {
+	TOKENS.forEach( ( { name, title, token, tag, preview, image, contact } ) => {
+		const Tag = tag;
+
+		const genericEdit = function ( { attributes, setAttributes } ) {
+			const tokens = useSelect( ( select ) => select( STORE ).getTokens(), [] );
+			const value = tokenValue( token, tokens );
+			const sized = image && attributes.imgWidth;
+			const style = { ...appearanceStyle( attributes ), ...( sized ? { width: attributes.imgWidth + 'mm' } : {} ) };
+			const className = [ value ? '' : 'woi-token-empty', sized ? 'woi-img-sized' : '' ].filter( Boolean ).join( ' ' ) || undefined;
+			const blockProps = useBlockProps( { className, style } );
+			const panel = (
+				<InspectorControls>
+					{ image ? (
+						<PanelBody title={ __( 'Image', 'woocommerce-orders-invoice-pdf' ) }>
+							<RangeControl
+								label={ __( 'Logo width (mm) — 0 = default', 'woocommerce-orders-invoice-pdf' ) }
+								value={ attributes.imgWidth || 0 }
+								onChange={ ( v ) => setAttributes( { imgWidth: v || 0 } ) }
+								min={ 0 }
+								max={ 120 }
+							/>
+						</PanelBody>
+					) : null }
+					<AppearancePanel attributes={ attributes } setAttributes={ setAttributes } />
+				</InspectorControls>
+			);
+			let inner;
+			if ( ! value ) {
+				inner = <Tag { ...blockProps }>{ preview }</Tag>;
+			} else if ( isHtmlToken( token ) ) {
+				inner = <Tag { ...blockProps } dangerouslySetInnerHTML={ { __html: safeHTML( value ) } } />;
+			} else {
+				inner = <Tag { ...blockProps }>{ value }</Tag>;
+			}
+			return (
+				<>
+					<AppearanceToolbar attributes={ attributes } setAttributes={ setAttributes } />
+					{ panel }
+					{ inner }
+				</>
+			);
+		};
+
+		const genericSave = function ( { attributes } ) {
+			if ( image && attributes.imgWidth ) {
+				const style = { ...appearanceStyle( attributes ), width: attributes.imgWidth + 'mm' };
+				return <Tag { ...useBlockProps.save( { className: 'woi-img-sized', style } ) }>{ token }</Tag>;
+			}
+			return <Tag { ...useBlockProps.save( appearanceProps( attributes ) ) }>{ token }</Tag>;
+		};
+
 		registerBlockType( name, {
 			apiVersion: 2,
 			title,
@@ -64,64 +115,12 @@ export function registerTokenBlocks() {
 			attributes: {
 				...APPEARANCE_ATTRS,
 				...( image ? { imgWidth: { type: 'number', default: 0 } } : {} ),
+				...( contact ? { items: { type: 'array', default: CONTACT_DEFAULT_ITEMS } } : {} ),
 			},
 			supports: { html: false, reusable: false },
-			edit( { attributes, setAttributes } ) {
-				const Tag = tag;
-				const tokens = useSelect( ( select ) => select( STORE ).getTokens(), [] );
-				const value = tokenValue( token, tokens );
-				const sized = image && attributes.imgWidth;
-				const style = { ...appearanceStyle( attributes ), ...( sized ? { width: attributes.imgWidth + 'mm' } : {} ) };
-				const className = [ value ? '' : 'woi-token-empty', sized ? 'woi-img-sized' : '' ].filter( Boolean ).join( ' ' ) || undefined;
-				const blockProps = useBlockProps( { className, style } );
-				const panel = (
-					<InspectorControls>
-						{ image ? (
-							<PanelBody title={ __( 'Image', 'woocommerce-orders-invoice-pdf' ) }>
-								<RangeControl
-									label={ __( 'Logo width (mm) — 0 = default', 'woocommerce-orders-invoice-pdf' ) }
-									value={ attributes.imgWidth || 0 }
-									onChange={ ( v ) => setAttributes( { imgWidth: v || 0 } ) }
-									min={ 0 }
-									max={ 120 }
-								/>
-							</PanelBody>
-						) : null }
-						<AppearancePanel attributes={ attributes } setAttributes={ setAttributes } />
-					</InspectorControls>
-				);
-				let inner;
-				if ( ! value ) {
-					// No order picked / token empty: show the friendly label so the
-					// block stays visible and selectable.
-					inner = <Tag { ...blockProps }>{ preview }</Tag>;
-				} else if ( isHtmlToken( token ) ) {
-					// HTML token (logo, billing address, line-items / totals tables).
-					// safeHTML strips scripts / event-handler attributes / javascript:
-					// URLs before injecting into the live admin DOM.
-					inner = <Tag { ...blockProps } dangerouslySetInnerHTML={ { __html: safeHTML( value ) } } />;
-				} else {
-					inner = <Tag { ...blockProps }>{ value }</Tag>;
-				}
-				return (
-					<>
-						<AppearanceToolbar attributes={ attributes } setAttributes={ setAttributes } />
-						{ panel }
-						{ inner }
-					</>
-				);
-			},
-			save( { attributes } ) {
-				const Tag = tag;
-				// Sized logo: wrapper carries the width + the .woi-img-sized class that
-				// the visual-document.css rule uses to fill the server <img>.
-				if ( image && attributes.imgWidth ) {
-					const style = { ...appearanceStyle( attributes ), width: attributes.imgWidth + 'mm' };
-					return <Tag { ...useBlockProps.save( { className: 'woi-img-sized', style } ) }>{ token }</Tag>;
-				}
-				// Inner content is the literal token; merged at PDF render time.
-				return <Tag { ...useBlockProps.save( appearanceProps( attributes ) ) }>{ token }</Tag>;
-			},
+			...( contact ? { deprecated: CONTACT_DEPRECATED } : {} ),
+			edit: contact ? ContactStripEdit : genericEdit,
+			save: contact ? contactStripSave : genericSave,
 		} );
 	} );
 }
