@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from '@wordpress/element';
 import { Button, SelectControl, TextControl, Spinner } from '@wordpress/components';
+import { useDispatch } from '@wordpress/data';
 import { chevronUp, chevronDown, trash } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
+import { STORE } from './previewStore';
 import { getEditorConfig, saveEditorConfig } from './store';
 import { renderableOptions } from './optionSchema';
 import OptionField from './OptionField';
@@ -10,6 +12,7 @@ export default function TotalsEditor( { onTokens, onSaved, orderId } ) {
 	const [ rows, setRows ] = useState( null );
 	const [ schema, setSchema ] = useState( {} );
 	const debounceRef = useRef( null );
+	const { setLoading } = useDispatch( STORE );
 
 	useEffect( () => {
 		getEditorConfig()
@@ -17,15 +20,20 @@ export default function TotalsEditor( { onTokens, onSaved, orderId } ) {
 			.catch( () => setRows( [] ) );
 	}, [] );
 
+	// Every total-row edit needs a server re-render, so flip the preview into its
+	// loading state for feedback (cleared by onTokens/onSaved via the store reducer;
+	// the explicit setLoading(false) covers the no-token / error paths). Mirrors ColumnEditor.
 	const persist = useCallback( ( next ) => {
+		setLoading( true );
 		if ( debounceRef.current ) { clearTimeout( debounceRef.current ); }
 		debounceRef.current = setTimeout( () => {
 			saveEditorConfig( { totals: next }, orderId ).then( ( res ) => {
 				if ( res && res.tokens && onTokens ) { onTokens( res.tokens ); }
 				else if ( onSaved ) { onSaved(); }
-			} ).catch( () => {} );
+				setLoading( false );
+			} ).catch( () => setLoading( false ) );
 		}, 250 );
-	}, [ onTokens, onSaved, orderId ] );
+	}, [ onTokens, onSaved, orderId, setLoading ] );
 
 	const update = ( next ) => { setRows( next ); persist( next ); };
 	if ( null === rows ) { return <div className="woi-col-editor"><Spinner /></div>; }

@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from '@wordpress/element';
 import { Button, SelectControl, TextControl, TextareaControl, Spinner } from '@wordpress/components';
+import { useDispatch } from '@wordpress/data';
 import { trash } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
+import { STORE } from './previewStore';
 import { getEditorConfig, saveEditorConfig } from './store';
 
 export default function CustomBlocksEditor( { onSaved } ) {
@@ -9,6 +11,7 @@ export default function CustomBlocksEditor( { onSaved } ) {
 	const [ positions, setPositions ] = useState( {} );
 	const [ types, setTypes ] = useState( {} );
 	const debounceRef = useRef( null );
+	const { setLoading } = useDispatch( STORE );
 
 	useEffect( () => {
 		getEditorConfig()
@@ -16,12 +19,16 @@ export default function CustomBlocksEditor( { onSaved } ) {
 			.catch( () => setRows( [] ) );
 	}, [] );
 
+	// Custom-block edits re-render the preview server-side (onSaved → refreshTokens),
+	// so show the loading overlay for feedback. onSaved's setOrder clears it; the
+	// explicit setLoading(false) covers the no-order / error paths. Mirrors ColumnEditor.
 	const persist = useCallback( ( next ) => {
+		setLoading( true );
 		if ( debounceRef.current ) { clearTimeout( debounceRef.current ); }
 		debounceRef.current = setTimeout( () => {
-			saveEditorConfig( { custom: next } ).then( () => { if ( onSaved ) { onSaved(); } } ).catch( () => {} );
+			saveEditorConfig( { custom: next } ).then( () => { if ( onSaved ) { onSaved(); } setLoading( false ); } ).catch( () => setLoading( false ) );
 		}, 300 );
-	}, [ onSaved ] );
+	}, [ onSaved, setLoading ] );
 
 	const update = ( next ) => { setRows( next ); persist( next ); };
 	if ( null === rows ) { return <div className="woi-col-editor"><Spinner /></div>; }

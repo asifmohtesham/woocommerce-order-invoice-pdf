@@ -110,9 +110,13 @@ class EditorMain {
 		$totals_table_data = array();
 		foreach ($total_settings as $total_key => $total_setting) {
 			// reset possibly absent vars
-			$method = $percent = $base = $show_unit = $only_discounted = $label = $single_total = NULL;
+			$method = $percent = $base = $show_unit = $only_discounted = $label = $single_total = $hide_currency = NULL;
 			// extract vars
 			extract($total_setting);
+
+			// Track which rows this iteration adds so the "Hide currency symbol" toggle
+			// can strip them after the switch (some branches add several keyed rows).
+			$keys_before_block = array_keys( $totals_table_data );
 
 			// remove label if empty!
 			if( empty($total_setting['label']) ) {
@@ -542,6 +546,16 @@ class EditorMain {
 						}
 					}
 					break;
+			}
+
+			// "Hide currency symbol" toggle (monetary total rows): strip the currency
+			// span from any rows this block produced, keeping number formatting.
+			if ( isset( $hide_currency ) ) {
+				foreach ( array_diff( array_keys( $totals_table_data ), $keys_before_block ) as $new_key ) {
+					if ( isset( $totals_table_data[ $new_key ]['value'] ) ) {
+						$totals_table_data[ $new_key ]['value'] = $this->strip_currency_symbol( $totals_table_data[ $new_key ]['value'] );
+					}
+				}
 			}
 
 			// Always remove raw prices filter after each total block in case it was enabled
@@ -1168,6 +1182,12 @@ class EditorMain {
 			}
 		}
 
+		// "Hide currency symbol" toggle (monetary columns): strip WooCommerce's
+		// currency-symbol span from the formatted value, keeping number formatting.
+		if ( isset( $hide_currency ) && in_array( $type, array( 'price', 'regular_price', 'discount', 'vat' ), true ) && ! empty( $column['data'] ) ) {
+			$column['data'] = $this->strip_currency_symbol( $column['data'] );
+		}
+
 		// set class if not set;
 		if (!isset($column['class'])) {
 			$column['class'] = $type;
@@ -1180,7 +1200,29 @@ class EditorMain {
 
 		return apply_filters( 'woi_pdf_templates_item_column_data', $column, $column_setting, $item, $document );
 	}
-	
+
+	/**
+	 * Strip WooCommerce's currency-symbol markup from a formatted wc_price() string,
+	 * leaving the number (with its thousands/decimal grouping) intact. Backs the
+	 * per-column / per-total "Hide currency symbol" toggle.
+	 *
+	 * @param string $html Formatted price HTML from wc_price()/format_price().
+	 * @return string
+	 */
+	public function strip_currency_symbol( $html ) {
+		if ( null === $html || '' === $html ) {
+			return $html;
+		}
+		// Remove the symbol span plus any adjoining (non-breaking) whitespace either side,
+		// so both "40.00 د.إ" and "$40.00" collapse to "40.00".
+		$stripped = preg_replace(
+			'#(?:\s|&nbsp;|\x{00A0})*<span class="woocommerce-Price-currencySymbol[^"]*">.*?</span>(?:\s|&nbsp;|\x{00A0})*#us',
+			'',
+			$html
+		);
+		return null === $stripped ? $html : $stripped;
+	}
+
 	/**
 	 * Get the item thumbnail source
 	 * 

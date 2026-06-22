@@ -1185,11 +1185,22 @@ class EditorSettings {
 		}
 		unset( $block );
 
+		// Add a "Hide currency symbol" toggle to the monetary column blocks. Default
+		// unchecked = symbol shown (preserves existing behaviour); checked strips it.
+		foreach ( array( 'price', 'regular_price', 'discount', 'vat' ) as $money_key ) {
+			if ( isset( $column_blocks[ $money_key ]['options'] ) && is_array( $column_blocks[ $money_key ]['options'] ) ) {
+				$column_blocks[ $money_key ]['options']['hide_currency'] = array(
+					'type'        => 'checkbox',
+					'description' => __( 'Hide currency symbol', 'woi_pdf_templates' ),
+				);
+			}
+		}
+
 		return apply_filters( 'woi_pdf_templates_customizer_column_blocks', $column_blocks );
 	}
 
 	public function get_totals_field_options() {
-		return apply_filters( 'woi_pdf_templates_customizer_total_blocks', array (
+		$total_blocks = array (
 			'subtotal' => array (
 				'title'   => __( 'Subtotal', 'woi_pdf_templates' ),
 				'options' => array (
@@ -1404,7 +1415,20 @@ class EditorSettings {
 					),
 				),
 			),
-		) );	
+		);
+
+		// Add a "Hide currency symbol" toggle to the monetary total rows. Default
+		// unchecked = symbol shown (preserves existing behaviour); checked strips it.
+		foreach ( array( 'subtotal', 'discount', 'shipping', 'fees', 'vat', 'vat_base', 'total' ) as $money_key ) {
+			if ( isset( $total_blocks[ $money_key ]['options'] ) && is_array( $total_blocks[ $money_key ]['options'] ) ) {
+				$total_blocks[ $money_key ]['options']['hide_currency'] = array(
+					'type'        => 'checkbox',
+					'description' => __( 'Hide currency symbol', 'woi_pdf_templates' ),
+				);
+			}
+		}
+
+		return apply_filters( 'woi_pdf_templates_customizer_total_blocks', $total_blocks );
 	}
 
 	/**
