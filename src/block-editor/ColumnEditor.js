@@ -88,9 +88,6 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 
 	const hasOption = ( type, key ) => !! ( schema[ type ] && schema[ type ].options && schema[ type ].options[ key ] );
 
-	// Index / image / checkbox columns have no textual header worth translating —
-	// don't offer an Arabic-header field for them.
-	const HEADERLESS_TYPES = [ 'position', 'thumbnail', 'cb' ];
 	// The key a column resolves its secondary label by — field-aware for custom
 	// columns (mirrors BilingualEngine::secondary_key), else the column type.
 	const secondaryKey = ( c ) => {
@@ -128,7 +125,7 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 								__nextHasNoMarginBottom
 							/>
 						) }
-						{ hasOption( c.type, 'label_ar' ) && ! HEADERLESS_TYPES.includes( c.type ) && (
+						{ hasOption( c.type, 'label_ar' ) && (
 							<TextControl
 								label={ __( 'Arabic header', 'woocommerce-orders-invoice-pdf' ) }
 								value={ c.label_ar || '' }
