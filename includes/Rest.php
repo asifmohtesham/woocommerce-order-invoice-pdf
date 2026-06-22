@@ -1134,7 +1134,8 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 					$clean[ $key ] = sanitize_text_field( (string) $incoming[ $key ] );
 				}
 			}
-			update_option( 'woi_pdf_visual_doc_options', $clean );
+			$existing = (array) get_option( 'woi_pdf_visual_doc_options', array() );
+			update_option( 'woi_pdf_visual_doc_options', array_merge( $existing, $clean ) );
 			return array( 'options' => woi_pdf_visual_doc_options( 'invoice' ) );
 		}
 

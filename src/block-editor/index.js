@@ -373,6 +373,7 @@ function Editor( { initial, activeSource } ) {
 								options={ [
 									{ value: 'center', label: __( 'Centred mark', 'woocommerce-orders-invoice-pdf' ) },
 									{ value: 'left', label: __( 'Left-aligned mark', 'woocommerce-orders-invoice-pdf' ) },
+									{ label: __( 'Right-aligned mark', 'woocommerce-orders-invoice-pdf' ), value: 'right' },
 								] }
 								onChange={ ( v ) => onDocOption( 'header', v ) }
 								__nextHasNoMarginBottom
