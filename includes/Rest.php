@@ -1106,7 +1106,12 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			}
 			$incoming = (array) $request->get_param( 'options' );
 			$clean    = array();
-			foreach ( array( 'accent', 'header', 'density', 'arabic', 'thumbs', 'font', 'borders', 'stripes' ) as $key ) {
+			// Persist exactly the known option keys — derived from the SAME source of
+			// truth that woi_pdf_visual_doc_options() validates on read. Deriving the
+			// allowlist (rather than hardcoding it) prevents a newly-added option such
+			// as repeat_letterhead from being silently dropped on save because this
+			// list drifted out of sync with the read whitelist.
+			foreach ( array_keys( woi_pdf_visual_doc_options() ) as $key ) {
 				if ( isset( $incoming[ $key ] ) ) {
 					$clean[ $key ] = sanitize_text_field( (string) $incoming[ $key ] );
 				}
