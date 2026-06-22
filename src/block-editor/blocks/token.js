@@ -8,6 +8,7 @@ import { STORE } from '../previewStore';
 import { isHtmlToken, tokenValue } from '../tokenMerge';
 import { APPEARANCE_ATTRS, appearanceStyle, appearanceProps, AppearancePanel, AppearanceToolbar } from '../appearance';
 import { ContactStripEdit, contactStripSave } from './contactStrip';
+import { LetterheadEdit, letterheadSave } from './letterhead';
 
 /**
  * Token blocks. Each is static: save() emits a fixed wrapper holding the literal
@@ -45,7 +46,7 @@ const TOKENS = [
 	// Whole-section blocks — each emits a canonical visual-document.css section.
 	// The default template (Reset) is built from these so the block path renders
 	// the full redesign. Granular tokens above remain for custom composition.
-	{ name: 'woi/letterhead',        title: __( 'Letterhead (section)', 'woocommerce-orders-invoice-pdf' ),    token: '{{letterhead}}',     tag: 'div', preview: '[ Letterhead ]' },
+	{ name: 'woi/letterhead',        title: __( 'Letterhead (section)', 'woocommerce-orders-invoice-pdf' ),    token: '{{letterhead}}',     tag: 'div', preview: '[ Letterhead ]', letterhead: true },
 	{ name: 'woi/contact-strip',     title: __( 'Contact strip (section)', 'woocommerce-orders-invoice-pdf' ), token: '{{contact_strip}}',  tag: 'div', preview: '[ Contact strip ]', contact: true },
 	{ name: 'woi/title-meta',        title: __( 'Title & meta (section)', 'woocommerce-orders-invoice-pdf' ),  token: '{{title_meta}}',     tag: 'div', preview: '[ Title & meta ]' },
 	{ name: 'woi/parties',           title: __( 'Bill / Ship to (section)', 'woocommerce-orders-invoice-pdf' ),token: '{{parties}}',        tag: 'div', preview: '[ Bill / Ship to ]' },
@@ -56,7 +57,7 @@ const TOKENS = [
 ];
 
 export function registerTokenBlocks() {
-	TOKENS.forEach( ( { name, title, token, tag, preview, image, contact } ) => {
+	TOKENS.forEach( ( { name, title, token, tag, preview, image, contact, letterhead } ) => {
 		const Tag = tag;
 
 		const genericEdit = function ( { attributes, setAttributes } ) {
@@ -120,8 +121,8 @@ export function registerTokenBlocks() {
 			// Contact strip: custom editor UI (its layout is stored in the
 			// woi_pdf_contact_items option, not in the block), but the SAVE is the
 			// plain bare token — so it stays valid + kses-safe like every other token.
-			edit: contact ? ContactStripEdit : genericEdit,
-			save: contact ? contactStripSave : genericSave,
+			edit: contact ? ContactStripEdit : ( letterhead ? LetterheadEdit : genericEdit ),
+			save: contact ? contactStripSave : ( letterhead ? letterheadSave : genericSave ),
 		} );
 	} );
 }

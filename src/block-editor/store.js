@@ -39,6 +39,10 @@ export function saveContactItems( items ) {
 	return post( 'contact-items', { items } );
 }
 
+export function saveLetterhead( items ) {
+	return post( 'letterhead', { items } );
+}
+
 export function getColumns() {
 	return get( 'visual-columns' );
 }
