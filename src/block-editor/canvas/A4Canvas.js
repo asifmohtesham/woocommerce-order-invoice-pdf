@@ -21,7 +21,20 @@ export const A4_SHIM_CSS =
 	'.is-selected.block-editor-block-list__block,.is-selected.block-editor-block-list__block:hover{box-shadow:0 0 0 1.5px #140858;background:rgba(20,8,88,.025)}' +
 	'.is-selected.block-editor-block-list__block::before{display:none !important}' +
 	'.woi-pagebreak{border-top:1px dashed #999;margin:0;height:0;page-break-after:auto}' +
-	'.woi-token-empty{outline:1px dashed #c8c8c8;outline-offset:2px;color:#9aa;min-height:1em}';
+	'.woi-token-empty{outline:1px dashed #c8c8c8;outline-offset:2px;color:#9aa;min-height:1em}' +
+	// The invalid-block warning ("This block contains unexpected or invalid
+	// content" + Attempt Block Recovery) renders INSIDE this iframe, which does
+	// not load wp-components / wp-block-editor CSS — so without these rules the
+	// warning box and its primary button fall back to bare browser defaults.
+	// Restore WP's appearance: bordered box + blue primary button + icon kebab.
+	'.block-editor-warning{display:flex;flex-wrap:wrap;align-items:center;gap:12px;border:1px solid #ccc;border-radius:2px;background:#fff;padding:12px 16px;margin:0;color:#1e1e1e}' +
+	'.block-editor-warning__contents{display:flex;flex-wrap:wrap;align-items:center;gap:12px;width:100%}' +
+	'.block-editor-warning__message{margin:0;font-size:13px;line-height:1.4;flex:1 1 auto}' +
+	'.block-editor-warning__actions{display:flex;gap:8px;align-items:center;margin:0}' +
+	'.block-editor-warning .components-button.is-primary{background:#3858e9;color:#fff;border:1px solid #3858e9;border-radius:2px;padding:6px 12px;font-size:13px;line-height:1.4;cursor:pointer;box-shadow:none;text-decoration:none}' +
+	'.block-editor-warning .components-button.is-primary:hover{background:#2145e6;color:#fff}' +
+	'.block-editor-warning .components-button.has-icon{padding:6px;min-width:0;background:transparent;border:0;color:#1e1e1e;cursor:pointer;border-radius:2px}' +
+	'.block-editor-warning .components-button.has-icon:hover{background:rgba(0,0,0,.06)}';
 
 export function hasBlockCanvas() {
 	return 'function' === typeof BlockCanvas;
