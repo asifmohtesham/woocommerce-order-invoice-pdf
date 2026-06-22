@@ -259,8 +259,9 @@ class TemplateTokens {
     /**
      * Contact strip (TRN / Tel / Email). Equal-width cells put the middle item at
      * the true page centre — the previous auto-width 3-cell layout drifted with
-     * content length. $config is the ordered per-element list from the block's
-     * data-woi-contact-config; null = the historical default layout.
+     * content length. $config is the ordered per-element list; when null it is
+     * read from the woi_pdf_contact_items() option (the editor's saved layout),
+     * falling back to the historical default.
      *
      * @param object             $document Order document (or stub).
      * @param array<int,mixed>|null $config  [{field,visible,align,bold,fontSize,color}, ...]
@@ -274,11 +275,13 @@ class TemplateTokens {
         $labels = array( 'trn' => 'TRN', 'tel' => 'Tel', 'email' => 'Email' );
 
         if ( null === $config ) {
-            $config = array(
-                array( 'field' => 'trn',   'visible' => true, 'align' => 'left' ),
-                array( 'field' => 'tel',   'visible' => true, 'align' => 'center' ),
-                array( 'field' => 'email', 'visible' => true, 'align' => 'right' ),
-            );
+            $config = function_exists( 'woi_pdf_contact_items' )
+                ? woi_pdf_contact_items()
+                : array(
+                    array( 'field' => 'trn',   'visible' => true, 'align' => 'left' ),
+                    array( 'field' => 'tel',   'visible' => true, 'align' => 'center' ),
+                    array( 'field' => 'email', 'visible' => true, 'align' => 'right' ),
+                );
         }
 
         // Keep visible items with a known field, in their configured order.
@@ -444,41 +447,14 @@ class TemplateTokens {
 
     /**
      * Replace all known tokens, then strip any leftover {{...}} so stray braces
-     * never reach the PDF. The contact-strip pre-pass runs first so a block
-     * wrapper's per-element config is honoured before the generic strtr.
+     * never reach the PDF. The contact strip resolves its per-element layout from
+     * the woi_pdf_contact_items() option inside section_contact_strip() — no HTML
+     * data-attribute transport (which kses stripped and whose JSON broke the
+     * block validator).
      */
     public function merge( string $html, $document ): string {
-        $html = $this->merge_contact_strip( $html, $document );
         $html = strtr( $html, $this->map( $document ) );
         return (string) preg_replace( '/\{\{[^}]*\}\}/', '', $html );
-    }
-
-    /**
-     * Replace a block-editor contact-strip wrapper (carrying a per-element
-     * data-woi-contact-config) with the configured strip BEFORE the generic
-     * strtr. A bare {{contact_strip}} with no wrapper falls through to the
-     * default map entry (historical layout). The wrapper div is preserved so any
-     * whole-section appearance style on it survives.
-     */
-    private function merge_contact_strip( string $html, $document ): string {
-        if ( false === strpos( $html, 'data-woi-section="contact"' ) ) {
-            return $html;
-        }
-        $pattern = '#<div\b[^>]*\bdata-woi-section="contact"[^>]*>\s*\{\{contact_strip\}\}\s*</div>#';
-        return (string) preg_replace_callback(
-            $pattern,
-            function ( $m ) use ( $document ) {
-                $config = null;
-                if ( preg_match( '/data-woi-contact-config="([^"]*)"/', $m[0], $cm ) ) {
-                    $decoded = json_decode( html_entity_decode( $cm[1], ENT_QUOTES ), true );
-                    if ( is_array( $decoded ) ) {
-                        $config = $decoded;
-                    }
-                }
-                return str_replace( '{{contact_strip}}', $this->section_contact_strip( $document, $config ), $m[0] );
-            },
-            $html
-        );
     }
 
     /**

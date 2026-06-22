@@ -7,7 +7,7 @@ import { safeHTML } from '@wordpress/dom';
 import { STORE } from '../previewStore';
 import { isHtmlToken, tokenValue } from '../tokenMerge';
 import { APPEARANCE_ATTRS, appearanceStyle, appearanceProps, AppearancePanel, AppearanceToolbar } from '../appearance';
-import { ContactStripEdit, contactStripSave, CONTACT_DEFAULT_ITEMS, CONTACT_DEPRECATED } from './contactStrip';
+import { ContactStripEdit, contactStripSave } from './contactStrip';
 
 /**
  * Token blocks. Each is static: save() emits a fixed wrapper holding the literal
@@ -115,10 +115,11 @@ export function registerTokenBlocks() {
 			attributes: {
 				...APPEARANCE_ATTRS,
 				...( image ? { imgWidth: { type: 'number', default: 0 } } : {} ),
-				...( contact ? { items: { type: 'array', default: CONTACT_DEFAULT_ITEMS } } : {} ),
 			},
 			supports: { html: false, reusable: false },
-			...( contact ? { deprecated: CONTACT_DEPRECATED } : {} ),
+			// Contact strip: custom editor UI (its layout is stored in the
+			// woi_pdf_contact_items option, not in the block), but the SAVE is the
+			// plain bare token — so it stays valid + kses-safe like every other token.
 			edit: contact ? ContactStripEdit : genericEdit,
 			save: contact ? contactStripSave : genericSave,
 		} );

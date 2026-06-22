@@ -3139,6 +3139,77 @@ if ( ! function_exists( 'woi_pdf_visual_doc_options' ) ) {
 	}
 }
 
+if ( ! function_exists( 'woi_pdf_default_contact_items' ) ) {
+	/**
+	 * Default contact-strip layout: TRN (left), Tel (centre), Email (right),
+	 * all visible. Mirrors the historical hardcoded strip.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	function woi_pdf_default_contact_items() {
+		return array(
+			array( 'field' => 'trn',   'visible' => true, 'align' => 'left',   'bold' => false, 'fontSize' => 0, 'color' => '' ),
+			array( 'field' => 'tel',   'visible' => true, 'align' => 'center', 'bold' => false, 'fontSize' => 0, 'color' => '' ),
+			array( 'field' => 'email', 'visible' => true, 'align' => 'right',  'bold' => false, 'fontSize' => 0, 'color' => '' ),
+		);
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_sanitize_contact_items' ) ) {
+	/**
+	 * Normalise a raw contact-items list (from the editor POST or the stored
+	 * option) into trusted shape: only known fields, each at most once, with a
+	 * whitelisted align, boolean flags, a clamped px size and a hex colour.
+	 * Unknown / malformed entries are dropped; an empty result falls back to the
+	 * default layout. This is the single source of truth for both save and read.
+	 *
+	 * @param mixed $raw
+	 * @return array<int,array<string,mixed>>
+	 */
+	function woi_pdf_sanitize_contact_items( $raw ) {
+		$allowed_fields = array( 'trn', 'tel', 'email' );
+		$allowed_align  = array( 'left', 'center', 'right' );
+		$clean = array();
+		$seen  = array();
+		if ( is_array( $raw ) ) {
+			foreach ( $raw as $item ) {
+				if ( ! is_array( $item ) ) {
+					continue;
+				}
+				$field = isset( $item['field'] ) ? (string) $item['field'] : '';
+				if ( ! in_array( $field, $allowed_fields, true ) || isset( $seen[ $field ] ) ) {
+					continue;
+				}
+				$seen[ $field ] = true;
+				$size = isset( $item['fontSize'] ) ? (int) $item['fontSize'] : 0;
+				$size = max( 0, min( 48, $size ) );
+				$clean[] = array(
+					'field'    => $field,
+					'visible'  => isset( $item['visible'] ) ? (bool) filter_var( $item['visible'], FILTER_VALIDATE_BOOLEAN ) : true,
+					'align'    => ( isset( $item['align'] ) && in_array( $item['align'], $allowed_align, true ) ) ? $item['align'] : 'left',
+					'bold'     => isset( $item['bold'] ) ? (bool) filter_var( $item['bold'], FILTER_VALIDATE_BOOLEAN ) : false,
+					'fontSize' => $size,
+					'color'    => ( isset( $item['color'] ) && preg_match( '/^#[0-9a-fA-F]{3,6}$/', (string) $item['color'] ) ) ? (string) $item['color'] : '',
+				);
+			}
+		}
+		return empty( $clean ) ? woi_pdf_default_contact_items() : $clean;
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_contact_items' ) ) {
+	/**
+	 * The configured contact-strip elements (order / visibility / per-element
+	 * style), read from the `woi_pdf_contact_items` option and normalised.
+	 * Defaults to the historical TRN / Tel / Email layout.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	function woi_pdf_contact_items() {
+		return woi_pdf_sanitize_contact_items( get_option( 'woi_pdf_contact_items', array() ) );
+	}
+}
+
 if ( ! function_exists( 'woi_pdf_visual_options_css' ) ) {
 	/**
 	 * Author-option override CSS for the visual document, injected AFTER the base

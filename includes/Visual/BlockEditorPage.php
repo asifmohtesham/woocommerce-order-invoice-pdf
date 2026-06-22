@@ -89,6 +89,7 @@ class BlockEditorPage {
             'storedMarkup'      => $store->get_blocks_markup( 'invoice' ),
             'activeSource'      => $store->get_active_source(),
             'docOptions'        => function_exists( 'woi_pdf_visual_doc_options' ) ? woi_pdf_visual_doc_options( 'invoice' ) : array(),
+            'contactItems'      => function_exists( 'woi_pdf_contact_items' ) ? woi_pdf_contact_items() : array(),
             'backUrl'           => esc_url_raw( admin_url( 'admin.php?page=woi_pdf_options_page' ) ),
             // --- Live preview (Slice 3A) ---
             'ajaxUrl'           => esc_url_raw( admin_url( 'admin-ajax.php' ) ),

@@ -1,14 +1,13 @@
-import { useState } from '@wordpress/element';
+import { useState, useRef } from '@wordpress/element';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
 import { PanelBody, ToggleControl, SelectControl, RangeControl, ColorPalette, Button } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { STORE } from '../previewStore';
 import { tokenValue } from '../tokenMerge';
-import { appearanceProps, APPEARANCE_ATTRS } from '../appearance';
+import { appearanceProps } from '../appearance';
+import { saveContactItems } from '../store';
 import { CONTACT_FIELDS, CONTACT_DEFAULT_ITEMS, reorder, valueStyle } from './contactStripModel';
-
-export { CONTACT_DEFAULT_ITEMS };
 
 const COLORS = [
 	{ name: __( 'Ink', 'woocommerce-orders-invoice-pdf' ), color: '#1C1A17' },
@@ -16,24 +15,40 @@ const COLORS = [
 	{ name: __( 'Grey', 'woocommerce-orders-invoice-pdf' ), color: '#8A8378' },
 ];
 
-// Always work with a non-empty item list (guards a cleared attribute).
-function effectiveItems( attributes ) {
-	return attributes.items && attributes.items.length ? attributes.items : CONTACT_DEFAULT_ITEMS;
+// The contact layout is NOT a block attribute — it is a shared option (the PDF
+// renderer reads it directly). Seed the editor from the localised option, fall
+// back to the default. Avoids JSON-in-HTML (which kses stripped and which broke
+// the block validator); the block itself just emits the bare {{contact_strip}}.
+function seedItems() {
+	const seeded = window.woiBlocks && window.woiBlocks.contactItems;
+	return Array.isArray( seeded ) && seeded.length ? seeded : CONTACT_DEFAULT_ITEMS;
 }
 
-export function ContactStripEdit( { attributes, setAttributes } ) {
-	const items = effectiveItems( attributes );
+export function ContactStripEdit() {
 	const tokens = useSelect( ( select ) => select( STORE ).getTokens(), [] );
+	const [ items, setItems ] = useState( seedItems );
 	const [ selected, setSelected ] = useState( 0 );
 	const [ dragFrom, setDragFrom ] = useState( null );
+	const timer = useRef( null );
 	const blockProps = useBlockProps( { className: 'woi-contact-edit' } );
 
-	const update = ( idx, patch ) => {
-		setAttributes( { items: items.map( ( it, i ) => ( i === idx ? { ...it, ...patch } : it ) ) } );
+	// Update local state and persist to the option (debounced) so the PDF picks
+	// it up. Persistence is independent of the block's own save.
+	const persist = ( next ) => {
+		setItems( next );
+		if ( timer.current ) {
+			clearTimeout( timer.current );
+		}
+		timer.current = setTimeout( () => {
+			saveContactItems( next ).catch( () => {} );
+		}, 600 );
 	};
+	const update = ( idx, patch ) => persist( items.map( ( it, i ) => ( i === idx ? { ...it, ...patch } : it ) ) );
 	const onDrop = ( to ) => {
-		if ( null === dragFrom ) { return; }
-		setAttributes( { items: reorder( items, dragFrom, to ) } );
+		if ( null === dragFrom ) {
+			return;
+		}
+		persist( reorder( items, dragFrom, to ) );
 		setSelected( to );
 		setDragFrom( null );
 	};
@@ -79,7 +94,7 @@ export function ContactStripEdit( { attributes, setAttributes } ) {
 					/>
 					<p style={ { margin: '12px 0 4px' } }>{ __( 'Text colour', 'woocommerce-orders-invoice-pdf' ) }</p>
 					<ColorPalette value={ sel.color || '' } colors={ COLORS } onChange={ ( c ) => update( selected, { color: c || '' } ) } />
-					<Button variant="secondary" onClick={ () => setAttributes( { items: CONTACT_DEFAULT_ITEMS } ) } style={ { marginTop: 12 } }>
+					<Button variant="secondary" onClick={ () => { persist( CONTACT_DEFAULT_ITEMS ); setSelected( 0 ); } } style={ { marginTop: 12 } }>
 						{ __( 'Reset to default', 'woocommerce-orders-invoice-pdf' ) }
 					</Button>
 				</PanelBody>
@@ -95,7 +110,7 @@ export function ContactStripEdit( { attributes, setAttributes } ) {
 						const hidden = false === it.visible;
 						return (
 							<div
-								key={ i }
+								key={ it.field }
 								draggable
 								onDragStart={ () => setDragFrom( i ) }
 								onDragOver={ ( e ) => e.preventDefault() }
@@ -123,26 +138,9 @@ export function ContactStripEdit( { attributes, setAttributes } ) {
 	);
 }
 
+// Save is the bare token only — identical to the generic token block, so it is
+// always valid and kses-safe. The per-element layout lives in the
+// woi_pdf_contact_items option (persisted from the editor via REST), NOT here.
 export function contactStripSave( { attributes } ) {
-	const items = effectiveItems( attributes );
-	const props = useBlockProps.save( {
-		...appearanceProps( attributes ),
-		'data-woi-section': 'contact',
-		'data-woi-contact-config': JSON.stringify( items ),
-	} );
-	return <div { ...props }>{ '{{contact_strip}}' }</div>;
+	return <div { ...useBlockProps.save( appearanceProps( attributes ) ) }>{ '{{contact_strip}}' }</div>;
 }
-
-// Old save was a bare token-only div. Migrate stored templates so they don't
-// trip block validation ("unexpected or invalid content") on load.
-export const CONTACT_DEPRECATED = [
-	{
-		attributes: { ...APPEARANCE_ATTRS },
-		save( { attributes } ) {
-			return <div { ...useBlockProps.save( appearanceProps( attributes ) ) }>{ '{{contact_strip}}' }</div>;
-		},
-		migrate( attributes ) {
-			return { ...attributes, items: CONTACT_DEFAULT_ITEMS };
-		},
-	},
-];

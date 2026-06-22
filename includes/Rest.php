@@ -100,6 +100,15 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			),
 		) );
 
+		register_rest_route( 'woi-pdf/v1', '/contact-items', array(
+			'methods'             => 'POST',
+			'callback'            => array( $this, 'handle_contact_items_save' ),
+			'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
+			'args'                => array(
+				'items' => array( 'type' => 'array', 'required' => true ),
+			),
+		) );
+
 		register_rest_route( 'woi-pdf/v1', '/visual-columns', array(
 			array(
 				'methods'             => 'GET',
@@ -1118,6 +1127,24 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			}
 			update_option( 'woi_pdf_visual_doc_options', $clean );
 			return array( 'options' => woi_pdf_visual_doc_options( 'invoice' ) );
+		}
+
+		/**
+		 * Save the contact-strip per-element layout (order / visibility / align /
+		 * style) to its own option. The config travels via this option — NOT an
+		 * HTML data-attribute — so it survives kses and never trips block
+		 * validation. Normalised through the same sanitiser used on read.
+		 *
+		 * @param object $request Request object with get_param().
+		 * @return array|\WP_Error
+		 */
+		public function handle_contact_items_save( $request ) {
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				return new \WP_Error( 'forbidden', 'Insufficient permissions', array( 'status' => 403 ) );
+			}
+			$clean = woi_pdf_sanitize_contact_items( (array) $request->get_param( 'items' ) );
+			update_option( 'woi_pdf_contact_items', $clean, false );
+			return array( 'items' => $clean );
 		}
 
 	}

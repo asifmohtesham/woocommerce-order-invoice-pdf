@@ -21,6 +21,14 @@ class TemplateTokensTest extends TestCase {
             'shop_name_ar'    => 'متجر',
             'shop_address_ar' => 'دبي',
         ) );
+        // Contact strip reads its layout from this option-backed helper (the real
+        // woi-pdf-functions.php is not loaded under the harness). Default layout;
+        // individual tests override it to assert reorder / hide / style.
+        Functions\when( 'woi_pdf_contact_items' )->justReturn( array(
+            array( 'field' => 'trn',   'visible' => true, 'align' => 'left' ),
+            array( 'field' => 'tel',   'visible' => true, 'align' => 'center' ),
+            array( 'field' => 'email', 'visible' => true, 'align' => 'right' ),
+        ) );
     }
 
     protected function tearDown(): void {
@@ -558,62 +566,59 @@ class TemplateTokensTest extends TestCase {
         $this->assertStringContainsString( '+971', $strip );
     }
 
-    /** Build the editor-style wrapper for a contact config (mimics React attr encoding). */
-    private function contact_wrapper( array $config ): string {
-        $attr = htmlspecialchars( json_encode( $config ), ENT_QUOTES );
-        return '<div data-woi-section="contact" data-woi-contact-config="' . $attr . '">{{contact_strip}}</div>';
-    }
-
-    public function test_contact_config_reorders_hides_and_styles(): void {
-        $tokens = new class extends TemplateTokens {
-            protected function fetch_table_headers( $d ): array { return array(); }
-            protected function fetch_table_body( $d ): array { return array(); }
-            protected function fetch_totals( $d ): array { return array(); }
-        };
-        $config = array(
+    /**
+     * The strip renders the layout returned by woi_pdf_contact_items() — order,
+     * visibility and per-element style — NOT an HTML data-attribute. Email moved
+     * first, Tel hidden, TRN right-aligned + bold + sized + coloured.
+     */
+    public function test_contact_strip_renders_configured_items_from_option(): void {
+        Functions\when( 'woi_pdf_contact_items' )->justReturn( array(
             array( 'field' => 'email', 'visible' => true,  'align' => 'left' ),
             array( 'field' => 'tel',   'visible' => false ),
             array( 'field' => 'trn',   'visible' => true,  'align' => 'right', 'bold' => true, 'fontSize' => 12, 'color' => '#ff0000' ),
-        );
-        $out = $tokens->merge( $this->contact_wrapper( $config ), $this->stub_document() );
-
-        // Tel hidden -> two visible -> 50% cells.
-        $this->assertSame( 2, substr_count( $out, 'width:50%' ) );
-        $this->assertStringNotContainsString( '>Tel<', $out );
-        // Order: email cell appears before trn cell.
-        $this->assertLessThan( strpos( $out, '100' ), strpos( $out, 'a@b.co' ) );
-        // TRN styled inline.
-        $this->assertStringContainsString( 'width:50%;text-align:right', $out );
-        $this->assertStringContainsString( 'font-weight:bold;font-size:12px;color:#ff0000', $out );
-        // No stray braces.
-        $this->assertStringNotContainsString( '{{', $out );
-    }
-
-    public function test_contact_all_hidden_omits_strip(): void {
+        ) );
         $tokens = new class extends TemplateTokens {
             protected function fetch_table_headers( $d ): array { return array(); }
             protected function fetch_table_body( $d ): array { return array(); }
             protected function fetch_totals( $d ): array { return array(); }
         };
-        $config = array(
+        $strip = $tokens->map( $this->stub_document() )['{{contact_strip}}'];
+
+        // Tel hidden -> two visible -> 50% cells.
+        $this->assertSame( 2, substr_count( $strip, 'width:50%' ) );
+        $this->assertStringNotContainsString( '>Tel<', $strip );
+        // Order: email cell appears before trn cell.
+        $this->assertLessThan( strpos( $strip, '100' ), strpos( $strip, 'a@b.co' ) );
+        // TRN cell + value styled inline.
+        $this->assertStringContainsString( 'width:50%;text-align:right', $strip );
+        $this->assertStringContainsString( 'font-weight:bold;font-size:12px;color:#ff0000', $strip );
+    }
+
+    /** All elements hidden -> the strip (and its border) is omitted entirely. */
+    public function test_contact_all_hidden_omits_strip(): void {
+        Functions\when( 'woi_pdf_contact_items' )->justReturn( array(
             array( 'field' => 'trn',   'visible' => false ),
             array( 'field' => 'tel',   'visible' => false ),
             array( 'field' => 'email', 'visible' => false ),
-        );
-        $out = $tokens->merge( $this->contact_wrapper( $config ), $this->stub_document() );
-        $this->assertStringNotContainsString( '<table class="woi-contact"', $out );
-        $this->assertStringNotContainsString( '{{', $out );
-    }
-
-    public function test_contact_bare_token_without_wrapper_uses_default(): void {
+        ) );
         $tokens = new class extends TemplateTokens {
             protected function fetch_table_headers( $d ): array { return array(); }
             protected function fetch_table_body( $d ): array { return array(); }
             protected function fetch_totals( $d ): array { return array(); }
         };
-        // Legacy / GrapesJS starter: bare token, no wrapper -> default layout.
+        $this->assertSame( '', $tokens->map( $this->stub_document() )['{{contact_strip}}'] );
+    }
+
+    /** merge() no longer special-cases the contact strip — a bare token renders it. */
+    public function test_contact_merge_renders_strip_from_token(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
         $out = $tokens->merge( '<p>{{contact_strip}}</p>', $this->stub_document() );
         $this->assertStringContainsString( '<table class="woi-contact">', $out );
         $this->assertStringContainsString( 'width:33.3333%', $out );
+        $this->assertStringNotContainsString( '{{', $out );
     }
 }

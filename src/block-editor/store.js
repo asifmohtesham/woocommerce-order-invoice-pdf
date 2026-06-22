@@ -35,6 +35,10 @@ export function saveDocOptions( options ) {
 	return post( 'visual-doc-options', { options } );
 }
 
+export function saveContactItems( items ) {
+	return post( 'contact-items', { items } );
+}
+
 export function getColumns() {
 	return get( 'visual-columns' );
 }
