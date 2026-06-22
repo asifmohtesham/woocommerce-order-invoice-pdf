@@ -53,7 +53,12 @@ table.totals-table td.price {
 /* ---------------------------------------------------------------------
    LETTERHEAD — 3 columns: EN company | centred mark | AR company (RTL).
    --------------------------------------------------------------------- */
-table.woi-letterhead { width: 100%; }
+/* margin-bottom clears the contact strip's divider: mPDF heights this 3-column
+   row to the logo image (~18mm) and does NOT expand it for a taller text column,
+   so a multi-line address overflows below the row box and the following
+   contact-strip border-top would otherwise overlap it. Browsers take the true max
+   height, so this only matters for the PDF. */
+table.woi-letterhead { width: 100%; margin-bottom: 6mm; }
 table.woi-letterhead td { vertical-align: top; padding: 0; }
 .woi-letterhead .woi-lh-en { width: 38%; text-align: left; }
 .woi-letterhead .woi-lh-mark { width: 24%; text-align: center; }
