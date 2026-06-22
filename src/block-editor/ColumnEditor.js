@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from '@wordpress/element';
 import { Button, SelectControl, TextControl, TextareaControl, Spinner } from '@wordpress/components';
+import { useDispatch } from '@wordpress/data';
 import { chevronUp, chevronDown, trash } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
+import { STORE } from './previewStore';
 import { getEditorConfig, saveEditorConfig } from './store';
 import { setTextAlign, getTextAlign, renderableOptions } from './optionSchema';
 import OptionField from './OptionField';
@@ -22,6 +24,7 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 	const [ columns, setColumns ] = useState( null );
 	const [ schema, setSchema ] = useState( {} );
 	const debounceRef = useRef( null );
+	const { setLoading } = useDispatch( STORE );
 
 	useEffect( () => {
 		getEditorConfig()
@@ -32,21 +35,29 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 			.catch( () => setColumns( [] ) );
 	}, [] );
 
-	const persist = useCallback( ( next ) => {
+	// showBusy flags edits the canvas can't reflect instantly (toggling SKU/weight/
+	// GTIN/meta/plugin columns, add/remove/reorder) — they need the server to re-render
+	// the line-items token, so flip the preview into its loading state for feedback.
+	// Instant edits (title/width/align) patch the canvas client-side, so they skip it.
+	// The save's onTokens/onSaved already clears loading via the store reducer; the
+	// explicit setLoading(false) here covers the no-token (e.g. no order) path + errors.
+	const persist = useCallback( ( next, showBusy ) => {
+		if ( showBusy ) { setLoading( true ); }
 		if ( debounceRef.current ) { clearTimeout( debounceRef.current ); }
 		debounceRef.current = setTimeout( () => {
 			saveEditorConfig( { columns: next }, orderId ).then( ( res ) => {
 				if ( res && res.tokens && onTokens ) { onTokens( res.tokens ); }
 				else if ( onSaved ) { onSaved(); }
-			} ).catch( () => {} );
+				if ( showBusy ) { setLoading( false ); }
+			} ).catch( () => { if ( showBusy ) { setLoading( false ); } } );
 		}, 250 );
-	}, [ onTokens, onSaved, orderId ] );
+	}, [ onTokens, onSaved, orderId, setLoading ] );
 
-	const update = ( next ) => { setColumns( next ); persist( next ); };
+	const update = ( next ) => { setColumns( next ); persist( next, true ); };
 	const editField = ( next, instant ) => {
 		setColumns( next );
 		if ( instant && onLiveEdit ) { onLiveEdit( next ); }
-		persist( next );
+		persist( next, ! instant );
 	};
 
 	if ( null === columns ) {

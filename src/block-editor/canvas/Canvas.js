@@ -1,6 +1,10 @@
 import { useRef, useState, useEffect } from '@wordpress/element';
+import { useSelect } from '@wordpress/data';
+import { Spinner } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
 import A4Canvas from './A4Canvas';
 import { TopRuler, LeftRuler, PageGuides, A4_H } from './rulerView';
+import { STORE } from '../previewStore';
 
 const PX_PER_MM = 96 / 25.4;
 const A4_PAGE_PX = Math.round( A4_H * PX_PER_MM );
@@ -16,6 +20,10 @@ const A4_PAGE_PX = Math.round( A4_H * PX_PER_MM );
 export default function Canvas( { previewCss, optionsCss } ) {
 	const pageRef = useRef( null );
 	const [ contentMm, setContentMm ] = useState( A4_H );
+	// Preview is mid-refresh — switching order, or a column/option change the canvas
+	// can't reflect client-side (SKU/weight/GTIN/meta/plugin) that needs a server
+	// re-render. Show an overlay so the change registers as "working", not "ignored".
+	const loading = useSelect( ( select ) => select( STORE ).isLoading(), [] );
 
 	useEffect( () => {
 		const host = pageRef.current;
@@ -65,6 +73,14 @@ export default function Canvas( { previewCss, optionsCss } ) {
 					<div className="woi-a4-page" ref={ pageRef }>
 						<PageGuides contentMm={ contentMm } />
 						<A4Canvas previewCss={ previewCss } optionsCss={ optionsCss } />
+						{ loading ? (
+							<div className="woi-canvas-busy" aria-live="polite" role="status">
+								<div className="woi-canvas-busy-inner">
+									<Spinner />
+									<span>{ __( 'Updating preview…', 'woocommerce-orders-invoice-pdf' ) }</span>
+								</div>
+							</div>
+						) : null }
 					</div>
 				</div>
 			</div>

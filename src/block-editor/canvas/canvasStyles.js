@@ -18,6 +18,11 @@ const CSS =
 	'.woi-a4-page{position:relative;margin-left:8mm;width:210mm;min-height:297mm;background:#fff;' +
 		'box-shadow:0 8px 34px rgba(0,0,0,.24)}' +
 	'.woi-a4-page .block-editor-block-canvas,.woi-a4-page iframe{width:210mm;border:0;display:block}' +
+	// "Updating preview…" overlay shown while the line-items token is re-rendered
+	// server-side (z-index 5 sits above the page guides at z-index 2). The badge is
+	// pinned near the top of the (tall, scrollable) A4 page so it stays in view.
+	'.woi-canvas-busy{position:absolute;inset:0;z-index:5;display:flex;align-items:flex-start;justify-content:center;background:rgba(255,255,255,.5)}' +
+	'.woi-canvas-busy-inner{position:sticky;top:40mm;display:flex;align-items:center;gap:8px;padding:8px 16px;background:#fff;border:1px solid #DEDAD1;border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.18);font-size:13px;color:#140858}' +
 	// fallback (no BlockCanvas): apply preview CSS scoped, padded like the page
 	'.woi-a4-fallback{padding:15mm;box-sizing:border-box;min-height:297mm}' +
 	// page-break guides
