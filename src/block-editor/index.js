@@ -153,6 +153,7 @@ function Editor( { initial, activeSource } ) {
 		font: 'grotesque',
 		borders: 'off',
 		stripes: 'off',
+		repeat_letterhead: 'off',
 	};
 	const [ docOptions, setDocOptions ] = useState( {
 		...DEFAULT_DOC_OPTIONS,
@@ -419,6 +420,13 @@ function Editor( { initial, activeSource } ) {
 								label={ __( 'Striped rows', 'woocommerce-orders-invoice-pdf' ) }
 								checked={ 'on' === docOptions.stripes }
 								onChange={ ( v ) => onDocOption( 'stripes', v ? 'on' : 'off' ) }
+								__nextHasNoMarginBottom
+							/>
+							<ToggleControl
+								label={ __( 'Repeat letterhead on every page', 'woocommerce-orders-invoice-pdf' ) }
+								help={ __( 'Shows the letterhead at the top of every PDF page. The preview shows it once; the effect appears in the generated PDF.', 'woocommerce-orders-invoice-pdf' ) }
+								checked={ 'on' === docOptions.repeat_letterhead }
+								onChange={ ( v ) => onDocOption( 'repeat_letterhead', v ? 'on' : 'off' ) }
 								__nextHasNoMarginBottom
 							/>
 						</div>
