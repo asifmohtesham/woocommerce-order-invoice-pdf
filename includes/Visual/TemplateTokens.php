@@ -315,12 +315,28 @@ class TemplateTokens {
             . '</tr></table>';
     }
 
+    /**
+     * "Company Stamp" placeholder as an SVG data-URI <img> (a dashed circle with
+     * centred text). mPDF ignores width/height, line-height and border-radius:50%
+     * on a <div>, so the old `.woi-stamp-ring` collapsed to a tiny box in the PDF;
+     * an SVG <img> sized inline to 20mm renders an identical true circle in BOTH
+     * the editor canvas and the PDF (same approach as the QR).
+     */
+    private function stamp_svg(): string {
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+            . '<circle cx="50" cy="50" r="47" fill="none" stroke="#B6AFA1" stroke-width="1.3" stroke-dasharray="4,2.6"/>'
+            . '<text x="50" y="46" text-anchor="middle" font-family="sans-serif" font-size="11" letter-spacing="0.6" fill="#8A8378">COMPANY</text>'
+            . '<text x="50" y="60" text-anchor="middle" font-family="sans-serif" font-size="11" letter-spacing="0.6" fill="#8A8378">STAMP</text>'
+            . '</svg>';
+        return '<img class="woi-stamp-img" style="width:20mm;height:20mm" src="data:image/svg+xml;base64,' . base64_encode( $svg ) . '" alt="Company Stamp" />';
+    }
+
     private function section_signature( $document ): string {
         $qr        = $this->render_qr_code( $document );
         $shop_name = esc_html( (string) $document->get_shop_name() );
         return '<table class="woi-sign"><tr>'
             . '<td class="woi-qr">' . $qr . '<div class="woi-qr-cap">' . $this->bilabel( 'Scan to verify', 'امسح للتحقق' ) . '</div></td>'
-            . '<td class="woi-stamp"><div class="woi-stamp-ring">Company<br>Stamp</div></td>'
+            . '<td class="woi-stamp">' . $this->stamp_svg() . '</td>'
             . '<td class="woi-signature"><div class="woi-sig-line"></div><div class="woi-sig-cap">' . $this->bilabel( 'Authorised Signatory', 'المُوقّع المُفوّض' ) . '</div><div class="woi-sig-co">For ' . $shop_name . '</div></td>'
             . '</tr></table>';
     }

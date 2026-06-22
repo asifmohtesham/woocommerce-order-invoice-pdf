@@ -415,6 +415,31 @@ class TemplateTokensTest extends TestCase {
     }
 
     /**
+     * The company-stamp placeholder must render as an SVG data-URI <img> (a true
+     * dashed circle in BOTH the editor canvas and the PDF). mPDF ignores width/
+     * height, line-height and border-radius:50% on the old .woi-stamp-ring <div>,
+     * collapsing it to a tiny box — so the stamp is now an SVG, like the QR.
+     */
+    public function test_company_stamp_renders_as_svg_circle_image(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $sig = $tokens->map( $this->stub_document() )['{{signature}}'];
+
+        $this->assertStringContainsString( 'class="woi-stamp-img"', $sig );
+        $this->assertStringContainsString( 'src="data:image/svg+xml;base64,', $sig );
+        // The decoded image is an SVG with a <circle>.
+        preg_match( '/woi-stamp-img" style="[^"]*" src="data:image\/svg\+xml;base64,([A-Za-z0-9+\/=]+)/', $sig, $m );
+        $decoded = (string) base64_decode( $m[1] ?? '' );
+        $this->assertStringContainsString( '<svg', $decoded );
+        $this->assertStringContainsString( '<circle', $decoded );
+        // Never the old div that mPDF collapses to a box.
+        $this->assertStringNotContainsString( 'woi-stamp-ring', $sig );
+    }
+
+    /**
      * Thumbnails author option OFF must drop the thumbnail column from both the
      * header and every body row (mPDF can't display:none a table column, so the
      * column is removed at the source).
