@@ -3070,7 +3070,10 @@ if ( ! function_exists( 'woi_pdf_visual_doc_options' ) ) {
 			'font'    => 'grotesque',     // grotesque | serif | mono
 			'borders' => 'off',           // on | off — line-item column gridlines
 			'stripes' => 'off',           // on | off — striped (zebra) row colour
+			'repeat_letterhead' => 'off', // on | off — repeat letterhead on every page
 		);
+
+		$original_defaults = $defaults; // Keep original defaults for validation fallback
 
 		$saved = get_option( 'woi_pdf_visual_doc_options', array() );
 		if ( is_array( $saved ) ) {
@@ -3089,10 +3092,11 @@ if ( ! function_exists( 'woi_pdf_visual_doc_options' ) ) {
 			'font'    => array( 'grotesque', 'serif', 'mono' ),
 			'borders' => array( 'on', 'off' ),
 			'stripes' => array( 'on', 'off' ),
+			'repeat_letterhead' => array( 'on', 'off' ),
 		);
 		foreach ( $allowed as $key => $valid ) {
 			if ( ! isset( $options[ $key ] ) || ! in_array( $options[ $key ], $valid, true ) ) {
-				$options[ $key ] = $defaults[ $key ];
+				$options[ $key ] = $original_defaults[ $key ];
 			}
 		}
 		return $options;
