@@ -26,6 +26,7 @@ $arabic  = $argv[4] ?? 'on';
 $thumbs  = $argv[5] ?? 'on';
 $borders = $argv[6] ?? 'off';
 $stripes = $argv[7] ?? 'off';
+$repeat  = $argv[8] ?? 'off';   // on|off — repeat letterhead on every page
 
 $css_path = dirname( __DIR__ ) . '/templates/_visual/visual-document.css';
 $css = file_get_contents( $css_path );
@@ -36,6 +37,7 @@ if ( function_exists( 'woi_pdf_visual_options_css' ) ) {
         'accent' => $accent, 'header' => $header, 'density' => $density,
         'arabic' => $arabic, 'thumbs' => $thumbs, 'font' => 'grotesque',
         'borders' => $borders, 'stripes' => $stripes,
+        'repeat_letterhead' => $repeat,
     ) );
 }
 
@@ -86,6 +88,14 @@ $tokens = array(
 $body = strtr( $starter, $tokens );
 $body = preg_replace( '/\{\{[^}]*\}\}/', '', $body );
 
+// Repeat letterhead: relocate the body banner into a running page-header
+// (mirrors TemplateTokens::running_header + the suppressed body token).
+$running_header = '';
+if ( 'on' === $repeat && preg_match( '/<table class="woi-letterhead">.*?<\/table>/s', $body, $m ) ) {
+    $running_header = '<htmlpageheader name="woiHeader">' . $m[0] . '</htmlpageheader>';
+    $body = preg_replace( '/<table class="woi-letterhead">.*?<\/table>/s', '', $body, 1 );
+}
+
 // Running page-footer (mirror TemplateTokens::running_footer) — registered before
 // content so it applies from page 1. Pass argv[6]=2page to force a second page.
 $footer = '<htmlpagefooter name="woiFooter"><div class="woi-footer woi-running-footer">'
@@ -98,7 +108,7 @@ $force2 = ( ( $argv[6] ?? '' ) === '2page' ) ? '<div style="height:170mm"></div>
 
 $html = '<!DOCTYPE html><html><head><meta charset="utf-8"><style>' . $css . '</style></head>'
       . '<body data-accent="' . $accent . '" data-header="' . $header . '" data-density="' . $density . '" data-arabic="' . $arabic . '" data-thumbs="' . $thumbs . '">'
-      . $footer . $body . $force2 . '</body></html>';
+      . $running_header . $footer . $body . $force2 . '</body></html>';
 
 /* ---- render via vendored mPDF (mirror MpdfMaker config) ---- */
 $cls = class_exists( '\WOI\PDF\Vendor\Mpdf\Mpdf' ) ? '\WOI\PDF\Vendor\Mpdf\Mpdf' : '\Mpdf\Mpdf';
