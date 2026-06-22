@@ -1435,6 +1435,19 @@ class EditorSettings {
 			}
 		}
 
+		// Per-row secondary-language (e.g. Arabic) label override on every total row
+		// that carries a label — mirrors the column `label_ar` cascade.
+		foreach ( $total_blocks as &$total_block ) {
+			if ( isset( $total_block['options']['label'] ) ) {
+				$total_block['options']['label_ar'] = array(
+					'type'        => 'text',
+					'description' => __( 'Arabic label', 'woi_pdf_templates' ),
+					'placeholder' => __( 'Use default translation', 'woi_pdf_templates' ),
+				);
+			}
+		}
+		unset( $total_block );
+
 		return apply_filters( 'woi_pdf_templates_customizer_total_blocks', $total_blocks );
 	}
 

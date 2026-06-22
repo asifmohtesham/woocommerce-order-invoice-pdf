@@ -23,6 +23,7 @@ const STYLE_TARGET_OPTS = [
 export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId } ) {
 	const [ columns, setColumns ] = useState( null );
 	const [ schema, setSchema ] = useState( {} );
+	const [ secondaryDefaults, setSecondaryDefaults ] = useState( {} );
 	const debounceRef = useRef( null );
 	const { setLoading } = useDispatch( STORE );
 
@@ -31,6 +32,7 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 			.then( ( r ) => {
 				setColumns( Array.isArray( r.columns?.values ) ? r.columns.values : [] );
 				setSchema( r.columns?.schema || {} );
+				setSecondaryDefaults( r.columns?.secondary_defaults || {} );
 			} )
 			.catch( () => setColumns( [] ) );
 	}, [] );
@@ -85,6 +87,21 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 	const add = ( t ) => { if ( t ) { update( [ ...columns, { type: t } ] ); } };
 
 	const hasOption = ( type, key ) => !! ( schema[ type ] && schema[ type ].options && schema[ type ].options[ key ] );
+
+	// Index / image / checkbox columns have no textual header worth translating —
+	// don't offer an Arabic-header field for them.
+	const HEADERLESS_TYPES = [ 'position', 'thumbnail', 'cb' ];
+	// The key a column resolves its secondary label by — field-aware for custom
+	// columns (mirrors BilingualEngine::secondary_key), else the column type.
+	const secondaryKey = ( c ) => {
+		if ( 'product_custom' === c.type || 'item_meta' === c.type ) { return ( c.field_name || '' ).trim() || c.type; }
+		if ( 'product_attribute' === c.type ) { return ( c.attribute_name || '' ).trim() || c.type; }
+		return c.type;
+	};
+	// The inherited Arabic header a blank field would fall back to (dictionary /
+	// global override), shown as the placeholder so the cascade is visible.
+	const inheritedSecondary = ( c ) => secondaryDefaults[ secondaryKey( c ) ] || '';
+
 	const addOptions = [ { label: __( 'Add column…', 'woocommerce-orders-invoice-pdf' ), value: '' } ]
 		.concat( Object.keys( schema ).filter( ( t ) => 'position' !== t ).map( ( t ) => ( { label: typeTitle( t ), value: t } ) ) );
 
@@ -111,11 +128,14 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 								__nextHasNoMarginBottom
 							/>
 						) }
-						{ hasOption( c.type, 'label_ar' ) && (
+						{ hasOption( c.type, 'label_ar' ) && ! HEADERLESS_TYPES.includes( c.type ) && (
 							<TextControl
 								label={ __( 'Arabic header', 'woocommerce-orders-invoice-pdf' ) }
 								value={ c.label_ar || '' }
-								placeholder={ __( 'Use default translation', 'woocommerce-orders-invoice-pdf' ) }
+								placeholder={ inheritedSecondary( c ) || __( 'No translation — enter Arabic', 'woocommerce-orders-invoice-pdf' ) }
+								help={ inheritedSecondary( c )
+									? __( 'Leave blank to inherit the default shown above.', 'woocommerce-orders-invoice-pdf' )
+									: __( 'No default translation for this column — enter the Arabic header.', 'woocommerce-orders-invoice-pdf' ) }
 								onChange={ ( v ) => setKey( i, 'label_ar', v, false ) }
 								__nextHasNoMarginBottom
 							/>

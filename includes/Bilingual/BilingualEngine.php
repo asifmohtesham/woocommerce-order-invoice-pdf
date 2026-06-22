@@ -83,22 +83,50 @@ class BilingualEngine {
 		return '' !== $name ? $name : $value;
 	}
 
+	/**
+	 * The lookup key a row uses to resolve its secondary (e.g. Arabic) label from
+	 * the dictionary / global overrides. Most rows key by their column/total TYPE,
+	 * but custom-field columns key by the field they show so a "Barcode"
+	 * (product_custom → field_name "global_unique_id") can carry a translation the
+	 * type-keyed dictionary doesn't know — and so two custom columns get distinct
+	 * keys instead of colliding on "product_custom".
+	 *
+	 * @param array $row A column/total setting (or header row) array.
+	 * @return string Lookup key, or '' when the row has no type.
+	 */
+	public function secondary_key( array $row ): string {
+		$type = isset( $row['type'] ) ? (string) $row['type'] : '';
+		if ( 'product_custom' === $type || 'item_meta' === $type ) {
+			$field = isset( $row['field_name'] ) ? trim( (string) $row['field_name'] ) : '';
+			return '' !== $field ? $field : $type;
+		}
+		if ( 'product_attribute' === $type ) {
+			$attr = isset( $row['attribute_name'] ) ? trim( (string) $row['attribute_name'] ) : '';
+			return '' !== $attr ? $attr : $type;
+		}
+		return $type;
+	}
+
+	/**
+	 * Resolve a row's secondary label through the cascade: per-row `label_ar`
+	 * override → global/dictionary lookup keyed by secondary_key(). Shared by the
+	 * header and totals filters so columns and totals behave identically.
+	 */
+	protected function resolve_secondary( array $row, $document ): string {
+		$per_row = isset( $row['label_ar'] ) ? trim( (string) $row['label_ar'] ) : '';
+		if ( '' !== $per_row ) {
+			return $per_row;
+		}
+		$key = $this->secondary_key( $row );
+		return '' !== $key ? $this->secondary_label( $key, $document ) : '';
+	}
+
 	public function add_header_secondaries( array $headers, string $type, $document ): array {
 		if ( ! $this->is_enabled( $document ) ) {
 			return $headers;
 		}
 		foreach ( $headers as $key => $row ) {
-			// A per-column "Arabic header" (label_ar) overrides the type-keyed
-			// dictionary translation — so custom columns (e.g. Barcode) can carry a
-			// secondary label the dictionary doesn't know, and any column's default
-			// translation can be overridden inline.
-			$per_column = isset( $row['label_ar'] ) ? trim( (string) $row['label_ar'] ) : '';
-			if ( '' !== $per_column ) {
-				$secondary = $per_column;
-			} else {
-				$col_type  = $row['type'] ?? '';
-				$secondary = '' !== $col_type ? $this->secondary_label( $col_type, $document ) : '';
-			}
+			$secondary = $this->resolve_secondary( $row, $document );
 			if ( '' !== $secondary ) {
 				$headers[ $key ]['secondary'] = $secondary;
 			}
@@ -111,8 +139,7 @@ class BilingualEngine {
 			return $totals;
 		}
 		foreach ( $totals as $key => $row ) {
-			$total_type = $row['type'] ?? '';
-			$secondary  = '' !== $total_type ? $this->secondary_label( $total_type, $document ) : '';
+			$secondary = $this->resolve_secondary( $row, $document );
 			if ( '' !== $secondary ) {
 				$totals[ $key ]['secondary'] = $secondary;
 			}

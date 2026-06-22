@@ -2772,28 +2772,61 @@ function woi_pdf_second_language_labels_table( array $args = array() ): void {
 	echo '<th>' . esc_html__( 'Translation', 'woocommerce-orders-invoice-pdf' ) . '</th>';
 	echo '</tr></thead><tbody>';
 
-	foreach ( $dict as $key => $seed_value ) {
-		$primary    = $primary_labels[ $key ] ?? $key;
-		$saved_val  = isset( $saved[ $key ] ) ? (string) $saved[ $key ] : '';
-		// Pre-fill from saved override; if blank, seed with dictionary default.
-		$input_val  = '' !== $saved_val ? $saved_val : $seed_value;
-		$input_name = $option_name . '[' . $field_id . '][' . $key . ']';
-		$input_id   = $field_id . '_' . $key;
-
-		echo '<tr>';
-		printf( '<td><code>%s</code></td>', esc_html( $key ) );
-		printf( '<td>%s</td>', esc_html( $primary ) );
+	$render_row = static function ( $key, $primary, $input_val ) use ( $option_name, $field_id ) {
 		printf(
-			'<td><input type="text" id="%s" name="%s" value="%s" class="regular-text" dir="rtl" /></td>',
-			esc_attr( $input_id ),
-			esc_attr( $input_name ),
+			'<tr><td><code>%s</code></td><td>%s</td><td><input type="text" id="%s" name="%s" value="%s" class="regular-text" dir="rtl" /></td></tr>',
+			esc_html( $key ),
+			esc_html( $primary ),
+			esc_attr( $field_id . '_' . $key ),
+			esc_attr( $option_name . '[' . $field_id . '][' . $key . ']' ),
 			esc_attr( $input_val )
 		);
-		echo '</tr>';
+	};
+
+	foreach ( $dict as $key => $seed_value ) {
+		$primary   = $primary_labels[ $key ] ?? $key;
+		$saved_val = isset( $saved[ $key ] ) ? (string) $saved[ $key ] : '';
+		// Pre-fill from saved override; if blank, seed with dictionary default.
+		$render_row( $key, $primary, '' !== $saved_val ? $saved_val : $seed_value );
+	}
+
+	// Also list keys used by the configured Invoice columns/totals that the
+	// dictionary doesn't cover (e.g. a custom "Barcode" column → product_custom
+	// field key) so a translation can be set ONCE here and inherited by every such
+	// column, instead of being retyped per-column. Keyed by BilingualEngine::secondary_key().
+	$extra      = array();
+	$es_option  = (array) get_option( 'woi_pdf_editor_settings', array() );
+	$col_titles = array();
+	$tot_titles = array();
+	if ( class_exists( '\\WOI\\PDF\\Editor\\EditorSettings' ) ) {
+		foreach ( (array) \WOI\PDF\Editor\EditorSettings::instance()->get_columns_field_options() as $t => $cfg ) {
+			$col_titles[ $t ] = $cfg['title'] ?? $t;
+		}
+		foreach ( (array) \WOI\PDF\Editor\EditorSettings::instance()->get_totals_field_options() as $t => $cfg ) {
+			$tot_titles[ $t ] = $cfg['title'] ?? $t;
+		}
+	}
+	$collect = static function ( $rows, $titles ) use ( $engine, $dict, &$extra ) {
+		foreach ( (array) $rows as $row ) {
+			$row = (array) $row;
+			$key = $engine->secondary_key( $row );
+			if ( '' === $key || isset( $dict[ $key ] ) || isset( $extra[ $key ] ) ) {
+				continue;
+			}
+			$extra[ $key ] = ! empty( $row['label'] )
+				? (string) $row['label']
+				: ( $titles[ $row['type'] ?? '' ] ?? $key );
+		}
+	};
+	$collect( $es_option['fields_invoice_columns'] ?? array(), $col_titles );
+	$collect( $es_option['fields_invoice_totals'] ?? array(), $tot_titles );
+
+	foreach ( $extra as $key => $primary ) {
+		$render_row( $key, $primary, isset( $saved[ $key ] ) ? (string) $saved[ $key ] : '' );
 	}
 
 	echo '</tbody></table>';
-	echo '<p class="description">' . esc_html__( 'Leave blank to use the dictionary default. Changes apply to new documents (or all documents when "Always use most current settings" is on).', 'woocommerce-orders-invoice-pdf' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Leave blank to use the dictionary default. Rows below the standard set come from your configured columns/totals (e.g. custom fields). Changes apply to new documents (or all documents when "Always use most current settings" is on).', 'woocommerce-orders-invoice-pdf' ) . '</p>';
 }
 
 // ---------------------------------------------------------------------------

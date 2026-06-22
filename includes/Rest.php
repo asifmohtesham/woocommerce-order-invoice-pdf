@@ -227,9 +227,10 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 		$es     = \WOI\PDF\Editor\EditorSettings::instance();
 		$sort   = $es->get_sorting_options();
 		$option = get_option( 'woi_pdf_editor_settings', array() );
+		$secondary_defaults = $this->editor_secondary_defaults();
 		$config = array(
-			'columns' => array( 'schema' => $this->editor_schema_columns(), 'values' => $this->read_invoice_columns() ),
-			'totals'  => array( 'schema' => $this->editor_schema_totals(),  'values' => $this->read_invoice_totals() ),
+			'columns' => array( 'schema' => $this->editor_schema_columns(), 'values' => $this->read_invoice_columns(), 'secondary_defaults' => $secondary_defaults ),
+			'totals'  => array( 'schema' => $this->editor_schema_totals(),  'values' => $this->read_invoice_totals(), 'secondary_defaults' => $secondary_defaults ),
 			'custom'  => array(
 				'positions' => $this->editor_custom_positions(),
 				'types'     => $this->editor_custom_types(),
@@ -429,6 +430,32 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			$col['align'] = $align;
 			$col['field'] = isset( $col['field_name'] ) ? (string) $col['field_name'] : '';
 			$out[]        = $col;
+		}
+		return $out;
+	}
+
+	/**
+	 * Secondary-language (e.g. Arabic) label defaults as a `key => translation`
+	 * map, for the editor's "Arabic header/label" placeholders: dictionary seeds
+	 * overlaid with the saved global overrides. Keyed the same as
+	 * BilingualEngine::secondary_key() (column type, or field_name for custom
+	 * columns), so the editor can show what a blank field will inherit. No document
+	 * is available on this GET route, so resolution is document-agnostic.
+	 */
+	protected function editor_secondary_defaults(): array {
+		if ( ! class_exists( '\\WOI\\PDF\\Bilingual\\BilingualEngine' ) ) {
+			return array();
+		}
+		$engine    = \WOI\PDF\Bilingual\BilingualEngine::instance();
+		$out       = (array) $engine->dictionary( 'ar' );
+		$settings  = (array) get_option( 'woi_pdf_documents_settings_invoice', array() );
+		$overrides = ( isset( $settings['second_language_labels'] ) && is_array( $settings['second_language_labels'] ) )
+			? $settings['second_language_labels'] : array();
+		foreach ( $overrides as $k => $v ) {
+			$v = trim( (string) $v );
+			if ( '' !== $v ) {
+				$out[ (string) $k ] = $v;
+			}
 		}
 		return $out;
 	}

@@ -11,12 +11,13 @@ import OptionField from './OptionField';
 export default function TotalsEditor( { onTokens, onSaved, orderId } ) {
 	const [ rows, setRows ] = useState( null );
 	const [ schema, setSchema ] = useState( {} );
+	const [ secondaryDefaults, setSecondaryDefaults ] = useState( {} );
 	const debounceRef = useRef( null );
 	const { setLoading } = useDispatch( STORE );
 
 	useEffect( () => {
 		getEditorConfig()
-			.then( ( r ) => { setRows( Array.isArray( r.totals?.values ) ? r.totals.values : [] ); setSchema( r.totals?.schema || {} ); } )
+			.then( ( r ) => { setRows( Array.isArray( r.totals?.values ) ? r.totals.values : [] ); setSchema( r.totals?.schema || {} ); setSecondaryDefaults( r.totals?.secondary_defaults || {} ); } )
 			.catch( () => setRows( [] ) );
 	}, [] );
 
@@ -72,7 +73,19 @@ export default function TotalsEditor( { onTokens, onSaved, orderId } ) {
 							__nextHasNoMarginBottom
 						/>
 					) }
-					{ renderableOptions( schema[ c.type ], { exclude: [ 'label' ] } ).map( ( { key, field } ) => (
+					{ hasOption( c.type, 'label_ar' ) && (
+						<TextControl
+							label={ __( 'Arabic label', 'woocommerce-orders-invoice-pdf' ) }
+							value={ c.label_ar || '' }
+							placeholder={ secondaryDefaults[ c.type ] || __( 'No translation — enter Arabic', 'woocommerce-orders-invoice-pdf' ) }
+							help={ secondaryDefaults[ c.type ]
+								? __( 'Leave blank to inherit the default shown above.', 'woocommerce-orders-invoice-pdf' )
+								: __( 'No default translation for this row — enter the Arabic label.', 'woocommerce-orders-invoice-pdf' ) }
+							onChange={ ( v ) => setKey( i, 'label_ar', v ) }
+							__nextHasNoMarginBottom
+						/>
+					) }
+					{ renderableOptions( schema[ c.type ], { exclude: [ 'label', 'label_ar' ] } ).map( ( { key, field } ) => (
 						<OptionField key={ key } optionKey={ key } field={ field } value={ c[ key ] } onChange={ ( v ) => setKey( i, key, v ) } />
 					) ) }
 				</div>
