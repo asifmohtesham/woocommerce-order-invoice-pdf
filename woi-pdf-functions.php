@@ -3264,7 +3264,7 @@ if ( ! function_exists( 'woi_pdf_sanitize_letterhead' ) ) {
 				'align'    => ( isset( $src['align'] ) && in_array( $src['align'], $allowed_align, true ) ) ? $src['align'] : $d['align'],
 				'bold'     => isset( $src['bold'] ) ? (bool) filter_var( $src['bold'], FILTER_VALIDATE_BOOLEAN ) : $d['bold'],
 				'fontSize' => $size,
-				'color'    => ( isset( $src['color'] ) && preg_match( '/^#[0-9a-fA-F]{3,6}$/', (string) $src['color'] ) ) ? (string) $src['color'] : '',
+				'color'    => ( isset( $src['color'] ) && preg_match( '/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', (string) $src['color'] ) ) ? (string) $src['color'] : '',
 			);
 		}
 		$logo_src = isset( $raw_els['logo'] ) && is_array( $raw_els['logo'] ) ? $raw_els['logo'] : array();
