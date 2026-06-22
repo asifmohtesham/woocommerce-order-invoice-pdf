@@ -43,4 +43,15 @@ class VisualOptionsCssTest extends TestCase {
         $this->assertStringNotContainsString( 'nth-child(even)', $css );
         $this->assertStringNotContainsString( 'border-left:0.5pt', $css );
     }
+
+    public function test_repeat_letterhead_on_emits_page_header_rule(): void {
+        $css = woi_pdf_visual_options_css( array( 'repeat_letterhead' => 'on' ) + $this->base() );
+        $this->assertStringContainsString( '@page { header: woiHeader;', $css );
+        $this->assertStringContainsString( 'margin-top: 34mm', $css );
+    }
+
+    public function test_repeat_letterhead_off_emits_no_header_rule(): void {
+        $css = woi_pdf_visual_options_css( $this->base() );
+        $this->assertStringNotContainsString( 'woiHeader', $css );
+    }
 }

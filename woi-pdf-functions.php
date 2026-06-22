@@ -3161,6 +3161,12 @@ if ( ! function_exists( 'woi_pdf_visual_options_css' ) ) {
 			$css[] = '.order-details tbody tr:nth-child(even) td{background-color:#F6F3EC}';
 		}
 
+		// --- Repeat letterhead: assign the running page-header on every page and
+		// reserve top-margin space for the banner (mPDF merges @page blocks). ---
+		if ( 'on' === ( $opts['repeat_letterhead'] ?? 'off' ) ) {
+			$css[] = '@page { header: woiHeader; margin-top: 34mm; }';
+		}
+
 		return implode( "\n", $css );
 	}
 }
