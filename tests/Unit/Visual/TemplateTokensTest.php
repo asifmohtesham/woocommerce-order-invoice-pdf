@@ -533,4 +533,28 @@ class TemplateTokensTest extends TestCase {
         // {{totals}} used a non-throwing fetch_totals path and should produce an empty table.
         $this->assertStringContainsString( 'totals-table', $map['{{totals}}'], '{{totals}} must still render' );
     }
+
+    /**
+     * The contact strip must use equal-width cells so the middle item sits at the
+     * true page centre (the old auto-width layout drifted with content length).
+     * Default (no config) reproduces the TRN-left / Tel-centre / Email-right order.
+     */
+    public function test_contact_strip_default_has_equal_widths_and_centred_middle(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $strip = $tokens->map( $this->stub_document() )['{{contact_strip}}'];
+
+        // Three equal thirds.
+        $this->assertSame( 3, substr_count( $strip, 'width:33.3333%' ) );
+        // Positional alignment preserved.
+        $this->assertStringContainsString( 'width:33.3333%;text-align:left', $strip );
+        $this->assertStringContainsString( 'width:33.3333%;text-align:center', $strip );
+        $this->assertStringContainsString( 'width:33.3333%;text-align:right', $strip );
+        // Values still present and labelled.
+        $this->assertStringContainsString( '<span class="woi-contact-k">Tel</span>', $strip );
+        $this->assertStringContainsString( '+971', $strip );
+    }
 }

@@ -256,15 +256,80 @@ class TemplateTokens {
         return '<htmlpageheader name="woiHeader">' . $banner . '</htmlpageheader>';
     }
 
-    private function section_contact_strip( $document ): string {
-        $trn   = esc_html( (string) $document->get_shop_vat_number() );
-        $phone = esc_html( (string) $document->get_shop_phone_number() );
-        $email = esc_html( (string) $document->get_shop_email_address() );
-        return '<table class="woi-contact"><tr>'
-            . '<td><span class="woi-contact-k">TRN</span> <span class="woi-contact-v">' . $trn . '</span></td>'
-            . '<td class="woi-contact-mid"><span class="woi-contact-k">Tel</span> <span class="woi-contact-v">' . $phone . '</span></td>'
-            . '<td class="woi-contact-end"><span class="woi-contact-k">Email</span> <span class="woi-contact-v">' . $email . '</span></td>'
-            . '</tr></table>';
+    /**
+     * Contact strip (TRN / Tel / Email). Equal-width cells put the middle item at
+     * the true page centre — the previous auto-width 3-cell layout drifted with
+     * content length. $config is the ordered per-element list from the block's
+     * data-woi-contact-config; null = the historical default layout.
+     *
+     * @param object             $document Order document (or stub).
+     * @param array<int,mixed>|null $config  [{field,visible,align,bold,fontSize,color}, ...]
+     */
+    private function section_contact_strip( $document, ?array $config = null ): string {
+        $values = array(
+            'trn'   => esc_html( (string) $document->get_shop_vat_number() ),
+            'tel'   => esc_html( (string) $document->get_shop_phone_number() ),
+            'email' => esc_html( (string) $document->get_shop_email_address() ),
+        );
+        $labels = array( 'trn' => 'TRN', 'tel' => 'Tel', 'email' => 'Email' );
+
+        if ( null === $config ) {
+            $config = array(
+                array( 'field' => 'trn',   'visible' => true, 'align' => 'left' ),
+                array( 'field' => 'tel',   'visible' => true, 'align' => 'center' ),
+                array( 'field' => 'email', 'visible' => true, 'align' => 'right' ),
+            );
+        }
+
+        // Keep visible items with a known field, in their configured order.
+        $items = array();
+        foreach ( $config as $item ) {
+            if ( ! is_array( $item ) ) { continue; }
+            $field = isset( $item['field'] ) ? (string) $item['field'] : '';
+            if ( ! isset( $values[ $field ] ) ) { continue; }
+            if ( array_key_exists( 'visible', $item ) && ! $item['visible'] ) { continue; }
+            $items[] = $item;
+        }
+        if ( empty( $items ) ) { return ''; }
+
+        $count = count( $items );
+        // Equal thirds: 33.3333% (trailing zeros trimmed). 2 visible -> 50%.
+        $width = rtrim( rtrim( sprintf( '%.4f', 100 / $count ), '0' ), '.' ) . '%';
+
+        $cells = '';
+        foreach ( $items as $i => $item ) {
+            $field = (string) $item['field'];
+            $align = ( isset( $item['align'] ) && in_array( $item['align'], array( 'left', 'center', 'right' ), true ) )
+                ? $item['align']
+                : ( 0 === $i ? 'left' : ( $count - 1 === $i ? 'right' : 'center' ) );
+            $td_style  = 'width:' . $width . ';text-align:' . $align;
+            $val_style = $this->contact_value_style( $item );
+            $val_attr  = '' !== $val_style ? ' style="' . esc_attr( $val_style ) . '"' : '';
+            $cells .= '<td style="' . esc_attr( $td_style ) . '">'
+                . '<span class="woi-contact-k">' . $labels[ $field ] . '</span> '
+                . '<span class="woi-contact-v"' . $val_attr . '>' . $values[ $field ] . '</span>'
+                . '</td>';
+        }
+        return '<table class="woi-contact"><tr>' . $cells . '</tr></table>';
+    }
+
+    /**
+     * Inline value style for one contact item. Inline (not class) because mPDF
+     * ignores the theme stylesheet's descendant selectors. fontSize is px to
+     * match the rest of the block Appearance system; colour is hex-validated.
+     */
+    private function contact_value_style( array $item ): string {
+        $parts = array();
+        if ( ! empty( $item['bold'] ) ) {
+            $parts[] = 'font-weight:bold';
+        }
+        if ( ! empty( $item['fontSize'] ) ) {
+            $parts[] = 'font-size:' . (int) $item['fontSize'] . 'px';
+        }
+        if ( ! empty( $item['color'] ) && preg_match( '/^#[0-9a-fA-F]{3,6}$/', (string) $item['color'] ) ) {
+            $parts[] = 'color:' . $item['color'];
+        }
+        return implode( ';', $parts );
     }
 
     private function section_title_meta( $document, $engine ): string {
