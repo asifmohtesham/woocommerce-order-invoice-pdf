@@ -557,4 +557,63 @@ class TemplateTokensTest extends TestCase {
         $this->assertStringContainsString( '<span class="woi-contact-k">Tel</span>', $strip );
         $this->assertStringContainsString( '+971', $strip );
     }
+
+    /** Build the editor-style wrapper for a contact config (mimics React attr encoding). */
+    private function contact_wrapper( array $config ): string {
+        $attr = htmlspecialchars( json_encode( $config ), ENT_QUOTES );
+        return '<div data-woi-section="contact" data-woi-contact-config="' . $attr . '">{{contact_strip}}</div>';
+    }
+
+    public function test_contact_config_reorders_hides_and_styles(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $config = array(
+            array( 'field' => 'email', 'visible' => true,  'align' => 'left' ),
+            array( 'field' => 'tel',   'visible' => false ),
+            array( 'field' => 'trn',   'visible' => true,  'align' => 'right', 'bold' => true, 'fontSize' => 12, 'color' => '#ff0000' ),
+        );
+        $out = $tokens->merge( $this->contact_wrapper( $config ), $this->stub_document() );
+
+        // Tel hidden -> two visible -> 50% cells.
+        $this->assertSame( 2, substr_count( $out, 'width:50%' ) );
+        $this->assertStringNotContainsString( '>Tel<', $out );
+        // Order: email cell appears before trn cell.
+        $this->assertLessThan( strpos( $out, '100' ), strpos( $out, 'a@b.co' ) );
+        // TRN styled inline.
+        $this->assertStringContainsString( 'width:50%;text-align:right', $out );
+        $this->assertStringContainsString( 'font-weight:bold;font-size:12px;color:#ff0000', $out );
+        // No stray braces.
+        $this->assertStringNotContainsString( '{{', $out );
+    }
+
+    public function test_contact_all_hidden_omits_strip(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $config = array(
+            array( 'field' => 'trn',   'visible' => false ),
+            array( 'field' => 'tel',   'visible' => false ),
+            array( 'field' => 'email', 'visible' => false ),
+        );
+        $out = $tokens->merge( $this->contact_wrapper( $config ), $this->stub_document() );
+        $this->assertStringNotContainsString( '<table class="woi-contact"', $out );
+        $this->assertStringNotContainsString( '{{', $out );
+    }
+
+    public function test_contact_bare_token_without_wrapper_uses_default(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        // Legacy / GrapesJS starter: bare token, no wrapper -> default layout.
+        $out = $tokens->merge( '<p>{{contact_strip}}</p>', $this->stub_document() );
+        $this->assertStringContainsString( '<table class="woi-contact">', $out );
+        $this->assertStringContainsString( 'width:33.3333%', $out );
+    }
 }

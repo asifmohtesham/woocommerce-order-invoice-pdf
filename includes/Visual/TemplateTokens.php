@@ -443,12 +443,42 @@ class TemplateTokens {
     }
 
     /**
-     * Replace all known tokens, then strip any leftover {{...}} so stray
-     * braces never reach the PDF.
+     * Replace all known tokens, then strip any leftover {{...}} so stray braces
+     * never reach the PDF. The contact-strip pre-pass runs first so a block
+     * wrapper's per-element config is honoured before the generic strtr.
      */
     public function merge( string $html, $document ): string {
+        $html = $this->merge_contact_strip( $html, $document );
         $html = strtr( $html, $this->map( $document ) );
         return (string) preg_replace( '/\{\{[^}]*\}\}/', '', $html );
+    }
+
+    /**
+     * Replace a block-editor contact-strip wrapper (carrying a per-element
+     * data-woi-contact-config) with the configured strip BEFORE the generic
+     * strtr. A bare {{contact_strip}} with no wrapper falls through to the
+     * default map entry (historical layout). The wrapper div is preserved so any
+     * whole-section appearance style on it survives.
+     */
+    private function merge_contact_strip( string $html, $document ): string {
+        if ( false === strpos( $html, 'data-woi-section="contact"' ) ) {
+            return $html;
+        }
+        $pattern = '#<div\b[^>]*\bdata-woi-section="contact"[^>]*>\s*\{\{contact_strip\}\}\s*</div>#';
+        return (string) preg_replace_callback(
+            $pattern,
+            function ( $m ) use ( $document ) {
+                $config = null;
+                if ( preg_match( '/data-woi-contact-config="([^"]*)"/', $m[0], $cm ) ) {
+                    $decoded = json_decode( html_entity_decode( $cm[1], ENT_QUOTES ), true );
+                    if ( is_array( $decoded ) ) {
+                        $config = $decoded;
+                    }
+                }
+                return str_replace( '{{contact_strip}}', $this->section_contact_strip( $document, $config ), $m[0] );
+            },
+            $html
+        );
     }
 
     /**
