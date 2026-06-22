@@ -100,6 +100,15 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			),
 		) );
 
+		register_rest_route( 'woi-pdf/v1', '/letterhead', array(
+			'methods'             => 'POST',
+			'callback'            => array( $this, 'handle_letterhead_save' ),
+			'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
+			'args'                => array(
+				'items' => array( 'type' => 'object', 'required' => true ),
+			),
+		) );
+
 		register_rest_route( 'woi-pdf/v1', '/contact-items', array(
 			'methods'             => 'POST',
 			'callback'            => array( $this, 'handle_contact_items_save' ),
@@ -1144,6 +1153,24 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			}
 			$clean = woi_pdf_sanitize_contact_items( (array) $request->get_param( 'items' ) );
 			update_option( 'woi_pdf_contact_items', $clean, false );
+			return array( 'items' => $clean );
+		}
+
+		/**
+		 * Save the letterhead per-element + arrangement config (swapText, logoWidth,
+		 * per-element style/visibility) to its own option. Logo POSITION is saved
+		 * separately via /visual-doc-options (the shared `header` key). Normalised
+		 * through the same sanitiser used on read.
+		 *
+		 * @param object $request
+		 * @return array|\WP_Error
+		 */
+		public function handle_letterhead_save( $request ) {
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				return new \WP_Error( 'forbidden', 'Insufficient permissions', array( 'status' => 403 ) );
+			}
+			$clean = woi_pdf_sanitize_letterhead( (array) $request->get_param( 'items' ) );
+			update_option( 'woi_pdf_letterhead', $clean, false );
 			return array( 'items' => $clean );
 		}
 
