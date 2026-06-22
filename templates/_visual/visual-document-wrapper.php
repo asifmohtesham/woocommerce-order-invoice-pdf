@@ -15,10 +15,16 @@ $woi_doc_opts = function_exists( 'woi_pdf_visual_doc_options' )
 </head>
 <body data-accent="<?php echo esc_attr( $woi_doc_opts['accent'] ); ?>" data-header="<?php echo esc_attr( $woi_doc_opts['header'] ); ?>" data-density="<?php echo esc_attr( $woi_doc_opts['density'] ); ?>" data-arabic="<?php echo esc_attr( $woi_doc_opts['arabic'] ); ?>" data-thumbs="<?php echo esc_attr( $woi_doc_opts['thumbs'] ); ?>" data-font="<?php echo esc_attr( $woi_doc_opts['font'] ); ?>">
 <?php
-// Running page-footer (accurate Page X of Y on every page) — registered before
-// the content so it applies from page 1. mPDF only; no inline output.
+// Running page-footer (accurate Page X of Y on every page) and, when the
+// repeat-letterhead toggle is on, a running page-header carrying the letterhead
+// banner — both registered before the content so they apply from page 1.
+// mPDF only; no inline output. The browser canvas never sees this.
 if ( isset( $document ) && is_object( $document ) ) {
-	echo ( new \WOI\PDF\Visual\TemplateTokens() )->running_footer( $document );
+	$woi_tokens = new \WOI\PDF\Visual\TemplateTokens();
+	if ( 'on' === ( $woi_doc_opts['repeat_letterhead'] ?? 'off' ) ) {
+		echo $woi_tokens->running_header( $document );
+	}
+	echo $woi_tokens->running_footer( $document );
 }
 echo $content; // already token-merged + sanitised on save
 ?>
