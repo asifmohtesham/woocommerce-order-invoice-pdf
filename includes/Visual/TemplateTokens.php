@@ -147,14 +147,48 @@ class TemplateTokens {
      * Override the payload with the `woi_pdf_qr_payload` filter.
      */
     private function render_qr_code( $document ): string {
-        $payload  = (string) apply_filters( 'woi_pdf_qr_payload', $this->default_qr_payload( $document ), $document );
-        // The (Strauss-prefixed) mpdf/qrcode package must be present; an unguarded
-        // <barcode type="QR"> throws an MpdfException during render when it isn't.
-        $has_qr   = class_exists( '\\WOI\\PDF\\Vendor\\Mpdf\\QrCode\\QrCode' ) || class_exists( '\\Mpdf\\QrCode\\QrCode' );
-        if ( $has_qr && '' !== $payload ) {
-            return '<barcode code="' . esc_attr( $payload ) . '" type="QR" error="M" size="0.5" disableborder="1" />';
+        $payload = (string) apply_filters( 'woi_pdf_qr_payload', $this->default_qr_payload( $document ), $document );
+        if ( '' !== $payload ) {
+            // Emit the QR as an SVG data-URI <img> so it renders identically in the
+            // editor canvas (browser) AND the PDF. mPDF's proprietary <barcode type="QR">
+            // renders only in mPDF — a browser shows nothing — so the canvas QR cell
+            // was blank for real orders. The shared `.woi-qr img { width:20mm }` rule
+            // sizes it in both surfaces.
+            $svg = $this->qr_svg( $payload );
+            if ( '' !== $svg ) {
+                $uri = 'data:image/svg+xml;base64,' . base64_encode( $svg );
+                // Size inline: mPDF sizes an <img> from the SVG's intrinsic px, NOT the
+                // `.woi-qr img` CSS rule, so without this the QR renders ~28mm. Inline
+                // width/height is the one sizing lever both mPDF and the browser honour.
+                return '<img class="woi-qr-img" style="width:20mm;height:20mm" src="' . esc_attr( $uri ) . '" alt="QR" />';
+            }
         }
         return '<div class="woi-qr-placeholder">QR</div>';
+    }
+
+    /**
+     * Build a QR code for $payload as a self-contained SVG string via the
+     * (Strauss-prefixed) mpdf/qrcode package. Vector output needs no GD and scales
+     * crisply. Returns '' (→ placeholder) when the package or ext-simplexml is
+     * unavailable, or on any generation error, so a missing dependency never fatals.
+     */
+    private function qr_svg( string $payload ): string {
+        $qr_class  = class_exists( '\\WOI\\PDF\\Vendor\\Mpdf\\QrCode\\QrCode' )
+            ? '\\WOI\\PDF\\Vendor\\Mpdf\\QrCode\\QrCode'
+            : ( class_exists( '\\Mpdf\\QrCode\\QrCode' ) ? '\\Mpdf\\QrCode\\QrCode' : '' );
+        $svg_class = class_exists( '\\WOI\\PDF\\Vendor\\Mpdf\\QrCode\\Output\\Svg' )
+            ? '\\WOI\\PDF\\Vendor\\Mpdf\\QrCode\\Output\\Svg'
+            : ( class_exists( '\\Mpdf\\QrCode\\Output\\Svg' ) ? '\\Mpdf\\QrCode\\Output\\Svg' : '' );
+        if ( '' === $qr_class || '' === $svg_class || ! extension_loaded( 'simplexml' ) ) {
+            return '';
+        }
+        try {
+            $qr = new $qr_class( $payload, 'M' ); // 'M' = medium error correction (matches the prior <barcode error="M">).
+            $qr->disableBorder();                 // No quiet-zone border (matches the prior disableborder="1").
+            return (string) ( new $svg_class() )->output( $qr, 100 );
+        } catch ( \Throwable $e ) {
+            return '';
+        }
     }
 
     /** Default QR payload: supplier TRN + invoice number (FTA-style minimal). */

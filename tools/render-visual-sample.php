@@ -47,12 +47,16 @@ $starter = file_get_contents( dirname( __DIR__ ) . '/assets/visual-editor/starte
 $logo = '<div style="font-size:15pt;font-weight:bold;color:#140858;letter-spacing:.04em">MILANO</div>'
       . '<div style="font-size:7pt;letter-spacing:.22em;color:#8A8378">LEATHER</div>';
 
-// Native mPDF QR needs the mpdf/qrcode package; emit it only when present, else
-// a styled placeholder slot (mirrors the {{qr_code}} token's safe degrade).
-if ( class_exists( '\WOI\PDF\Vendor\Mpdf\QrCode\QrCode' ) || class_exists( '\Mpdf\QrCode\QrCode' ) ) {
-    $qr = '<barcode code="https://milanoleather.ae/verify/INV-2026-0237" type="QR" error="M" size="0.5" disableborder="1" />';
-} else {
-    $qr = '<div class="woi-qr-placeholder">QR</div>';
+// Mirror TemplateTokens::render_qr_code — emit the QR as an SVG data-URI <img> so it
+// renders in BOTH the browser canvas and mPDF (the mPDF-only <barcode> is invisible
+// in the editor canvas). Falls back to a styled placeholder if the package is absent.
+$qr = '<div class="woi-qr-placeholder">QR</div>';
+$qr_cls  = class_exists( '\WOI\PDF\Vendor\Mpdf\QrCode\QrCode' ) ? '\WOI\PDF\Vendor\Mpdf\QrCode\QrCode' : ( class_exists( '\Mpdf\QrCode\QrCode' ) ? '\Mpdf\QrCode\QrCode' : '' );
+$svg_cls = class_exists( '\WOI\PDF\Vendor\Mpdf\QrCode\Output\Svg' ) ? '\WOI\PDF\Vendor\Mpdf\QrCode\Output\Svg' : ( class_exists( '\Mpdf\QrCode\Output\Svg' ) ? '\Mpdf\QrCode\Output\Svg' : '' );
+if ( '' !== $qr_cls && '' !== $svg_cls && extension_loaded( 'simplexml' ) ) {
+    $qr_obj = new $qr_cls( 'TRN:100579920800003 INV:INV-2026-0237', 'M' );
+    $qr_obj->disableBorder();
+    $qr = '<img class="woi-qr-img" style="width:20mm;height:20mm" src="data:image/svg+xml;base64,' . base64_encode( (string) ( new $svg_cls() )->output( $qr_obj, 100 ) ) . '" alt="QR" />';
 }
 
 $line_items = woi_sample_line_items();

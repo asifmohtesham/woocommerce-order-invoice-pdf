@@ -305,10 +305,39 @@ class TemplateTokensTest extends TestCase {
         $this->assertSame( '', $map['{{recipient_trn}}'] );
         $this->assertSame( '', $map['{{bank_details}}'] );
         // mpdf/qrcode is a (Strauss-prefixed) dependency, so the QR token emits a
-        // native <barcode type="QR"> with the default payload. The placeholder is
-        // the safety net only when the package is somehow absent.
-        $this->assertStringContainsString( '<barcode', $map['{{qr_code}}'] );
-        $this->assertStringContainsString( 'type="QR"', $map['{{qr_code}}'] );
+        // browser- AND mPDF-renderable SVG data-URI <img> with the default payload
+        // (NOT mPDF's proprietary <barcode>, which is invisible in the editor canvas).
+        // The placeholder is the safety net only when the package is somehow absent.
+        $this->assertStringContainsString( '<img', $map['{{qr_code}}'] );
+        $this->assertStringContainsString( 'data:image/svg+xml;base64,', $map['{{qr_code}}'] );
+        $this->assertStringNotContainsString( '<barcode', $map['{{qr_code}}'] );
+    }
+
+    /**
+     * The QR must render in BOTH the editor canvas (browser) and the PDF. mPDF's
+     * <barcode type="QR"> renders only in mPDF — a browser shows nothing — so the
+     * canvas QR cell was blank for real orders. The QR is now a server-generated
+     * SVG embedded as a data-URI <img>, which both surfaces render identically.
+     */
+    public function test_qr_renders_as_svg_data_uri_image_for_canvas_pdf_parity(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $qr = $tokens->map( $this->stub_document() )['{{qr_code}}'];
+
+        // A real <img> with an SVG data-URI — renders in browser and mPDF alike.
+        $this->assertStringContainsString( '<img', $qr );
+        $this->assertStringContainsString( 'src="data:image/svg+xml;base64,', $qr );
+        // Sized inline (mPDF sizes from the SVG's intrinsic px otherwise → ~28mm).
+        $this->assertStringContainsString( 'width:20mm;height:20mm', $qr );
+        // The decoded payload is a valid SVG (the QR matrix).
+        $this->assertMatchesRegularExpression( '/data:image\/svg\+xml;base64,([A-Za-z0-9+\/=]+)/', $qr );
+        preg_match( '/base64,([A-Za-z0-9+\/=]+)/', $qr, $m );
+        $this->assertStringContainsString( '<svg', (string) base64_decode( $m[1] ) );
+        // Never the mPDF-only proprietary tag.
+        $this->assertStringNotContainsString( '<barcode', $qr );
     }
 
     /** An empty QR payload must fall back to the placeholder, never an empty <barcode>. */
