@@ -63,7 +63,7 @@ class TemplateTokens {
             // reset can seed the full redesign; the GrapesJS starter can use them
             // too. They wrap the same leaf values, so merge() resolves them in one
             // pass (no nested {{tokens}} left inside).
-            '{{letterhead}}'       => $this->section_letterhead( $document, $engine ),
+            '{{letterhead}}'       => $this->repeat_letterhead_enabled() ? '' : $this->section_letterhead( $document, $engine ),
             '{{contact_strip}}'    => $this->section_contact_strip( $document ),
             '{{title_meta}}'       => $this->section_title_meta( $document, $engine ),
             '{{parties}}'          => $this->section_parties( $document ),
@@ -196,6 +196,30 @@ class TemplateTokens {
             . '<td class="woi-lh-mark">' . $logo . '</td>'
             . '<td class="woi-lh-ar" dir="rtl"><div class="woi-co-name">' . $shop_name_ar . '</div><div class="woi-co-lines">' . $shop_address_ar . '</div></td>'
             . '</tr></table>';
+    }
+
+    /**
+     * Whether the repeat-letterhead toggle is on. When on, the body letterhead
+     * token is suppressed and the banner is emitted as a running page-header
+     * instead (see running_header()). Overridable as a test seam.
+     */
+    protected function repeat_letterhead_enabled(): bool {
+        if ( ! function_exists( 'woi_pdf_visual_doc_options' ) ) {
+            return false;
+        }
+        $opts = woi_pdf_visual_doc_options( 'invoice' );
+        return isset( $opts['repeat_letterhead'] ) && 'on' === $opts['repeat_letterhead'];
+    }
+
+    /**
+     * mPDF running page-header carrying the letterhead banner. The wrapper emits
+     * this (when the toggle is on) BEFORE the content so it applies from page 1;
+     * visual-document.css / woi_pdf_visual_options_css assigns it via
+     * @page { header: woiHeader }. Mirrors running_footer(). No inline output.
+     */
+    public function running_header( $document ): string {
+        $banner = $this->section_letterhead( $document, BilingualEngine::instance() );
+        return '<htmlpageheader name="woiHeader">' . $banner . '</htmlpageheader>';
     }
 
     private function section_contact_strip( $document ): string {

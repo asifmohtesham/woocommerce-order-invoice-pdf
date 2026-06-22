@@ -385,6 +385,40 @@ class TemplateTokensTest extends TestCase {
         $this->assertStringContainsString( 'A-1', $map['{{line_items}}'] );
     }
 
+    public function test_letterhead_token_present_when_repeat_off(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+            protected function repeat_letterhead_enabled(): bool { return false; }
+        };
+        $map = $tokens->map( $this->stub_document() );
+        $this->assertStringContainsString( '<table class="woi-letterhead">', $map['{{letterhead}}'] );
+    }
+
+    public function test_letterhead_token_empty_when_repeat_on(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+            protected function repeat_letterhead_enabled(): bool { return true; }
+        };
+        $map = $tokens->map( $this->stub_document() );
+        $this->assertSame( '', $map['{{letterhead}}'] );
+    }
+
+    public function test_running_header_wraps_letterhead(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $html = $tokens->running_header( $this->stub_document() );
+        $this->assertStringStartsWith( '<htmlpageheader name="woiHeader">', $html );
+        $this->assertStringContainsString( '<table class="woi-letterhead">', $html );
+        $this->assertStringEndsWith( '</htmlpageheader>', $html );
+    }
+
     /**
      * Fix C: a throwing block renderer must degrade to '' and must not prevent
      * other tokens from resolving.
