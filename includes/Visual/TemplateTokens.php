@@ -219,17 +219,136 @@ class TemplateTokens {
             . '<span class="woi-lbl-secondary" dir="rtl">' . esc_html( $ar ) . '</span>';
     }
 
-    private function section_letterhead( $document, $engine ): string {
-        $logo            = $document->has_header_logo() ? $this->capture( array( $document, 'header_logo' ) ) : '';
-        $shop_name       = esc_html( (string) $document->get_shop_name() );
-        $shop_address    = wp_kses_post( (string) $document->get_shop_address() );
-        $shop_name_ar    = esc_html( $engine->secondary_shop_name() );
-        $shop_address_ar = nl2br( esc_html( (string) $engine->secondary_shop_address() ) );
-        return '<table class="woi-letterhead"><tr>'
-            . '<td class="woi-lh-en"><div class="woi-co-name">' . $shop_name . '</div><div class="woi-co-lines">' . $shop_address . '</div></td>'
-            . '<td class="woi-lh-mark">' . $logo . '</td>'
-            . '<td class="woi-lh-ar" dir="rtl"><div class="woi-co-name">' . $shop_name_ar . '</div><div class="woi-co-lines">' . $shop_address_ar . '</div></td>'
-            . '</tr></table>';
+    /**
+     * Letterhead — EN block | logo | AR block. Per-element layout is read from
+     * woi_pdf_letterhead() (option) and the logo POSITION from the shared
+     * woi_pdf_visual_doc_options()['header']; null $config falls back to those
+     * (or the historical default under the test harness). AR is gated by the
+     * `arabic` doc-option AND each element's own `visible`.
+     *
+     * @param object             $document
+     * @param object             $engine   BilingualEngine
+     * @param array<string,mixed>|null $config
+     */
+    private function section_letterhead( $document, $engine, ?array $config = null ): string {
+        $values = array(
+            'name_en'    => esc_html( (string) $document->get_shop_name() ),
+            'address_en' => wp_kses_post( (string) $document->get_shop_address() ),
+            'name_ar'    => esc_html( $engine->secondary_shop_name() ),
+            'address_ar' => nl2br( esc_html( (string) $engine->secondary_shop_address() ) ),
+        );
+        $logo = $document->has_header_logo() ? $this->capture( array( $document, 'header_logo' ) ) : '';
+
+        if ( null === $config ) {
+            $config = function_exists( 'woi_pdf_letterhead' )
+                ? woi_pdf_letterhead()
+                : array(
+                    'swapText' => false, 'logoWidth' => 0,
+                    'elements' => array(
+                        'name_en' => array( 'visible' => true, 'align' => 'left' ),  'address_en' => array( 'visible' => true, 'align' => 'left' ),
+                        'name_ar' => array( 'visible' => true, 'align' => 'right' ), 'address_ar' => array( 'visible' => true, 'align' => 'right' ),
+                        'logo' => array( 'visible' => true ),
+                    ),
+                );
+        }
+        $opts      = function_exists( 'woi_pdf_visual_doc_options' ) ? woi_pdf_visual_doc_options( 'invoice' ) : array();
+        $logo_pos  = ( isset( $opts['header'] ) && in_array( $opts['header'], array( 'left', 'center', 'right' ), true ) ) ? $opts['header'] : 'center';
+        $arabic_on = ( ! isset( $opts['arabic'] ) ) || 'on' === $opts['arabic'];
+
+        $els       = isset( $config['elements'] ) && is_array( $config['elements'] ) ? $config['elements'] : array();
+        $swap      = ! empty( $config['swapText'] );
+        $logo_w    = isset( $config['logoWidth'] ) ? (int) $config['logoWidth'] : 0;
+        $logo_show = ! ( isset( $els['logo']['visible'] ) && ! $els['logo']['visible'] ) && '' !== $logo;
+
+        // Build the two text cells (empty string when fully hidden / AR gated off).
+        $en_cell = $this->letterhead_text_cell( 'en', array( 'name' => $values['name_en'], 'address' => $values['address_en'] ), $els['name_en'] ?? array(), $els['address_en'] ?? array(), false );
+        $ar_cell = $arabic_on
+            ? $this->letterhead_text_cell( 'ar', array( 'name' => $values['name_ar'], 'address' => $values['address_ar'] ), $els['name_ar'] ?? array(), $els['address_ar'] ?? array(), true )
+            : '';
+
+        // Ordered text cells (swap flips EN/AR reading order), empties removed.
+        $texts = $swap ? array( $ar_cell, $en_cell ) : array( $en_cell, $ar_cell );
+        $texts = array_values( array_filter( $texts, static function ( $c ) { return '' !== $c; } ) );
+
+        // Logo cell.
+        $logo_cell = '';
+        if ( $logo_show ) {
+            $lw = $logo_w > 0 ? ' style="text-align:center;width:' . (int) $logo_w . 'mm"' : '';
+            $logo_cell = '<td class="woi-lh-mark"' . $lw . '>' . $logo . '</td>';
+        }
+
+        // Assemble columns: logo position relative to the text cells.
+        $cells = $texts;
+        if ( '' !== $logo_cell ) {
+            if ( 'left' === $logo_pos ) {
+                array_unshift( $cells, $logo_cell );
+            } elseif ( 'right' === $logo_pos ) {
+                $cells[] = $logo_cell;
+            } else { // center
+                if ( 2 === count( $texts ) ) {
+                    $cells = array( $texts[0], $logo_cell, $texts[1] );
+                } else {
+                    $cells[] = $logo_cell;
+                }
+            }
+        }
+        if ( empty( $cells ) ) {
+            return '';
+        }
+        return '<table class="woi-letterhead"><tr>' . implode( '', $cells ) . '</tr></table>';
+    }
+
+    /**
+     * One letterhead text column (company name over address lines). Returns ''
+     * when both name and address are hidden. $rtl adds dir="rtl" and the AR class.
+     *
+     * @param string               $side 'en'|'ar' (class suffix only)
+     * @param array<string,string> $vals { name, address } pre-escaped HTML
+     * @param array<string,mixed>  $name_el  element settings for the name
+     * @param array<string,mixed>  $addr_el  element settings for the address
+     * @param bool                 $rtl
+     */
+    private function letterhead_text_cell( string $side, array $vals, array $name_el, array $addr_el, bool $rtl ): string {
+        $name_on = ! ( isset( $name_el['visible'] ) && ! $name_el['visible'] );
+        $addr_on = ! ( isset( $addr_el['visible'] ) && ! $addr_el['visible'] );
+        if ( ! $name_on && ! $addr_on ) {
+            return '';
+        }
+        $default_align = $rtl ? 'right' : 'left';
+        $name_align    = ( isset( $name_el['align'] ) && in_array( $name_el['align'], array( 'left', 'center', 'right' ), true ) ) ? $name_el['align'] : $default_align;
+        $addr_align    = ( isset( $addr_el['align'] ) && in_array( $addr_el['align'], array( 'left', 'center', 'right' ), true ) ) ? $addr_el['align'] : $default_align;
+
+        $inner = '';
+        if ( $name_on ) {
+            $inner .= '<div class="woi-co-name" style="text-align:' . $name_align . $this->letterhead_el_style( $name_el ) . '">' . $vals['name'] . '</div>';
+        }
+        if ( $addr_on ) {
+            $inner .= '<div class="woi-co-lines" style="text-align:' . $addr_align . $this->letterhead_el_style( $addr_el ) . '">' . $vals['address'] . '</div>';
+        }
+        $cls = 'woi-lh-' . $side;
+        $dir = $rtl ? ' dir="rtl"' : '';
+        return '<td class="' . $cls . '"' . $dir . '>' . $inner . '</td>';
+    }
+
+    /**
+     * Inline weight/size/colour fragment for a letterhead text element, prefixed
+     * with ';' so it appends to an existing text-align declaration. Empty when
+     * nothing is set. Inline because mPDF ignores the theme stylesheet.
+     *
+     * @param array<string,mixed> $el
+     */
+    private function letterhead_el_style( array $el ): string {
+        $parts = array();
+        if ( ! empty( $el['bold'] ) ) {
+            $parts[] = 'font-weight:bold';
+        }
+        if ( ! empty( $el['fontSize'] ) ) {
+            $parts[] = 'font-size:' . (int) $el['fontSize'] . 'px';
+        }
+        if ( ! empty( $el['color'] ) && preg_match( '/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', (string) $el['color'] ) ) {
+            $parts[] = 'color:' . $el['color'];
+        }
+        return $parts ? ';' . implode( ';', $parts ) : '';
     }
 
     /**

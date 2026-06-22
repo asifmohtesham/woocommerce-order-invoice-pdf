@@ -29,6 +29,18 @@ class TemplateTokensTest extends TestCase {
             array( 'field' => 'tel',   'visible' => true, 'align' => 'center' ),
             array( 'field' => 'email', 'visible' => true, 'align' => 'right' ),
         ) );
+        Functions\when( 'woi_pdf_letterhead' )->justReturn( array(
+            'swapText'  => false,
+            'logoWidth' => 0,
+            'elements'  => array(
+                'name_en'    => array( 'visible' => true, 'align' => 'left',  'bold' => true,  'fontSize' => 0, 'color' => '' ),
+                'address_en' => array( 'visible' => true, 'align' => 'left',  'bold' => false, 'fontSize' => 0, 'color' => '' ),
+                'name_ar'    => array( 'visible' => true, 'align' => 'right', 'bold' => true,  'fontSize' => 0, 'color' => '' ),
+                'address_ar' => array( 'visible' => true, 'align' => 'right', 'bold' => false, 'fontSize' => 0, 'color' => '' ),
+                'logo'       => array( 'visible' => true ),
+            ),
+        ) );
+        Functions\when( 'woi_pdf_visual_doc_options' )->justReturn( array( 'header' => 'center', 'arabic' => 'on' ) );
     }
 
     protected function tearDown(): void {
@@ -482,6 +494,81 @@ class TemplateTokensTest extends TestCase {
         $this->assertStringNotContainsString( 'class="thumbnail"', $map['{{line_items}}'] );
         $this->assertStringNotContainsString( 'x.png', $map['{{line_items}}'] );
         $this->assertStringContainsString( 'A-1', $map['{{line_items}}'] );
+    }
+
+    public function test_letterhead_default_three_columns_en_logo_ar(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $lh = $tokens->map( $this->stub_document() )['{{letterhead}}'];
+
+        $this->assertStringContainsString( '<table class="woi-letterhead">', $lh );
+        // EN name + AR name present; EN left, AR right; logo cell between them.
+        $this->assertStringContainsString( 'Acme Co', $lh );
+        $this->assertStringContainsString( 'متجر', $lh );
+        $this->assertStringContainsString( 'class="woi-lh-mark"', $lh );
+        // Order: EN cell, then mark, then AR cell.
+        $this->assertLessThan( strpos( $lh, 'woi-lh-mark' ), strpos( $lh, 'woi-lh-en' ) );
+        $this->assertLessThan( strpos( $lh, 'woi-lh-ar' ), strpos( $lh, 'woi-lh-mark' ) );
+    }
+
+    public function test_letterhead_logo_left_position_and_swap(): void {
+        Functions\when( 'woi_pdf_visual_doc_options' )->justReturn( array( 'header' => 'left', 'arabic' => 'on' ) );
+        Functions\when( 'woi_pdf_letterhead' )->justReturn( array(
+            'swapText' => true, 'logoWidth' => 30,
+            'elements' => array(
+                'name_en' => array( 'visible' => true ), 'address_en' => array( 'visible' => true ),
+                'name_ar' => array( 'visible' => true ), 'address_ar' => array( 'visible' => true ),
+                'logo' => array( 'visible' => true ),
+            ),
+        ) );
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $lh = $tokens->map( $this->stub_document() )['{{letterhead}}'];
+        // logo first (left), then AR (swapped before EN).
+        $this->assertLessThan( strpos( $lh, 'woi-lh-ar' ), strpos( $lh, 'woi-lh-mark' ) );
+        $this->assertLessThan( strpos( $lh, 'woi-lh-en' ), strpos( $lh, 'woi-lh-ar' ) );
+        // Logo width applied inline.
+        $this->assertStringContainsString( 'width:30mm', $lh );
+    }
+
+    public function test_letterhead_hidden_element_and_style(): void {
+        Functions\when( 'woi_pdf_letterhead' )->justReturn( array(
+            'swapText' => false, 'logoWidth' => 0,
+            'elements' => array(
+                'name_en'    => array( 'visible' => true, 'align' => 'center', 'bold' => true, 'fontSize' => 16, 'color' => '#ff0000' ),
+                'address_en' => array( 'visible' => false ),
+                'name_ar'    => array( 'visible' => true ), 'address_ar' => array( 'visible' => true ),
+                'logo' => array( 'visible' => true ),
+            ),
+        ) );
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $lh = $tokens->map( $this->stub_document() )['{{letterhead}}'];
+        // EN address hidden -> '1 Main St' absent; EN name styled inline.
+        $this->assertStringNotContainsString( '1 Main St', $lh );
+        $this->assertStringContainsString( 'font-weight:bold;font-size:16px;color:#ff0000', $lh );
+        $this->assertStringContainsString( 'text-align:center', $lh );
+    }
+
+    public function test_letterhead_arabic_off_drops_ar_column(): void {
+        Functions\when( 'woi_pdf_visual_doc_options' )->justReturn( array( 'header' => 'center', 'arabic' => 'off' ) );
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array { return array(); }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $lh = $tokens->map( $this->stub_document() )['{{letterhead}}'];
+        $this->assertStringNotContainsString( 'woi-lh-ar', $lh );
+        $this->assertStringNotContainsString( 'متجر', $lh );
     }
 
     public function test_letterhead_token_present_when_repeat_off(): void {
