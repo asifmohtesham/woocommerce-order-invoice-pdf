@@ -139,6 +139,10 @@ table.order-details { width: 100%; table-layout: fixed; margin-top: 3mm; margin-
     vertical-align: middle;
     overflow-wrap: normal;
 }
+/* Greys the Arabic header in the browser preview. mPDF never applies a colour to a
+   span via a descendant selector — only via inheritance off the <th> or an inline
+   style — so the matching grey for the PDF is set inline in TemplateTokens; this rule
+   is the browser-side counterpart. */
 .order-details thead th .woi-lbl-secondary { display: inline; font-size: 7.5pt; font-weight: normal; color: #8A8378; }
 .order-details tbody td {
     border-bottom: 0.5pt solid #D9D4C9;

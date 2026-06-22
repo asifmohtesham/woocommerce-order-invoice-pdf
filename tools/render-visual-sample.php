@@ -146,13 +146,15 @@ function woi_sample_line_items(): string {
         array( '10017913', 'Classic Milano PU Pin Buckle Belt', '', 6, '9.00&nbsp;د.إ', '0%', '54.00&nbsp;د.إ' ),
         array( '10017876', 'Force Casual Pin Buckle Belt', '', 12, '19.00&nbsp;د.إ', '0%', '228.00&nbsp;د.إ' ),
     );
-    $thumb = '<img src="' . woi_sample_thumb_datauri() . '" alt="">';
+    // Mirror TemplateTokens::size_thumbnail_imgs output: an inline width (the only
+    // image-width lever mPDF honours) replacing the 90px attributes EditorMain emits.
+    $thumb = '<img style="width:13mm;height:auto" src="' . woi_sample_thumb_datauri() . '" alt="">';
 
     $h = '<table class="order-details"><thead><tr>';
     foreach ( $headers as $hd ) {
         $h .= '<th class="' . $hd['class'] . '"><span class="woi-lbl-primary">' . htmlspecialchars( $hd['en'] ) . '</span>';
         if ( $hd['ar'] !== '' ) {
-            $h .= '<br><span class="woi-lbl-secondary" dir="rtl">' . $hd['ar'] . '</span>';
+            $h .= '<br><span class="woi-lbl-secondary" style="color:#8A8378" dir="rtl">' . $hd['ar'] . '</span>';
         }
         $h .= '</th>';
     }
@@ -182,8 +184,9 @@ function woi_sample_totals(): string {
     );
     $h = '<table class="totals-table">';
     foreach ( $rows as $r ) {
+        $sec_style = ( false !== strpos( $r[3], 'grand-total' ) ) ? '' : ' style="color:#8A8378"';
         $h .= '<tr class="' . $r[3] . '"><th class="description"><span class="woi-lbl-primary">' . htmlspecialchars( $r[0] ) . '</span>'
-            . '<br><span class="woi-lbl-secondary" dir="rtl">' . $r[1] . '</span></th>'
+            . '<br><span class="woi-lbl-secondary"' . $sec_style . ' dir="rtl">' . $r[1] . '</span></th>'
             . '<td class="price">' . $r[2] . '</td></tr>';
     }
     return $h . '</table>';

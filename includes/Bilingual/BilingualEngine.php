@@ -88,8 +88,17 @@ class BilingualEngine {
 			return $headers;
 		}
 		foreach ( $headers as $key => $row ) {
-			$col_type  = $row['type'] ?? '';
-			$secondary = '' !== $col_type ? $this->secondary_label( $col_type, $document ) : '';
+			// A per-column "Arabic header" (label_ar) overrides the type-keyed
+			// dictionary translation — so custom columns (e.g. Barcode) can carry a
+			// secondary label the dictionary doesn't know, and any column's default
+			// translation can be overridden inline.
+			$per_column = isset( $row['label_ar'] ) ? trim( (string) $row['label_ar'] ) : '';
+			if ( '' !== $per_column ) {
+				$secondary = $per_column;
+			} else {
+				$col_type  = $row['type'] ?? '';
+				$secondary = '' !== $col_type ? $this->secondary_label( $col_type, $document ) : '';
+			}
 			if ( '' !== $secondary ) {
 				$headers[ $key ]['secondary'] = $secondary;
 			}

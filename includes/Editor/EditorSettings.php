@@ -1182,6 +1182,13 @@ class EditorSettings {
 					'step'        => 0.5,
 				),
 			) + $block['options'];
+			// Per-column secondary-language (e.g. Arabic) header override. Empty falls
+			// back to the type-keyed dictionary translation (see BilingualEngine).
+			$block['options']['label_ar'] = array(
+				'type'        => 'text',
+				'description' => __( 'Arabic header', 'woi_pdf_templates' ),
+				'placeholder' => __( 'Use default translation', 'woi_pdf_templates' ),
+			);
 		}
 		unset( $block );
 
