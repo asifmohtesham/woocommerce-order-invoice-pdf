@@ -412,7 +412,7 @@ In `includes/Visual/TemplateTokens.php`, replace the method at lines 222-233 wit
         if ( ! empty( $el['fontSize'] ) ) {
             $parts[] = 'font-size:' . (int) $el['fontSize'] . 'px';
         }
-        if ( ! empty( $el['color'] ) && preg_match( '/^#[0-9a-fA-F]{3,6}$/', (string) $el['color'] ) ) {
+        if ( ! empty( $el['color'] ) && preg_match( '/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', (string) $el['color'] ) ) {
             $parts[] = 'color:' . $el['color'];
         }
         return $parts ? ';' . implode( ';', $parts ) : '';
