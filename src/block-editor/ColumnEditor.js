@@ -91,7 +91,7 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 	return (
 		<div className="woi-col-editor">
 			{ columns.map( ( c, i ) => {
-				const opts = renderableOptions( schema[ c.type ], { exclude: [ 'label', 'width', 'style', 'style_target' ] } );
+				const opts = renderableOptions( schema[ c.type ], { exclude: [ 'label', 'label_ar', 'width', 'style', 'style_target' ] } );
 				return (
 					<div className="woi-col-row" key={ i }>
 						<div className="woi-col-head">
@@ -108,6 +108,15 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 								value={ c.label || '' }
 								placeholder={ typeTitle( c.type ) }
 								onChange={ ( v ) => setKey( i, 'label', v, true ) }
+								__nextHasNoMarginBottom
+							/>
+						) }
+						{ hasOption( c.type, 'label_ar' ) && (
+							<TextControl
+								label={ __( 'Arabic header', 'woocommerce-orders-invoice-pdf' ) }
+								value={ c.label_ar || '' }
+								placeholder={ __( 'Use default translation', 'woocommerce-orders-invoice-pdf' ) }
+								onChange={ ( v ) => setKey( i, 'label_ar', v, false ) }
 								__nextHasNoMarginBottom
 							/>
 						) }

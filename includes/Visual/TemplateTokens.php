@@ -362,6 +362,45 @@ class TemplateTokens {
     }
 
     /**
+     * Thumbnail edge length (mm) for the current density — mirrors the CSS values
+     * in visual-document.css (td.thumbnail img 13mm, compact 10mm) so the inline
+     * size we hand mPDF matches the browser preview's class-rule size exactly.
+     */
+    private function thumbnail_mm( $document ): string {
+        if ( ! function_exists( 'woi_pdf_visual_doc_options' ) ) {
+            return '13mm';
+        }
+        $type = method_exists( $document, 'get_type' ) ? (string) $document->get_type() : 'invoice';
+        $opts = woi_pdf_visual_doc_options( $type );
+        return ( 'compact' === ( $opts['density'] ?? 'comfortable' ) ) ? '10mm' : '13mm';
+    }
+
+    /**
+     * Force every <img> in a thumbnail cell to a fixed inline width (height auto),
+     * stripping the px width/height attributes mPDF would otherwise size from. Inline
+     * style is the only image-width lever mPDF honours (it ignores class-selector CSS
+     * on <img>, and inline style beats the width attribute). Browser-safe: the same
+     * size the class rule already applies, so the editor preview is unchanged.
+     */
+    private function size_thumbnail_imgs( string $html, string $mm ): string {
+        if ( false === stripos( $html, '<img' ) ) {
+            return $html;
+        }
+        $size = 'width:' . $mm . ';height:auto';
+        return (string) preg_replace_callback( '/<img\b[^>]*>/i', function ( $m ) use ( $size ) {
+            $tag = preg_replace( '/\s(?:width|height)\s*=\s*"[^"]*"/i', '', $m[0] );
+            if ( preg_match( '/style\s*=\s*"([^"]*)"/i', $tag ) ) {
+                $tag = preg_replace_callback( '/style\s*=\s*"([^"]*)"/i', function ( $s ) use ( $size ) {
+                    $decls = preg_replace( '/(?:width|height)\s*:[^;]*;?/i', '', $s[1] );
+                    return 'style="' . rtrim( trim( $decls ), ';' ) . ( '' !== rtrim( trim( $decls ), ';' ) ? ';' : '' ) . $size . '"';
+                }, $tag );
+                return $tag;
+            }
+            return (string) preg_replace( '/<img\b/i', '<img style="' . $size . '"', $tag, 1 );
+        }, $html );
+    }
+
+    /**
      * Build the line-items table, mirroring the Standard UAE invoice markup.
      * Returns '' if any renderer throws so one error cannot fatal the whole PDF.
      */
@@ -392,20 +431,32 @@ class TemplateTokens {
                 if ( ! empty( $header_data['secondary'] ) ) {
                     // <br> (not display:block) is what makes mPDF stack the pair —
                     // mPDF ignores display:block on inline <span>s inside a <th>.
-                    $html .= '<br><span class="woi-lbl-secondary" dir="rtl">' . esc_html( $header_data['secondary'] ) . '</span>';
+                    // The grey colour is inline because mPDF only colours a span via
+                    // inheritance/inline, never via the .order-details th descendant rule.
+                    $html .= '<br><span class="woi-lbl-secondary" style="color:#8A8378" dir="rtl">' . esc_html( $header_data['secondary'] ) . '</span>';
                 }
                 $html .= '</th>';
             }
             $html .= '</tr></thead><tbody>';
+            $thumb_mm = $this->thumbnail_mm( $document );
             foreach ( $body as $item_columns ) {
                 $html .= '<tr>';
                 foreach ( (array) $item_columns as $column_data ) {
-                    if ( ! $show_thumbs && $this->is_thumbnail_class( $column_data['class'] ?? '' ) ) {
+                    $is_thumb = $this->is_thumbnail_class( $column_data['class'] ?? '' );
+                    if ( ! $show_thumbs && $is_thumb ) {
                         continue;
                     }
                     $td_style = function_exists( 'woi_pdf_templates_maybe_apply_column_styles' )
                         ? woi_pdf_templates_maybe_apply_column_styles( $column_data, 'cells' ) : '';
-                    $html .= '<td class="' . esc_attr( $column_data['class'] ?? '' ) . '"' . $td_style . '><span>' . wp_kses_post( (string) ( $column_data['data'] ?? '' ) ) . '</span></td>';
+                    $cell = (string) ( $column_data['data'] ?? '' );
+                    // mPDF ignores the `td.thumbnail img` class width rule and sizes
+                    // the image from its width/height attributes (90px) instead, so the
+                    // PDF rows are far taller than the browser preview. Force the size
+                    // inline (the only lever mPDF honours for images) to match the CSS.
+                    if ( $is_thumb ) {
+                        $cell = $this->size_thumbnail_imgs( $cell, $thumb_mm );
+                    }
+                    $html .= '<td class="' . esc_attr( $column_data['class'] ?? '' ) . '"' . $td_style . '><span>' . wp_kses_post( $cell ) . '</span></td>';
                 }
                 $html .= '</tr>';
             }
@@ -425,11 +476,16 @@ class TemplateTokens {
 
             $html = '<table class="totals-table">';
             foreach ( $totals as $total_data ) {
-                $html .= '<tr class="' . esc_attr( $total_data['class'] ?? '' ) . '">';
+                $row_class = $total_data['class'] ?? '';
+                $html .= '<tr class="' . esc_attr( $row_class ) . '">';
                 $html .= '<th class="description"><span><span class="woi-lbl-primary">' . esc_html( $total_data['label'] ?? '' ) . '</span>';
                 if ( ! empty( $total_data['secondary'] ) ) {
                     // <br> stacks the pair in mPDF (display:block on the span is ignored there).
-                    $html .= '<br><span class="woi-lbl-secondary" dir="rtl">' . esc_html( $total_data['secondary'] ) . '</span>';
+                    // Grey is inline (mPDF won't apply the descendant colour rule). The
+                    // grand-total row is the exception: its <th> carries the accent colour,
+                    // which the secondary should inherit — so leave it uncoloured there.
+                    $sec_style = ( false !== strpos( $row_class, 'grand-total' ) ) ? '' : ' style="color:#8A8378"';
+                    $html .= '<br><span class="woi-lbl-secondary"' . $sec_style . ' dir="rtl">' . esc_html( $total_data['secondary'] ) . '</span>';
                 }
                 $html .= '</span></th>';
                 $html .= '<td class="price"><span class="totals-price">' . wp_kses_post( (string) ( $total_data['value'] ?? '' ) ) . '</span></td>';

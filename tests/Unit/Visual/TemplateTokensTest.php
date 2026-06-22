@@ -205,9 +205,11 @@ class TemplateTokensTest extends TestCase {
         };
         $map = $tokens->map( $this->stub_document() );
 
-        // Primary span, then a <br>, then the secondary span — in that order.
+        // Primary span, then a <br>, then the secondary span — in that order. The
+        // secondary carries an inline grey colour because mPDF only colours a span
+        // via inheritance/inline, never via the .order-details th descendant rule.
         $this->assertStringContainsString(
-            '<span class="woi-lbl-primary">Total</span><br><span class="woi-lbl-secondary" dir="rtl">المبلغ</span>',
+            '<span class="woi-lbl-primary">Total</span><br><span class="woi-lbl-secondary" style="color:#8A8378" dir="rtl">المبلغ</span>',
             $map['{{line_items}}']
         );
         // A header with no secondary must NOT emit a stray <br>.
@@ -228,19 +230,54 @@ class TemplateTokensTest extends TestCase {
                 return array(
                     array( 'class' => 'total grand-total', 'label' => 'Total', 'value' => 'AED 10', 'secondary' => 'المجموع' ),
                     array( 'class' => 'subtotal', 'label' => 'Subtotal', 'value' => 'AED 8' ),
+                    array( 'class' => 'vat', 'label' => 'VAT', 'value' => 'AED 2', 'secondary' => 'ضريبة' ),
                 );
             }
         };
         $map = $tokens->map( $this->stub_document() );
 
-        // Primary span, then <br>, then secondary span.
+        // Grand-total: primary, <br>, then secondary with NO inline colour — its <th>
+        // carries the accent colour, which the secondary should inherit.
         $this->assertStringContainsString(
             '<span class="woi-lbl-primary">Total</span><br><span class="woi-lbl-secondary" dir="rtl">المجموع</span>',
+            $map['{{totals}}']
+        );
+        // A non-grand-total row's secondary gets the inline grey (mPDF won't apply the
+        // descendant colour rule, so it is set inline to match the browser preview).
+        $this->assertStringContainsString(
+            '<span class="woi-lbl-primary">VAT</span><br><span class="woi-lbl-secondary" style="color:#8A8378" dir="rtl">ضريبة</span>',
             $map['{{totals}}']
         );
         // No-secondary row renders its primary label and no stray <br>.
         $this->assertStringContainsString( '<span class="woi-lbl-primary">Subtotal</span></span>', $map['{{totals}}'] );
         $this->assertStringNotContainsString( '<span class="woi-lbl-primary">Subtotal</span><br>', $map['{{totals}}'] );
+    }
+
+    /**
+     * mPDF ignores the `td.thumbnail img` CSS width rule and sizes the image from
+     * its width/height attributes (90px), making PDF rows far taller than the
+     * browser preview. The renderer must strip those attributes and set the size
+     * inline (the only image-width lever mPDF honours).
+     */
+    public function test_thumbnail_image_is_inline_sized_and_attributes_stripped(): void {
+        $tokens = new class extends TemplateTokens {
+            protected function fetch_table_headers( $d ): array { return array(); }
+            protected function fetch_table_body( $d ): array {
+                return array(
+                    array(
+                        array( 'class' => 'thumbnail', 'data' => '<img width="90" height="90" src="data:image/png;base64,AAAA" alt="x">' ),
+                        array( 'class' => 'description', 'data' => 'Widget' ),
+                    ),
+                );
+            }
+            protected function fetch_totals( $d ): array { return array(); }
+        };
+        $map = $tokens->map( $this->stub_document() );
+
+        // Inline width applied, px attributes removed (so mPDF honours 13mm).
+        $this->assertStringContainsString( 'style="width:13mm;height:auto"', $map['{{line_items}}'] );
+        $this->assertStringNotContainsString( 'width="90"', $map['{{line_items}}'] );
+        $this->assertStringNotContainsString( 'height="90"', $map['{{line_items}}'] );
     }
 
     /**
