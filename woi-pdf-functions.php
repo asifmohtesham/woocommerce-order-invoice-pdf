@@ -3096,7 +3096,7 @@ if ( ! function_exists( 'woi_pdf_visual_doc_options' ) ) {
 		// isn't available where these options are resolved (the wrapper).
 		$defaults = array(
 			'accent'  => 'navy',          // navy | red | mono
-			'header'  => 'center',        // center | left
+			'header'  => 'center',        // left | center | right (logo position)
 			'density' => 'comfortable',   // comfortable | compact
 			'arabic'  => 'on',            // on | off
 			'thumbs'  => 'on',            // on | off
@@ -3121,7 +3121,7 @@ if ( ! function_exists( 'woi_pdf_visual_doc_options' ) ) {
 		// Whitelist values so a stray option can never inject markup.
 		$allowed = array(
 			'accent'  => array( 'navy', 'red', 'mono' ),
-			'header'  => array( 'center', 'left' ),
+			'header'  => array( 'left', 'center', 'right' ),
 			'density' => array( 'comfortable', 'compact' ),
 			'arabic'  => array( 'on', 'off' ),
 			'thumbs'  => array( 'on', 'off' ),
@@ -3207,6 +3207,92 @@ if ( ! function_exists( 'woi_pdf_contact_items' ) ) {
 	 */
 	function woi_pdf_contact_items() {
 		return woi_pdf_sanitize_contact_items( get_option( 'woi_pdf_contact_items', array() ) );
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_default_letterhead' ) ) {
+	/**
+	 * Default letterhead config — reproduces the historical render: all elements
+	 * visible, EN block left, AR block right, logo centred (position lives in the
+	 * `header` doc-option), no width override, EN before AR.
+	 *
+	 * @return array<string,mixed>
+	 */
+	function woi_pdf_default_letterhead() {
+		return array(
+			'swapText'  => false,
+			'logoWidth' => 0,
+			'elements'  => array(
+				'name_en'    => array( 'visible' => true, 'align' => 'left',  'bold' => true,  'fontSize' => 0, 'color' => '' ),
+				'address_en' => array( 'visible' => true, 'align' => 'left',  'bold' => false, 'fontSize' => 0, 'color' => '' ),
+				'name_ar'    => array( 'visible' => true, 'align' => 'right', 'bold' => true,  'fontSize' => 0, 'color' => '' ),
+				'address_ar' => array( 'visible' => true, 'align' => 'right', 'bold' => false, 'fontSize' => 0, 'color' => '' ),
+				'logo'       => array( 'visible' => true ),
+			),
+		);
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_sanitize_letterhead' ) ) {
+	/**
+	 * Normalise a raw letterhead config (editor POST or stored option) into
+	 * trusted shape. Unknown element keys dropped; text elements get whitelisted
+	 * align / boolean flags / clamped px size / hex colour; logo keeps `visible`
+	 * only. swapText bool; logoWidth int clamped 0–120 (mm). Missing pieces fall
+	 * back to the default. Single source of truth for save and read.
+	 *
+	 * @param mixed $raw
+	 * @return array<string,mixed>
+	 */
+	function woi_pdf_sanitize_letterhead( $raw ) {
+		$default = woi_pdf_default_letterhead();
+		if ( ! is_array( $raw ) ) {
+			return $default;
+		}
+		$allowed_align = array( 'left', 'center', 'right' );
+		$text_keys     = array( 'name_en', 'address_en', 'name_ar', 'address_ar' );
+
+		$raw_els = isset( $raw['elements'] ) && is_array( $raw['elements'] ) ? $raw['elements'] : array();
+		$els     = array();
+		foreach ( $text_keys as $k ) {
+			$d   = $default['elements'][ $k ];
+			$src = isset( $raw_els[ $k ] ) && is_array( $raw_els[ $k ] ) ? $raw_els[ $k ] : array();
+			$size = isset( $src['fontSize'] ) ? (int) $src['fontSize'] : 0;
+			$size = max( 0, min( 48, $size ) );
+			$els[ $k ] = array(
+				'visible'  => isset( $src['visible'] ) ? (bool) filter_var( $src['visible'], FILTER_VALIDATE_BOOLEAN ) : true,
+				'align'    => ( isset( $src['align'] ) && in_array( $src['align'], $allowed_align, true ) ) ? $src['align'] : $d['align'],
+				'bold'     => isset( $src['bold'] ) ? (bool) filter_var( $src['bold'], FILTER_VALIDATE_BOOLEAN ) : $d['bold'],
+				'fontSize' => $size,
+				'color'    => ( isset( $src['color'] ) && preg_match( '/^#[0-9a-fA-F]{3,6}$/', (string) $src['color'] ) ) ? (string) $src['color'] : '',
+			);
+		}
+		$logo_src = isset( $raw_els['logo'] ) && is_array( $raw_els['logo'] ) ? $raw_els['logo'] : array();
+		$els['logo'] = array(
+			'visible' => isset( $logo_src['visible'] ) ? (bool) filter_var( $logo_src['visible'], FILTER_VALIDATE_BOOLEAN ) : true,
+		);
+
+		$width = isset( $raw['logoWidth'] ) ? (int) $raw['logoWidth'] : 0;
+		$width = max( 0, min( 120, $width ) );
+
+		return array(
+			'swapText'  => isset( $raw['swapText'] ) ? (bool) filter_var( $raw['swapText'], FILTER_VALIDATE_BOOLEAN ) : false,
+			'logoWidth' => $width,
+			'elements'  => $els,
+		);
+	}
+}
+
+if ( ! function_exists( 'woi_pdf_letterhead' ) ) {
+	/**
+	 * The configured letterhead layout, read from the `woi_pdf_letterhead` option
+	 * and normalised. Logo POSITION is NOT here — it is the shared `header`
+	 * doc-option (woi_pdf_visual_doc_options). Defaults to the historical layout.
+	 *
+	 * @return array<string,mixed>
+	 */
+	function woi_pdf_letterhead() {
+		return woi_pdf_sanitize_letterhead( get_option( 'woi_pdf_letterhead', array() ) );
 	}
 }
 
