@@ -15,7 +15,8 @@
 - Doc-options follow the existing `borders`/`stripes` on/off pattern (string `'on'`/`'off'`, whitelisted in `woi_pdf_visual_doc_options()`).
 - The running-element assignment must use `@page { header: woiHeader }` (the all-pages method), not `<sethtmlpageheader>` (current-page-forward only).
 - Bump `WOI_PDF_VERSION` (plugin header `Version:`) as the shared asset cache-bust key. Current released version: **1.5.58** → bump to **1.5.59**.
-- Run the PHP test suite with: `vendor/bin/phpunit --filter <TestName>` from the repo root.
+- Run the PHP test suite with the prepend flag (REQUIRED — without it `woi-pdf-functions.php` does not load and its functions error as undefined): `php -d auto_prepend_file=tests/bootstrap.php vendor/bin/phpunit --filter <TestName>` from the repo root.
+- **Test baseline (with the prepend flag):** 232 tests, **1 pre-existing error** (`EditorConfigSanitizerTest::test_number_is_clamped_to_min_max`) and **1 pre-existing failure** (`TemplateTokensTest::test_line_item_headers_break_between_primary_and_secondary`), 1 skipped — all unrelated to this work. The per-task gate is **no NEW errors/failures beyond this baseline**; your new tests must pass.
 
 ---
 
@@ -89,7 +90,7 @@ class VisualDocOptionsTest extends TestCase {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `vendor/bin/phpunit --filter VisualDocOptionsTest`
+Run: `php -d auto_prepend_file=tests/bootstrap.php vendor/bin/phpunit --filter VisualDocOptionsTest`
 Expected: FAIL — `test_repeat_letterhead_defaults_off` fails with "Undefined array key 'repeat_letterhead'" (key not yet in defaults).
 
 - [ ] **Step 3: Add the option to defaults and whitelist**
@@ -110,7 +111,7 @@ And in the `$allowed` array (after the `'stripes' => array( 'on', 'off' ),` line
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `vendor/bin/phpunit --filter VisualDocOptionsTest`
+Run: `php -d auto_prepend_file=tests/bootstrap.php vendor/bin/phpunit --filter VisualDocOptionsTest`
 Expected: PASS (3 tests).
 
 - [ ] **Step 5: Commit**
@@ -151,7 +152,7 @@ Add to `tests/Unit/Visual/VisualOptionsCssTest.php` (after `test_borders_and_str
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `vendor/bin/phpunit --filter VisualOptionsCssTest`
+Run: `php -d auto_prepend_file=tests/bootstrap.php vendor/bin/phpunit --filter VisualOptionsCssTest`
 Expected: FAIL — `test_repeat_letterhead_on_emits_page_header_rule` fails (string not found).
 
 - [ ] **Step 3: Emit the rule**
@@ -170,7 +171,7 @@ In `woi-pdf-functions.php`, in `woi_pdf_visual_options_css()`, immediately befor
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `vendor/bin/phpunit --filter VisualOptionsCssTest`
+Run: `php -d auto_prepend_file=tests/bootstrap.php vendor/bin/phpunit --filter VisualOptionsCssTest`
 Expected: PASS (5 tests).
 
 - [ ] **Step 5: Commit**
@@ -237,7 +238,7 @@ Add to `tests/Unit/Visual/TemplateTokensTest.php` (before the final closing brac
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `vendor/bin/phpunit --filter TemplateTokensTest`
+Run: `php -d auto_prepend_file=tests/bootstrap.php vendor/bin/phpunit --filter TemplateTokensTest`
 Expected: FAIL — `test_letterhead_token_empty_when_repeat_on` fails (token still contains the table) and `test_running_header_wraps_letterhead` fails ("Call to undefined method … running_header()").
 
 - [ ] **Step 3: Add the seam + running header, and gate the token**
@@ -284,7 +285,7 @@ Then add these two methods immediately after `section_letterhead()` (after its c
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `vendor/bin/phpunit --filter TemplateTokensTest`
+Run: `php -d auto_prepend_file=tests/bootstrap.php vendor/bin/phpunit --filter TemplateTokensTest`
 Expected: PASS (all tests, including the 3 new ones — pre-existing letterhead test still passes because the default seam resolves to off under the test's `get_option` stub).
 
 - [ ] **Step 5: Commit**
@@ -472,7 +473,7 @@ Expected: no remaining matches (confirm there is no other hardcoded occurrence t
 
 - [ ] **Step 6: Run the full visual test suite**
 
-Run: `vendor/bin/phpunit --filter Visual`
+Run: `php -d auto_prepend_file=tests/bootstrap.php vendor/bin/phpunit --filter Visual`
 Expected: VisualDocOptionsTest, VisualOptionsCssTest, TemplateTokensTest all PASS (no new failures vs. the pre-existing baseline).
 
 - [ ] **Step 7: Commit**
