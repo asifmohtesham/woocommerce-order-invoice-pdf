@@ -3073,7 +3073,10 @@ if ( ! function_exists( 'woi_pdf_visual_doc_options' ) ) {
 			'repeat_letterhead' => 'off', // on | off — repeat letterhead on every page
 		);
 
-		$original_defaults = $defaults; // Keep original defaults for validation fallback
+		// Snapshot the hardcoded defaults BEFORE merging saved values, so the
+		// whitelist below rejects an invalid SAVED value back to the true default
+		// (not to the merged saved value, which would let junk leak through).
+		$original_defaults = $defaults;
 
 		$saved = get_option( 'woi_pdf_visual_doc_options', array() );
 		if ( is_array( $saved ) ) {

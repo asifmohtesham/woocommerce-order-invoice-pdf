@@ -37,4 +37,9 @@ class VisualDocOptionsTest extends TestCase {
         Functions\when( 'get_option' )->justReturn( array( 'repeat_letterhead' => 'maybe' ) );
         $this->assertSame( 'off', woi_pdf_visual_doc_options( 'invoice' )['repeat_letterhead'] );
     }
+
+    public function test_invalid_saved_value_for_existing_option_falls_back_to_default(): void {
+        Functions\when( 'get_option' )->justReturn( array( 'borders' => 'garbage' ) );
+        $this->assertSame( 'off', woi_pdf_visual_doc_options( 'invoice' )['borders'] );
+    }
 }
