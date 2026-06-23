@@ -44,4 +44,22 @@ class UomColumnTest extends TestCase {
 		$this->assertSame( 'UOM', $header['title'], 'default uom header title' );
 		$this->assertStringContainsString( 'uom', $header['class'], 'uom header carries the uom css class' );
 	}
+
+	public function test_cell_defaults_to_nos(): void {
+		$editor = new EditorMain();
+		$column = $editor->get_order_details_data( array( 'type' => 'uom' ), array(), null );
+
+		$this->assertSame( 'Nos', $column['data'], 'uom cell defaults to Nos when unit is unset' );
+	}
+
+	public function test_cell_uses_configured_unit(): void {
+		$editor = new EditorMain();
+		$column = $editor->get_order_details_data(
+			array( 'type' => 'uom', 'unit' => 'PCS' ),
+			array(),
+			null
+		);
+
+		$this->assertSame( 'PCS', $column['data'], 'uom cell echoes the configured unit verbatim' );
+	}
 }

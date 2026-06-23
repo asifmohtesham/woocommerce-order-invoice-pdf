@@ -972,6 +972,9 @@ class EditorMain {
 						$column['class'] = "{$type} multiple";
 					}
 					break;
+				case 'uom':
+					$column['data'] = ! empty( $unit ) ? $unit : 'Nos';
+					break;
 				case 'price':
 					// $price_type, $tax, $discount
 					// using a combined value to make this more readable...
