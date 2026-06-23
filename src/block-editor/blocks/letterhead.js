@@ -8,7 +8,7 @@ import { STORE } from '../previewStore';
 import { tokenValue, isHtmlToken } from '../tokenMerge';
 import { appearanceProps } from '../appearance';
 import { saveLetterhead, saveDocOptions } from '../store';
-import { LH_TEXT_FIELDS, LH_DEFAULT, lhValueStyle } from './letterheadModel';
+import { LH_TEXT_FIELDS, LH_DEFAULT, lhValueStyle, lhFieldClass } from './letterheadModel';
 
 const COLORS = [
 	{ name: __( 'Ink', 'woocommerce-orders-invoice-pdf' ), color: '#1C1A17' },
@@ -60,6 +60,10 @@ export function LetterheadEdit() {
 					// edit. Plain-text fields (names) render as text.
 					const val = tokenValue( f.token, tokens );
 					const elProps = {
+						// woi-co-name / woi-co-lines so the shared accent + document CSS
+						// (injected into the canvas iframe) colour/size the name and
+						// address exactly as the PDF does — see lhFieldClass().
+						className: lhFieldClass( f.key ),
 						onClick: () => setSelected( f.key ),
 						style: { textAlign: el.align || ( side === 'ar' ? 'right' : 'left' ), outline: selected === f.key ? '1px solid #007cba' : 'none', cursor: 'pointer', padding: '1px 3px', ...lhValueStyle( el ) },
 					};

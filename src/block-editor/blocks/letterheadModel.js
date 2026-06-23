@@ -24,6 +24,16 @@ export const LH_DEFAULT = {
 	},
 };
 
+// PDF-parity class for a text element: the company name carries `woi-co-name`,
+// address lines carry `woi-co-lines` — the same classes the PDF emits
+// (TemplateTokens::letterhead_text_cell). Keying on these lets the shared accent
+// (optionsCss) + document CSS colour/size the name identically in editor and PDF;
+// without the class an unset colour rendered black in the editor but accent in
+// the PDF. Field keys are `name_*` / `address_*` (see LH_TEXT_FIELDS).
+export function lhFieldClass( key ) {
+	return String( key ).startsWith( 'name' ) ? 'woi-co-name' : 'woi-co-lines';
+}
+
 // React inline-style object for a text element (set properties only).
 export function lhValueStyle( el ) {
 	const s = {};
