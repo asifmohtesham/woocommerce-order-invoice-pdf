@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from '@wordpress/element';
 import { Button, SelectControl, TextControl, TextareaControl, Spinner } from '@wordpress/components';
 import { useDispatch } from '@wordpress/data';
-import { chevronUp, chevronDown, trash } from '@wordpress/icons';
+import { chevronUp, chevronDown, chevronRight, trash } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 import { STORE } from './previewStore';
 import { getEditorConfig, saveEditorConfig } from './store';
 import { setTextAlign, getTextAlign, renderableOptions } from './optionSchema';
 import OptionField from './OptionField';
+import * as collapse from './collapseState';
 
 const ALIGN_OPTS = [
 	{ label: __( 'Default', 'woocommerce-orders-invoice-pdf' ), value: '' },
@@ -24,13 +25,18 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 	const [ columns, setColumns ] = useState( null );
 	const [ schema, setSchema ] = useState( {} );
 	const [ secondaryDefaults, setSecondaryDefaults ] = useState( {} );
+	// Ephemeral UI state: Set of collapsed column indices. Seeded all-collapsed
+	// once columns load; never persisted (resets on reload).
+	const [ collapsed, setCollapsed ] = useState( new Set() );
 	const debounceRef = useRef( null );
 	const { setLoading } = useDispatch( STORE );
 
 	useEffect( () => {
 		getEditorConfig()
 			.then( ( r ) => {
-				setColumns( Array.isArray( r.columns?.values ) ? r.columns.values : [] );
+				const values = Array.isArray( r.columns?.values ) ? r.columns.values : [];
+				setColumns( values );
+				setCollapsed( collapse.allCollapsed( values.length ) );
 				setSchema( r.columns?.schema || {} );
 				setSecondaryDefaults( r.columns?.secondary_defaults || {} );
 			} )
@@ -72,6 +78,7 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 		if ( j < 0 || j >= columns.length ) { return; }
 		const n = columns.slice();
 		const tmp = n[ i ]; n[ i ] = n[ j ]; n[ j ] = tmp;
+		setCollapsed( collapse.move( collapsed, i, j ) );
 		update( n );
 	};
 	const setKey = ( i, k, v, instant ) => {
@@ -83,8 +90,16 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 			( idx === i ? { ...c, style: setTextAlign( c.style || '', align ), style_target: c.style_target || 'both' } : c ) );
 		editField( next, true );
 	};
-	const remove = ( i ) => update( columns.filter( ( _, idx ) => idx !== i ) );
-	const add = ( t ) => { if ( t ) { update( [ ...columns, { type: t } ] ); } };
+	const remove = ( i ) => {
+		setCollapsed( collapse.remove( collapsed, i ) );
+		update( columns.filter( ( _, idx ) => idx !== i ) );
+	};
+	// Appended column renders expanded (collapse set unchanged) so the user can
+	// edit the one they just added.
+	const add = ( t ) => { if ( t ) { setCollapsed( collapse.add( collapsed ) ); update( [ ...columns, { type: t } ] ); } };
+	const toggleCollapse = ( i ) => setCollapsed( collapse.toggle( collapsed, i ) );
+	const allCollapsed = collapse.isAllCollapsed( collapsed, columns.length );
+	const toggleAll = () => setCollapsed( allCollapsed ? new Set() : collapse.allCollapsed( columns.length ) );
 
 	const hasOption = ( type, key ) => !! ( schema[ type ] && schema[ type ].options && schema[ type ].options[ key ] );
 
@@ -104,18 +119,42 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 
 	return (
 		<div className="woi-col-editor">
+			{ columns.length > 0 && (
+				<div className="woi-col-bulk">
+					<Button variant="tertiary" onClick={ toggleAll }>
+						{ allCollapsed
+							? __( 'Expand all', 'woocommerce-orders-invoice-pdf' )
+							: __( 'Collapse all', 'woocommerce-orders-invoice-pdf' ) }
+					</Button>
+				</div>
+			) }
 			{ columns.map( ( c, i ) => {
 				const opts = renderableOptions( schema[ c.type ], { exclude: [ 'label', 'label_ar', 'width', 'style', 'style_target' ] } );
+				const isCollapsed = collapsed.has( i );
 				return (
 					<div className="woi-col-row" key={ i }>
 						<div className="woi-col-head">
-							<span className="woi-col-type">{ typeTitle( c.type ) }</span>
+							<Button
+								className="woi-col-toggle"
+								icon={ isCollapsed ? chevronRight : chevronDown }
+								label={ isCollapsed ? __( 'Expand column', 'woocommerce-orders-invoice-pdf' ) : __( 'Collapse column', 'woocommerce-orders-invoice-pdf' ) }
+								onClick={ () => toggleCollapse( i ) }
+							/>
+							<button
+								type="button"
+								className="woi-col-type"
+								aria-expanded={ ! isCollapsed }
+								onClick={ () => toggleCollapse( i ) }
+							>
+								{ typeTitle( c.type ) }
+							</button>
 							<span className="woi-col-actions">
 								<Button icon={ chevronUp } label={ __( 'Move up', 'woocommerce-orders-invoice-pdf' ) } onClick={ () => move( i, -1 ) } disabled={ 0 === i } />
 								<Button icon={ chevronDown } label={ __( 'Move down', 'woocommerce-orders-invoice-pdf' ) } onClick={ () => move( i, 1 ) } disabled={ i === columns.length - 1 } />
 								<Button icon={ trash } label={ __( 'Remove', 'woocommerce-orders-invoice-pdf' ) } onClick={ () => remove( i ) } isDestructive />
 							</span>
 						</div>
+						{ ! isCollapsed && <>
 						{ hasOption( c.type, 'label' ) && (
 							<TextControl
 								label={ __( 'Title', 'woocommerce-orders-invoice-pdf' ) }
@@ -186,6 +225,7 @@ export default function ColumnEditor( { onTokens, onSaved, onLiveEdit, orderId }
 								__nextHasNoMarginBottom
 							/>
 						) }
+						</> }
 					</div>
 				);
 			} ) }
