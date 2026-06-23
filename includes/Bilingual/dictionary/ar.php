@@ -17,6 +17,7 @@ return array(
 	'sku'               => 'رقم القطعة',
 	'description'       => 'البيان الصنف',
 	'quantity'          => 'الكمية',
+	'uom'               => 'الوحدة',
 	'price'             => 'المبلغ',
 	'tax_rate'          => 'معدل الضريبة %',
 	'weight'            => 'الوزن',

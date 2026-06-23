@@ -168,6 +168,7 @@ class BilingualEngine {
 			'sku'               => __( 'SKU', 'woocommerce-orders-invoice-pdf' ),
 			'description'       => __( 'Description', 'woocommerce-orders-invoice-pdf' ),
 			'quantity'          => __( 'Quantity', 'woocommerce-orders-invoice-pdf' ),
+			'uom'               => __( 'Unit of measure', 'woocommerce-orders-invoice-pdf' ),
 			'price'             => __( 'Price', 'woocommerce-orders-invoice-pdf' ),
 			'tax_rate'          => __( 'Tax rate', 'woocommerce-orders-invoice-pdf' ),
 			'weight'            => __( 'Weight', 'woocommerce-orders-invoice-pdf' ),

@@ -48,6 +48,11 @@ class BilingualEngineTest extends TestCase {
 		$this->assertSame( 'رقم الفاتورة', BilingualEngine::instance()->secondary_label( 'document_number', $doc ) );
 	}
 
+	public function test_uom_has_arabic_dictionary_default(): void {
+		$doc = $this->doc( array() );
+		$this->assertSame( 'الوحدة', BilingualEngine::instance()->secondary_label( 'uom', $doc ) );
+	}
+
 	public function test_user_override_wins_over_dictionary(): void {
 		$doc = $this->doc( array( 'second_language_labels' => array( 'document_number' => 'CUSTOM AR' ) ) );
 		$this->assertSame( 'CUSTOM AR', BilingualEngine::instance()->secondary_label( 'document_number', $doc ) );
