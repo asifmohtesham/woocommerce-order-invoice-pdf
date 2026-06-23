@@ -608,6 +608,36 @@ class EditorSettings {
 					),
 				),
 			),
+			'uom' => array (
+				'title'   => __( 'UOM (unit of measure)', 'woi_pdf_templates' ),
+				'options' => array (
+					'label' => array(
+						'type'        => 'text',
+						'description' => __( 'Label', 'woi_pdf_templates' ),
+						'placeholder' => __( 'Use default', 'woi_pdf_templates' ),
+					),
+					'unit' => array(
+						'type'        => 'text',
+						'description' => __( 'Unit', 'woi_pdf_templates' ),
+						'placeholder' => 'Nos',
+					),
+					'separator' => array(
+						'type' => '',
+					),
+					'style' => array(
+						'type'        => 'text',
+						'description' => __( 'Style', 'woi_pdf_templates' ),
+					),
+					'style_target' => array(
+						'type'    => 'select',
+						'options' => array(
+							'both'   => __( 'Apply style to entire column', 'woi_pdf_templates' ),
+							'header' => __( 'Apply style to column header', 'woi_pdf_templates' ),
+							'cells'  => __( 'Apply style to column cells', 'woi_pdf_templates' ),
+						),
+					),
+				),
+			),
 			'all_meta' => array (
 				'title'   => __( 'Variation / item meta', 'woi_pdf_templates' ),
 				'options' => array (
