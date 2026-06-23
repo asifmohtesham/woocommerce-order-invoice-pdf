@@ -7,7 +7,7 @@
 ## Goal
 
 Add a **UOM (Unit of Measure)** column to the invoice line-items table. The unit
-is a **fixed, configurable string** (default `PCS`) shown identically on every
+is a **fixed, configurable string** (default `Nos`, the common UAE unit) shown identically on every
 line. It is added per-template via the existing column editor, so the Tax
 Invoice can show it while other documents need not.
 
@@ -66,7 +66,7 @@ Register a `'uom'` block, cloned from `'quantity'`, with one extra option `unit`
         'unit' => array(
             'type'        => 'text',
             'description' => __( 'Unit', 'woi_pdf_templates' ),
-            'placeholder' => 'PCS',
+            'placeholder' => 'Nos',
         ),
         'separator' => array( 'type' => '' ),
         'style' => array(
@@ -105,7 +105,7 @@ Add a `case 'uom':` to the data `switch` (after `quantity`, ~line 971):
 
 ```php
 case 'uom':
-    $column['data'] = ! empty( $unit ) ? $unit : 'PCS';
+    $column['data'] = ! empty( $unit ) ? $unit : 'Nos';
     break;
 ```
 
@@ -117,10 +117,10 @@ render on rows without `$item['item']`.
 
 ```
 ColumnEditor.js (reads schema via REST /editor-config)
-   └─ user adds "UOM" column, sets Unit = "PCS", width, Arabic header
+   └─ user adds "UOM" column, sets Unit (default "Nos"), width, Arabic header
         └─ saved column settings (incl. type='uom', unit='PCS')
              └─ render: get_order_details_header()  → <th>UOM</th>
-                        get_order_details_data()    → <td><span>PCS</span></td>
+                        get_order_details_data()    → <td><span>Nos</span></td>
                           via TemplateTokens::render_line_items() → mPDF
 ```
 
@@ -132,8 +132,8 @@ PHPUnit (run with `-d auto_prepend_file=tests/bootstrap.php`):
    `title === 'UOM'` and `class` contains `uom`.
 2. **Header label override:** with `label => 'Unit'`, title is `Unit`.
 3. **Cell default:** `get_order_details_data(['type'=>'uom'], $item, $doc)`
-   returns `data === 'PCS'` when `unit` is empty/unset.
-4. **Cell configured:** with `unit => 'NOS'`, `data === 'NOS'`.
+   returns `data === 'Nos'` when `unit` is empty/unset.
+4. **Cell configured:** with `unit => 'PCS'`, `data === 'PCS'`.
 5. **Schema presence:** `get_columns_field_options()` contains a `uom` key whose
    `options` include `unit`, and (post-foreach) `width` + `label_ar`.
 
