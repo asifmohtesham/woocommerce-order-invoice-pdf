@@ -182,14 +182,15 @@ table.order-details { width: 100%; table-layout: fixed; margin-top: 3mm; margin-
 /* Column widths. Thumbnail is an ABSOLUTE width — mPDF ignores a % width here
    and collapses the column, letting the fixed-width image overflow the next
    cell. ~15mm column / 13mm image keeps it contained (the existing fix). */
-.order-details .position { width: 5%; color: #8A8378; }
+.order-details .position { width: 5%; }
+.order-details td.position { color: #8A8378; }
 .order-details th.thumbnail, .order-details td.thumbnail { width: 15mm; }
 .order-details .quantity, .order-details .weight { width: 8%; }
 .order-details .sku, .order-details .price, .order-details .regular_price,
 .order-details .vat, .order-details .discount, .order-details .tax_rate,
 .order-details .total { width: 10%; }
 .order-details .vat-split { width: 12%; }
-.order-details .tax_rate, .order-details td.tax_rate { color: #8A8378; }
+.order-details td.tax_rate { color: #8A8378; }
 .order-details td.total { font-weight: bold; }
 
 /* display:block stacks multiple gallery images vertically (centred) so they
