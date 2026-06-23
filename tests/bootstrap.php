@@ -2,6 +2,16 @@
 define( 'ABSPATH', dirname( __DIR__ ) . '/' );
 require_once dirname( __DIR__ ) . '/vendor/autoload.php';
 require_once dirname( __DIR__ ) . '/vendor/strauss/autoload.php';
+
+// Minimal stub for WOI_PDF() to allow functions-file to load in tests
+if ( ! function_exists( 'WOI_PDF' ) ) {
+	function WOI_PDF() {
+		return new class {
+			public $settings = null;
+		};
+	}
+}
+
 require_once dirname( __DIR__ ) . '/woi-pdf-functions.php';
 
 // Brain Monkey needs no WP install — stubs are provided per test via Monkey\setUp()

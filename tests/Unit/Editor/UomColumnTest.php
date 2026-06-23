@@ -36,4 +36,12 @@ class UomColumnTest extends TestCase {
 		$this->assertArrayHasKey( 'width', $schema['uom']['options'], 'width is auto-added to every block' );
 		$this->assertArrayHasKey( 'label_ar', $schema['uom']['options'], 'Arabic header is auto-added to every block' );
 	}
+
+	public function test_header_default_title_and_class(): void {
+		$editor = new EditorMain();
+		$header = $editor->get_order_details_header( array( 'type' => 'uom' ), null );
+
+		$this->assertSame( 'UOM', $header['title'], 'default uom header title' );
+		$this->assertStringContainsString( 'uom', $header['class'], 'uom header carries the uom css class' );
+	}
 }

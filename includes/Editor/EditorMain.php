@@ -767,6 +767,9 @@ class EditorMain {
 				case 'quantity':
 					$header['title'] = __( 'Quantity', 'woi_pdf_templates' );
 					break;
+				case 'uom':
+					$header['title'] = __( 'UOM', 'woi_pdf_templates' );
+					break;
 				case 'price':
 					switch ( $price_type ) {
 						case 'single':
