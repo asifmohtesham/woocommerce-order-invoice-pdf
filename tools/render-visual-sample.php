@@ -27,6 +27,7 @@ $thumbs  = $argv[5] ?? 'on';
 $borders = $argv[6] ?? 'off';
 $stripes = $argv[7] ?? 'off';
 $repeat  = $argv[8] ?? 'off';   // on|off — repeat letterhead on every page
+$row_color = $argv[9] ?? '';    // '' | #hex — custom line-item text colour
 
 $css_path = dirname( __DIR__ ) . '/templates/_visual/visual-document.css';
 $css = file_get_contents( $css_path );
@@ -37,7 +38,7 @@ if ( function_exists( 'woi_pdf_visual_options_css' ) ) {
         'accent' => $accent, 'header' => $header, 'density' => $density,
         'arabic' => $arabic, 'thumbs' => $thumbs, 'font' => 'grotesque',
         'borders' => $borders, 'stripes' => $stripes,
-        'repeat_letterhead' => $repeat,
+        'repeat_letterhead' => $repeat, 'row_color' => $row_color,
     ) );
 }
 

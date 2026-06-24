@@ -3104,6 +3104,7 @@ if ( ! function_exists( 'woi_pdf_visual_doc_options' ) ) {
 			'borders' => 'off',           // on | off — line-item column gridlines
 			'stripes' => 'off',           // on | off — striped (zebra) row colour
 			'repeat_letterhead' => 'off', // on | off — repeat letterhead on every page
+			'row_color' => '',            // '' | #hex — custom text colour for all line-item body rows
 		);
 
 		// Snapshot the hardcoded defaults BEFORE merging saved values, so the
@@ -3135,6 +3136,14 @@ if ( ! function_exists( 'woi_pdf_visual_doc_options' ) ) {
 				$options[ $key ] = $original_defaults[ $key ];
 			}
 		}
+
+		// `row_color` is a free-form colour, not an enum: accept only a #rgb / #rrggbb
+		// hex (so it can never inject markup into the emitted CSS), else reset to ''.
+		if ( ! isset( $options['row_color'] ) || ! is_string( $options['row_color'] )
+			|| ! preg_match( '/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $options['row_color'] ) ) {
+			$options['row_color'] = '';
+		}
+
 		return $options;
 	}
 }
@@ -3352,6 +3361,18 @@ if ( ! function_exists( 'woi_pdf_visual_options_css' ) ) {
 		// --- Striped rows: zebra background on alternating line items ---
 		if ( 'on' === ( $opts['stripes'] ?? 'off' ) ) {
 			$css[] = '.order-details tbody tr:nth-child(even) td{background-color:#F6F3EC}';
+		}
+
+		// --- Row colour: a custom text colour for ALL line-item body cells. Setting
+		// it on the td is enough — mPDF (and the browser) cascade the colour into the
+		// inner name/meta spans by inheritance; mPDF ignores a descendant colour rule
+		// on a span, so naming the span would be a no-op there anyway. The two
+		// muted-by-default columns set their own colour on the td (.order-details
+		// td.position / td.tax_rate, specificity 0,2,1), so we must out-specify them
+		// with a tbody-qualified selector (0,2,2). ---
+		$row_color = $opts['row_color'] ?? '';
+		if ( '' !== $row_color && preg_match( '/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $row_color ) ) {
+			$css[] = '.order-details tbody td,.order-details tbody td.position,.order-details tbody td.tax_rate{color:' . $row_color . '}';
 		}
 
 		// --- Repeat letterhead: assign the running page-header on every page and

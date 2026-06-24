@@ -54,4 +54,20 @@ class VisualOptionsCssTest extends TestCase {
         $css = woi_pdf_visual_options_css( $this->base() );
         $this->assertStringNotContainsString( 'woiHeader', $css );
     }
+
+    public function test_row_color_set_colours_body_cells_and_overrides_muted_columns(): void {
+        $css = woi_pdf_visual_options_css( array( 'row_color' => '#222222' ) + $this->base() );
+        // Generic body cells (inner name/meta spans inherit the colour) plus a
+        // higher-specificity override for the two muted-by-default columns.
+        $this->assertStringContainsString( '.order-details tbody td,', $css );
+        $this->assertStringContainsString( '.order-details tbody td.position', $css );
+        $this->assertStringContainsString( '.order-details tbody td.tax_rate', $css );
+        $this->assertStringContainsString( 'color:#222222', $css );
+    }
+
+    public function test_row_color_empty_emits_no_body_colour_rule(): void {
+        $css = woi_pdf_visual_options_css( $this->base() );
+        $this->assertStringNotContainsString( '.order-details tbody td.position', $css );
+        $this->assertStringNotContainsString( '.order-details tbody td.tax_rate{color', $css );
+    }
 }

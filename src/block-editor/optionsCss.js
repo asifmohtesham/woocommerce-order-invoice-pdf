@@ -60,5 +60,13 @@ export function optionsCss( opts ) {
 		css.push( '.order-details tbody tr:nth-child(even) td{background-color:#F6F3EC}' );
 	}
 
+	// Row colour — custom text colour for all line-item body cells. Setting it on
+	// the td cascades into the inner name/meta spans; the two muted-by-default
+	// columns (td.position / td.tax_rate) need a higher-specificity override. Only
+	// a #rgb / #rrggbb hex is honoured so the value can never inject markup.
+	if ( o.row_color && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test( o.row_color ) ) {
+		css.push( '.order-details tbody td,.order-details tbody td.position,.order-details tbody td.tax_rate{color:' + o.row_color + '}' );
+	}
+
 	return css.join( '\n' );
 }

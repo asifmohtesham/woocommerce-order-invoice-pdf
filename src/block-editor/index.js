@@ -16,6 +16,7 @@ import {
 	TabPanel,
 	SelectControl,
 	ToggleControl,
+	ColorPalette,
 } from '@wordpress/components';
 import { useSelect, useDispatch, select as dataSelect } from '@wordpress/data';
 import { InterfaceSkeleton } from '@wordpress/interface';
@@ -178,6 +179,7 @@ function Editor( { initial, activeSource } ) {
 		borders: 'off',
 		stripes: 'off',
 		repeat_letterhead: 'off',
+		row_color: '',
 	};
 	const [ docOptions, setDocOptions ] = useState( {
 		...DEFAULT_DOC_OPTIONS,
@@ -452,6 +454,21 @@ function Editor( { initial, activeSource } ) {
 								help={ __( 'Shows the letterhead at the top of every PDF page. The preview shows it once; the effect appears in the generated PDF.', 'woocommerce-orders-invoice-pdf' ) }
 								checked={ 'on' === docOptions.repeat_letterhead }
 								onChange={ ( v ) => onDocOption( 'repeat_letterhead', v ? 'on' : 'off' ) }
+								__nextHasNoMarginBottom
+							/>
+							<p className="woi-doc-colour-label">{ __( 'Line item text colour', 'woocommerce-orders-invoice-pdf' ) }</p>
+							<p className="woi-doc-colour-help">{ __( 'Applies one colour to every line-item row (overrides the default greyed Sr # and tax-rate columns). Clear to use the default styling.', 'woocommerce-orders-invoice-pdf' ) }</p>
+							<ColorPalette
+								value={ docOptions.row_color || '' }
+								colors={ [
+									{ name: __( 'Black', 'woocommerce-orders-invoice-pdf' ), color: '#1C1A17' },
+									{ name: __( 'Navy', 'woocommerce-orders-invoice-pdf' ), color: '#140858' },
+									{ name: __( 'Grey', 'woocommerce-orders-invoice-pdf' ), color: '#8A8378' },
+									{ name: __( 'Red', 'woocommerce-orders-invoice-pdf' ), color: '#9E0A0E' },
+								] }
+								onChange={ ( v ) => onDocOption( 'row_color', v || '' ) }
+								enableAlpha={ false }
+								clearable={ true }
 								__nextHasNoMarginBottom
 							/>
 						</div>

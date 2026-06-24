@@ -42,4 +42,24 @@ class VisualDocOptionsTest extends TestCase {
         Functions\when( 'get_option' )->justReturn( array( 'borders' => 'garbage' ) );
         $this->assertSame( 'off', woi_pdf_visual_doc_options( 'invoice' )['borders'] );
     }
+
+    public function test_row_color_defaults_empty(): void {
+        Functions\when( 'get_option' )->justReturn( array() );
+        $this->assertSame( '', woi_pdf_visual_doc_options( 'invoice' )['row_color'] );
+    }
+
+    public function test_row_color_accepts_valid_hex(): void {
+        Functions\when( 'get_option' )->justReturn( array( 'row_color' => '#1C1A17' ) );
+        $this->assertSame( '#1C1A17', woi_pdf_visual_doc_options( 'invoice' )['row_color'] );
+    }
+
+    public function test_row_color_accepts_shorthand_hex(): void {
+        Functions\when( 'get_option' )->justReturn( array( 'row_color' => '#abc' ) );
+        $this->assertSame( '#abc', woi_pdf_visual_doc_options( 'invoice' )['row_color'] );
+    }
+
+    public function test_row_color_rejects_non_hex(): void {
+        Functions\when( 'get_option' )->justReturn( array( 'row_color' => 'red; }body{x' ) );
+        $this->assertSame( '', woi_pdf_visual_doc_options( 'invoice' )['row_color'] );
+    }
 }
