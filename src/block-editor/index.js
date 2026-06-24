@@ -256,11 +256,9 @@ function Editor( { initial, activeSource } ) {
 	async function onDownloadPdf() {
 		setIsDownloading( true );
 		try {
-			await downloadPdf( {
-				blocks,
-				orderId,
-				filename: 'invoice' + ( orderId ? '-' + orderId : '' ) + '.pdf',
-			} );
+			// The server resolves the filename from the document's configured
+			// naming (override -> global -> default); don't hardcode it here.
+			await downloadPdf( { blocks, orderId } );
 		} catch ( e ) {
 			/* errors surface via the browser; keep the button responsive */
 		} finally {

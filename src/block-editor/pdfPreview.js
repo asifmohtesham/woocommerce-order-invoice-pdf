@@ -73,19 +73,24 @@ function fetchPdfBytes( blocks, orderId, noWatermark ) {
 			const binary = window.atob( res.data.preview_data );
 			const bytes = new Uint8Array( binary.length );
 			for ( let i = 0; i < binary.length; i++ ) { bytes[ i ] = binary.charCodeAt( i ); }
-			return bytes;
+			// The server resolves the filename from the document's get_filename()
+			// (per-type override -> global template -> default). Carry it back so
+			// the download honours the configured naming instead of a hardcode.
+			return { bytes, filename: ( res.data.filename || '' ) };
 		} );
 }
 
 // Generate the PDF and trigger a browser download. Returns a Promise that
 // resolves once the download has been kicked off (or rejects on failure).
+// `filename` (if passed) is only a last-resort fallback; the server-resolved
+// name wins.
 export function downloadPdf( { blocks, orderId, filename } ) {
-	return fetchPdfBytes( blocks, orderId, true ).then( ( bytes ) => {
+	return fetchPdfBytes( blocks, orderId, true ).then( ( { bytes, filename: serverFilename } ) => {
 		const blob = new Blob( [ bytes ], { type: 'application/pdf' } );
 		const url = URL.createObjectURL( blob );
 		const a = document.createElement( 'a' );
 		a.href = url;
-		a.download = filename || 'invoice.pdf';
+		a.download = serverFilename || filename || 'invoice.pdf';
 		document.body.appendChild( a );
 		a.click();
 		a.remove();

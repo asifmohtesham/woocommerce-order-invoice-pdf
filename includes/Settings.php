@@ -395,9 +395,16 @@ class Settings {
 							break;
 					}
 
+					// Resolve the download filename from the configured naming
+					// (per-type override -> global template -> default + tokens) so
+					// the Block-editor download honours it instead of a client-side
+					// hardcode. Same resolver the classic admin download uses.
+					$filename = $document->get_filename( 'download', array( 'output' => $output_format ) );
+
 					wp_send_json_success( array(
 						'preview_data'  => $preview_data,
 						'output_format' => $output_format,
+						'filename'      => $filename,
 					) );
 				} else {
 					wp_send_json_error(
