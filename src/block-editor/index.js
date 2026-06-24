@@ -1,4 +1,4 @@
-import { createRoot, useReducer, useState, useEffect, useCallback } from '@wordpress/element';
+import { createRoot, useReducer, useState, useEffect, useCallback, useRef } from '@wordpress/element';
 import {
 	BlockTools,
 	BlockEditorProvider,
@@ -100,6 +100,30 @@ function Editor( { initial, activeSource } ) {
 	const [ isFullscreen, setIsFullscreen ] = useState( false );
 	const [ isSaving, setIsSaving ] = useState( false );
 	const [ isDownloading, setIsDownloading ] = useState( false );
+
+	// Fit the editor to the viewport in normal (non-fullscreen) mode. A fixed
+	// 80vh height left the page taller than the viewport (admin bar + page
+	// heading sit above the editor), so the browser added a PAGE-level scrollbar
+	// right next to the settings sidebar's own scrollbar — two scrollbars at the
+	// right edge. Sizing the wrap from its real top to the viewport bottom means
+	// the page never scrolls, leaving only the inner panels to scroll. The
+	// min-height guard keeps the editor usable on short screens (the page may
+	// then scroll, but that's a single scrollbar). Fullscreen keeps its own
+	// fixed 100vh height (the is-fullscreen class), so we clear the inline value.
+	const wrapRef = useRef( null );
+	useEffect( () => {
+		const el = wrapRef.current;
+		if ( ! el ) { return undefined; }
+		const apply = () => {
+			if ( isFullscreen ) { el.style.height = ''; return; }
+			const top = el.getBoundingClientRect().top;
+			const avail = window.innerHeight - top - 16;
+			el.style.height = Math.max( 600, avail ) + 'px';
+		};
+		apply();
+		window.addEventListener( 'resize', apply );
+		return () => window.removeEventListener( 'resize', apply );
+	}, [ isFullscreen ] );
 
 	// Selected order id (drives the Download PDF filename + which order the PDF
 	// renders). The order chip itself now lives inside the OrderPicker.
@@ -490,7 +514,7 @@ function Editor( { initial, activeSource } ) {
 				onInput={ ( next ) => dispatch( { type: 'INPUT', blocks: next } ) }
 				onChange={ ( next ) => dispatch( { type: 'CHANGE', blocks: next } ) }
 			>
-				<div className={ 'woi-block-interface-wrap' + ( isFullscreen ? ' is-fullscreen' : '' ) }>
+				<div ref={ wrapRef } className={ 'woi-block-interface-wrap' + ( isFullscreen ? ' is-fullscreen' : '' ) }>
 					<InterfaceSkeleton
 						className="woi-block-interface"
 						header={ header }
