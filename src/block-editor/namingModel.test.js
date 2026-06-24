@@ -46,6 +46,11 @@ describe( 'namingModel', () => {
 		} );
 	} );
 
+	test( 'buildNamingPayload preserves padding "0"', () => {
+		const out = buildNamingPayload( 'invoice', { padding: '0', filename_template: '' } );
+		expect( out.padding ).toBe( '0' );
+	} );
+
 	test( 'FILENAME_TOKENS includes the new sequence token', () => {
 		expect( FILENAME_TOKENS ).toContain( '{document_number_sequence}' );
 		expect( FILENAME_TOKENS ).toContain( '{document_number}' );

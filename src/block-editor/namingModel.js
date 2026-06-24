@@ -29,7 +29,7 @@ export function buildNamingPayload( type, state ) {
 	if ( hasSeries( type ) ) {
 		payload.prefix = state.prefix || '';
 		payload.suffix = state.suffix || '';
-		payload.padding = state.padding || '';
+		payload.padding = state.padding ?? '';
 		payload.reset_number_yearly = !! state.reset_number_yearly;
 		payload.next_number = state.next_number;
 	}
