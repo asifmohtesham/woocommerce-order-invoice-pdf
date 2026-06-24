@@ -51,7 +51,17 @@ const CSS =
 	'.woi-block-interface .interface-interface-skeleton__editor{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}' +
 	'.woi-block-interface .interface-interface-skeleton__header{flex-shrink:0;border-top:1px solid #DEDAD1;border-bottom:1px solid #DEDAD1;background:#fff}' +
 	'.woi-block-interface .interface-interface-skeleton__body{flex:1;display:flex;flex-direction:row;min-height:0;overflow:hidden}' +
-	'.woi-block-interface .interface-interface-skeleton__content{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;overflow:auto}' +
+	// The content column scrolls via the inner .woi-canvas-scroll (flex:1;
+	// min-height:0), NOT the wrapper itself — so it's overflow:hidden. BlockTools
+	// renders a CLASSLESS wrapper div between this content and .woi-canvas-scroll
+	// that defaults to display:block / flex-grow:0, which BREAKS the flex chain:
+	// the canvas then sizes to its full content height and the content wrapper
+	// scrolls instead of the canvas. Firefox draws that wrapper scrollbar as a
+	// second classic bar beside the settings sidebar's (Chrome's overlay bars hid
+	// it). Force the wrapper into the flex column so .woi-canvas-scroll is the only
+	// scroller — verified in Firefox via Playwright. See [[live-testing-harness]].
+	'.woi-block-interface .interface-interface-skeleton__content{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;overflow:hidden}' +
+	'.woi-block-interface .interface-interface-skeleton__content > div{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden}' +
 	'.woi-block-interface .interface-interface-skeleton__sidebar{flex:0 0 288px;width:288px;min-width:288px;overflow:auto;border-left:1px solid #DEDAD1;background:#fff}' +
 	// PDF preview panel below the editor (was styled by the retired layout.js)
 	'.woi-block-preview{display:flex;flex-direction:column;min-height:440px;border:1px solid #ddd;border-top:0;margin-bottom:16px}' +
