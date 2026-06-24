@@ -16,7 +16,10 @@ export default function NamingPanel() {
 		getDocumentNaming( type )
 			.then( ( r ) => { if ( active ) { setValues( r ); } } )
 			.catch( () => { if ( active ) { setValues( {} ); } } );
-		return () => { active = false; };
+		return () => {
+			active = false;
+			if ( debounceRef.current ) { clearTimeout( debounceRef.current ); }
+		};
 	}, [ type ] );
 
 	const persist = useCallback( ( next ) => {
