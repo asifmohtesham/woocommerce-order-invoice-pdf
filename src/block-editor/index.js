@@ -107,17 +107,18 @@ function Editor( { initial, activeSource } ) {
 	// heading sit above the editor), so the browser added a PAGE-level scrollbar
 	// right next to the settings sidebar's own scrollbar — two scrollbars at the
 	// right edge. Sizing the wrap from its real top to the viewport bottom means
-	// the page never scrolls, leaving only the inner panels to scroll.
+	// the page itself doesn't scroll, leaving only the inner panels to scroll.
 	//
-	// The WP admin footer (#wpfooter, "Thank you for creating with WordPress")
-	// renders BELOW the editor in the page flow, so its height must be reserved
-	// too — otherwise the page still overflows by ~the footer height and keeps a
-	// thin page scrollbar. offsetHeight is layout-independent, so reading it here
-	// is not circular with the height we set.
-	//
-	// The min-height guard keeps the editor usable on short screens (the page may
-	// then scroll, but that's a single scrollbar). Fullscreen keeps its own
-	// fixed 100vh height (the is-fullscreen class), so we clear the inline value.
+	// Two-pass, self-correcting: a first estimate (top → viewport bottom) is then
+	// corrected by the ACTUAL residual page overflow. We can't compute the chrome
+	// below the editor up front — the WP admin footer is position:absolute (so its
+	// height isn't reclaimable in flow), #wpbody-content adds padding-bottom, and
+	// (verified live) the page can't shrink below the LEFT ADMIN MENU's height
+	// (~918px here). Measuring documentElement.scrollHeight after sizing captures
+	// all of that in one number; shrink by it (+4px for sub-pixel rounding). The
+	// 600px floor keeps the editor usable when the viewport is shorter than the
+	// admin menu — there the page scrolls regardless, but it's a single scrollbar.
+	// Fullscreen keeps its own 100vh (the is-fullscreen class), so clear inline.
 	const wrapRef = useRef( null );
 	useEffect( () => {
 		const el = wrapRef.current;
@@ -125,10 +126,13 @@ function Editor( { initial, activeSource } ) {
 		const apply = () => {
 			if ( isFullscreen ) { el.style.height = ''; return; }
 			const top = el.getBoundingClientRect().top;
-			const footer = document.getElementById( 'wpfooter' );
-			const footerH = footer ? footer.offsetHeight : 0;
-			const avail = window.innerHeight - top - footerH - 12;
-			el.style.height = Math.max( 600, avail ) + 'px';
+			const h = Math.max( 600, window.innerHeight - top - 16 );
+			el.style.height = h + 'px';
+			const de = document.documentElement;
+			const overflow = de.scrollHeight - de.clientHeight;
+			if ( overflow > 0 ) {
+				el.style.height = Math.max( 600, h - overflow - 4 ) + 'px';
+			}
 		};
 		apply();
 		window.addEventListener( 'resize', apply );
