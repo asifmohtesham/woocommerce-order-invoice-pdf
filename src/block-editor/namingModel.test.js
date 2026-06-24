@@ -3,6 +3,8 @@ import {
 	hasSeries,
 	buildNamingPayload,
 	FILENAME_TOKENS,
+	prefixTokens,
+	filenameTokenChips,
 } from './namingModel';
 
 describe( 'namingModel', () => {
@@ -56,8 +58,6 @@ describe( 'namingModel', () => {
 		expect( FILENAME_TOKENS ).toContain( '{document_number}' );
 	} );
 } );
-
-import { prefixTokens, filenameTokenChips } from './namingModel';
 
 describe( 'prefixTokens', () => {
 	it( 'includes the order placeholders and slug-based doc placeholders for invoice', () => {
