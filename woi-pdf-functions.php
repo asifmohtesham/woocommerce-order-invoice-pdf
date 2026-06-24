@@ -383,7 +383,7 @@ function woi_pdf_build_filename( array $args ): string {
 		'{document_type}'   => (string) $args['document_type'],
 		'{order_number}'    => $order_number,
 		'{document_number}'          => $is_bulk ? '' : (string) $args['document_number'],
-		'{document_number_sequence}' => $is_bulk ? $order_number : (string) $args['document_number_sequence'],
+		'{document_number_sequence}' => $is_bulk ? '' : (string) $args['document_number_sequence'],
 		'{date}'                     => date_i18n( $settings['date_format'] ),
 	);
 

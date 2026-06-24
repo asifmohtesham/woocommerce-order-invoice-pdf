@@ -246,7 +246,7 @@ class FilenameBuilderTest extends TestCase {
 			'filename_template' => '{document_type}-{document_number_sequence}-{date}',
 		) );
 		$this->assertSame(
-			'invoices-3-orders-2026-06-20.pdf',
+			'invoices-2026-06-20.pdf',
 			woi_pdf_build_filename( $this->args( array(
 				'document_type'            => 'invoices',
 				'order_ids'                => array( 55, 56, 57 ),
