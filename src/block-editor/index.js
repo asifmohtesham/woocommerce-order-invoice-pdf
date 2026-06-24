@@ -554,7 +554,7 @@ function Editor( { initial, activeSource } ) {
 						<CustomCssPanel onSaved={ refreshTokens } />
 
 						<div className="insp-sec">{ __( 'Numbering & filename', 'woocommerce-orders-invoice-pdf' ) }</div>
-						<NamingPanel />
+						<NamingPanel orderId={ orderId } />
 						<p className="insp-note">
 							{ __( 'Sets the numbering series and PDF filename per document type. Shared with the classic settings tabs.', 'woocommerce-orders-invoice-pdf' ) }
 						</p>

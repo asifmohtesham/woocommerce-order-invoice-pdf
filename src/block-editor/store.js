@@ -66,3 +66,7 @@ export function getDocumentNaming( type ) {
 export function saveDocumentNaming( payload ) {
 	return post( 'document-naming', payload );
 }
+
+export function getNamingPreview( payload ) {
+	return post( 'naming-preview', payload );
+}
