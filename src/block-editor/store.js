@@ -58,3 +58,11 @@ export function getEditorConfig() {
 export function saveEditorConfig( payload, orderId ) {
 	return post( 'editor-config', orderId ? { ...payload, order_id: orderId } : payload );
 }
+
+export function getDocumentNaming( type ) {
+	return get( `document-naming?type=${ encodeURIComponent( type ) }` );
+}
+
+export function saveDocumentNaming( payload ) {
+	return post( 'document-naming', payload );
+}

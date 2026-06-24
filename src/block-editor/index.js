@@ -61,6 +61,7 @@ import TotalsEditor from './TotalsEditor';
 import CustomBlocksEditor from './CustomBlocksEditor';
 import SortBundlePanel from './SortBundlePanel';
 import CustomCssPanel from './CustomCssPanel';
+import NamingPanel from './NamingPanel';
 
 // Register our blocks; group them under an "Invoice" heading in the inserter.
 registerBlockCollection( 'woi', {
@@ -553,6 +554,12 @@ function Editor( { initial, activeSource } ) {
 
 						<div className="insp-sec">{ __( 'Custom CSS', 'woocommerce-orders-invoice-pdf' ) }</div>
 						<CustomCssPanel onSaved={ refreshTokens } />
+
+						<div className="insp-sec">{ __( 'Numbering & filename', 'woocommerce-orders-invoice-pdf' ) }</div>
+						<NamingPanel />
+						<p className="insp-note">
+							{ __( 'Sets the numbering series and PDF filename per document type. Shared with the classic settings tabs.', 'woocommerce-orders-invoice-pdf' ) }
+						</p>
 					</div>
 				)
 			}
