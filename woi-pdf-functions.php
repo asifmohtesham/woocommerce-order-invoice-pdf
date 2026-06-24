@@ -3106,6 +3106,9 @@ if ( function_exists( 'add_filter' ) ) {
 	// Default provider for the amount-in-words token: spell the grand total when
 	// no other filter has supplied a value. Priority 10 so explicit overrides win.
 	add_filter( 'woi_pdf_amount_in_words', 'woi_pdf_default_amount_in_words', 10, 2 );
+	// Same for the VAT amount-in-words token: spell the order's total tax (empty
+	// when the order has no VAT, so the template omits the line).
+	add_filter( 'woi_pdf_vat_amount_in_words', 'woi_pdf_default_vat_amount_in_words', 10, 2 );
 }
 
 if ( ! function_exists( 'woi_pdf_visual_document_css' ) ) {

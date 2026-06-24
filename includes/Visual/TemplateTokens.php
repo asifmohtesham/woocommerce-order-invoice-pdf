@@ -55,6 +55,7 @@ class TemplateTokens {
             '{{shop_website}}'     => esc_html( $this->shop_website() ),
             '{{bank_details}}'     => $this->render_bank_details(),
             '{{amount_words}}'     => esc_html( (string) apply_filters( 'woi_pdf_amount_in_words', '', $document ) ),
+            '{{vat_amount_words}}' => esc_html( (string) apply_filters( 'woi_pdf_vat_amount_in_words', '', $document ) ),
             '{{qr_code}}'          => $this->render_qr_code( $document ),
             '{{line_items}}'       => $this->render_line_items( $document ),
             '{{totals}}'           => $this->render_totals( $document ),
@@ -485,6 +486,11 @@ class TemplateTokens {
         $shop_name = esc_html( (string) $document->get_shop_name() );
         $totals    = $this->render_totals( $document );
         $words     = esc_html( (string) apply_filters( 'woi_pdf_amount_in_words', '', $document ) );
+        // VAT amount in words — omitted on non-taxable orders (provider returns '').
+        $vat_words = esc_html( (string) apply_filters( 'woi_pdf_vat_amount_in_words', '', $document ) );
+        $vat_line  = ( '' !== $vat_words )
+            ? '<div class="woi-amount-words woi-vat-amount-words"><span class="woi-sub-label">' . $this->bilabel( 'VAT amount in words', 'مبلغ الضريبة كتابةً' ) . '</span><span>' . $vat_words . '</span></div>'
+            : '';
         return '<table class="woi-lower"><tr>'
             . '<td class="woi-lower-left">'
             . '<div class="woi-sub-label">' . $this->bilabel( 'Bank Details', 'تفاصيل البنك' ) . '</div>'
@@ -498,6 +504,7 @@ class TemplateTokens {
             . '<td class="woi-lower-right">'
             . $totals
             . '<div class="woi-amount-words"><span class="woi-sub-label">' . $this->bilabel( 'Amount in words', 'المبلغ كتابةً' ) . '</span><span>' . $words . '</span></div>'
+            . $vat_line
             . '</td>'
             . '</tr></table>';
     }

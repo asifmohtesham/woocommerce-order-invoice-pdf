@@ -142,3 +142,32 @@ if ( ! function_exists( 'woi_pdf_default_amount_in_words' ) ) {
 		return woi_pdf_amount_to_words( $order->get_total(), $currency );
 	}
 }
+
+if ( ! function_exists( 'woi_pdf_default_vat_amount_in_words' ) ) {
+	/**
+	 * Default provider for the `woi_pdf_vat_amount_in_words` filter: spells the
+	 * order's total VAT/tax when no value has been supplied. Returns '' when the
+	 * order carries no tax, so the template can omit the line entirely on
+	 * non-taxable orders. Registered at the default priority so a site/template
+	 * filter that returns a non-empty string still wins (this only fills the blank).
+	 *
+	 * @param string $words    Current value (empty by default).
+	 * @param object $document Order document; exposes ->order (a WC_Order).
+	 * @return string
+	 */
+	function woi_pdf_default_vat_amount_in_words( $words, $document ) {
+		if ( '' !== (string) $words ) {
+			return $words; // an explicit value already won — don't override it.
+		}
+		$order = ( is_object( $document ) && isset( $document->order ) ) ? $document->order : null;
+		if ( ! $order || ! is_callable( array( $order, 'get_total_tax' ) ) ) {
+			return $words;
+		}
+		$tax = (float) $order->get_total_tax();
+		if ( $tax <= 0 ) {
+			return ''; // no VAT — caller hides the line.
+		}
+		$currency = is_callable( array( $order, 'get_currency' ) ) ? $order->get_currency() : '';
+		return woi_pdf_amount_to_words( $tax, $currency );
+	}
+}

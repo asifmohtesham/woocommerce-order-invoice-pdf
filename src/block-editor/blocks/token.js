@@ -41,6 +41,7 @@ const TOKENS = [
 	{ name: 'woi/bank-details',      title: __( 'Bank details', 'woocommerce-orders-invoice-pdf' ),       token: '{{bank_details}}',      tag: 'div', preview: '[ bank details ]' },
 	{ name: 'woi/qr-code',           title: __( 'QR code', 'woocommerce-orders-invoice-pdf' ),            token: '{{qr_code}}',           tag: 'div', preview: '[ QR ]' },
 	{ name: 'woi/amount-words',      title: __( 'Amount in words', 'woocommerce-orders-invoice-pdf' ),    token: '{{amount_words}}',      tag: 'p',   preview: 'Amount in words' },
+	{ name: 'woi/vat-amount-words',  title: __( 'VAT amount in words', 'woocommerce-orders-invoice-pdf' ),token: '{{vat_amount_words}}',  tag: 'p',   preview: 'VAT amount in words' },
 	{ name: 'woi/shop-website',      title: __( 'Shop website', 'woocommerce-orders-invoice-pdf' ),       token: '{{shop_website}}',      tag: 'p',   preview: 'www.example.com' },
 
 	// Whole-section blocks — each emits a canonical visual-document.css section.

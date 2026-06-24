@@ -109,4 +109,38 @@ class AmountInWordsTest extends TestCase {
 		$doc = new \stdClass();
 		$this->assertSame( '', woi_pdf_default_amount_in_words( '', $doc ) );
 	}
+
+	public function test_vat_filter_respects_explicit_override(): void {
+		$doc = new \stdClass();
+		$this->assertSame( 'custom', woi_pdf_default_vat_amount_in_words( 'custom', $doc ) );
+	}
+
+	public function test_vat_filter_spells_order_tax(): void {
+		$order = new class {
+			public function get_total_tax() { return '85.50'; }
+			public function get_currency() { return 'AED'; }
+		};
+		$doc = new \stdClass();
+		$doc->order = $order;
+		$this->assertSame(
+			'UAE Dirhams Eighty-Five and Fifty Fils only',
+			woi_pdf_default_vat_amount_in_words( '', $doc )
+		);
+	}
+
+	public function test_vat_filter_hides_when_no_tax(): void {
+		// Hide the VAT-in-words line entirely on non-taxable orders.
+		$order = new class {
+			public function get_total_tax() { return '0.00'; }
+			public function get_currency() { return 'AED'; }
+		};
+		$doc = new \stdClass();
+		$doc->order = $order;
+		$this->assertSame( '', woi_pdf_default_vat_amount_in_words( '', $doc ) );
+	}
+
+	public function test_vat_filter_no_order_returns_empty(): void {
+		$doc = new \stdClass();
+		$this->assertSame( '', woi_pdf_default_vat_amount_in_words( '', $doc ) );
+	}
 }
