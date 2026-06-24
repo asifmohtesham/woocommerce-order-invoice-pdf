@@ -126,10 +126,20 @@ function Editor( { initial, activeSource } ) {
 	// height instead: the sidebar/canvas stop scrolling internally and ONLY the
 	// page scrolls — a single scrollbar. Verified live in Firefox via Playwright.
 	// Fullscreen keeps its own 100vh (the is-fullscreen class), so clear inline.
+	//
+	// The grow target depends on the sidebar/canvas CONTENT height, which arrives
+	// ASYNChronously — selecting an order fetches its columns + total rows (REST)
+	// inside the Document panel, growing the sidebar to ~3000px AFTER mount. mount
+	// + window-resize alone never re-run for that, so the editor would stay sized
+	// for the initial (short) content and the sidebar would overflow again. A
+	// ResizeObserver on the intrinsic-height content (the sidebar tab panel and the
+	// A4 canvas frame) re-runs the fit whenever that content grows/shrinks.
 	const wrapRef = useRef( null );
 	useEffect( () => {
 		const el = wrapRef.current;
 		if ( ! el ) { return undefined; }
+		let raf = 0;
+		let ro;
 		const apply = () => {
 			if ( isFullscreen ) { el.style.height = ''; return; }
 			const de = document.documentElement;
@@ -150,10 +160,29 @@ function Editor( { initial, activeSource } ) {
 					( hdr ? hdr.offsetHeight : 0 );
 				el.style.height = Math.max( need + 2, h ) + 'px';
 			}
+			// (Re)observe the intrinsic-height content that drives `need`, so async
+			// data loads / tab switches / panel expansions re-run the fit. These
+			// elements size to their content (NOT the editor height), so observing
+			// them can't feedback-loop with the height we set above.
+			if ( ro ) {
+				const tabs = el.querySelector( '.woi-block-sidebar-tabs' );
+				const frame = el.querySelector( '.woi-a4-frame' );
+				if ( tabs ) { ro.observe( tabs ); }
+				if ( frame ) { ro.observe( frame ); }
+			}
 		};
+		const schedule = () => {
+			cancelAnimationFrame( raf );
+			raf = requestAnimationFrame( apply );
+		};
+		ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver( schedule ) : null;
 		apply();
 		window.addEventListener( 'resize', apply );
-		return () => window.removeEventListener( 'resize', apply );
+		return () => {
+			window.removeEventListener( 'resize', apply );
+			cancelAnimationFrame( raf );
+			if ( ro ) { ro.disconnect(); }
+		};
 	}, [ isFullscreen ] );
 
 	// Selected order id (drives the Download PDF filename + which order the PDF
