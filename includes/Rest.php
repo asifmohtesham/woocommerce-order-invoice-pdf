@@ -165,6 +165,17 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 				),
 			),
 		) );
+
+		register_rest_route( 'woi-pdf/v1', '/naming-preview', array(
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'handle_naming_preview' ),
+				'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
+				'args'                => array(
+					'type' => array( 'type' => 'string', 'required' => true ),
+				),
+			),
+		) );
 	}
 
 	/**
@@ -1268,6 +1279,130 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			$data                = self::read_naming_settings( $type );
 			$data['next_number'] = $has_series ? $this->read_next_number( $type ) : null;
 			return $data;
+		}
+
+		/**
+		 * POST: resolve a live preview of the formatted number and the PDF filename
+		 * for a type, using the INCOMING (unsaved) prefix/suffix/padding/template so
+		 * the panel reflects edits before they are saved. Read-only: no option write,
+		 * no number-store increment.
+		 *
+		 * @param object $request
+		 * @return array|\WP_Error
+		 */
+		public function handle_naming_preview( $request ) {
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				return new \WP_Error( 'forbidden', 'Insufficient permissions', array( 'status' => 403 ) );
+			}
+			$type = sanitize_text_field( (string) $request->get_param( 'type' ) );
+			if ( ! in_array( $type, self::naming_types(), true ) ) {
+				return new \WP_Error( 'invalid_type', 'Unknown document type', array( 'status' => 400 ) );
+			}
+
+			$has_series  = in_array( $type, self::numbering_types(), true );
+			$prefix      = (string) $request->get_param( 'prefix' );
+			$suffix      = (string) $request->get_param( 'suffix' );
+			$padding     = (int) $request->get_param( 'padding' );
+			$next_number = (int) $request->get_param( 'next_number' );
+			$template    = trim( (string) $request->get_param( 'filename_template' ) );
+
+			$order = $this->naming_preview_order( $type, (int) $request->get_param( 'order_id' ) );
+			if ( ! $order ) {
+				return array(
+					'number_preview'   => '',
+					'filename_preview' => '',
+					'order_id'         => 0,
+					'has_order'        => false,
+				);
+			}
+
+			// Inject the unsaved values into the per-type option for THIS request only,
+			// so both the number formatter and get_filename() reflect the edits without
+			// persisting anything. woi_pdf_get_filename_settings() and the document's
+			// settings both read this option via get_option, so the filter applies.
+			$inject = function ( $value ) use ( $template, $prefix, $suffix, $padding, $has_series ) {
+				$value = (array) $value;
+				$value['filename_template'] = $template; // '' -> global template fallback
+				if ( $has_series ) {
+					$value['number_format'] = array(
+						'prefix'  => $prefix,
+						'suffix'  => $suffix,
+						'padding' => (string) $padding,
+					);
+				}
+				return $value;
+			};
+			add_filter( "option_woi_pdf_documents_settings_{$type}", $inject );
+
+			$document = $this->get_document( $type, $order );
+
+			$number_preview = '';
+			if ( $document && $has_series ) {
+				$number_preview = (string) $this->format_document_number(
+					$next_number, $prefix, $suffix, $padding, $document, $order
+				);
+			}
+
+			$filename_preview = '';
+			if ( $document && is_callable( array( $document, 'get_filename' ) ) ) {
+				$filename_preview = (string) $document->get_filename( 'download', array(
+					'order_ids' => array( $order->get_id() ),
+					'output'    => 'pdf',
+				) );
+			}
+
+			remove_filter( "option_woi_pdf_documents_settings_{$type}", $inject );
+
+			return array(
+				'number_preview'   => $number_preview,
+				'filename_preview' => $filename_preview,
+				'order_id'         => (int) $order->get_id(),
+				'has_order'        => true,
+			);
+		}
+
+		/**
+		 * Resolve the order to preview against: the requested id, else the most recent
+		 * shop order. Returns false when no order exists.
+		 *
+		 * @param string $type
+		 * @param int    $order_id
+		 * @return \WC_Abstract_Order|false
+		 */
+		private function naming_preview_order( string $type, int $order_id ) {
+			if ( $order_id > 0 ) {
+				$order = wc_get_order( $order_id );
+				if ( $order ) {
+					return $order;
+				}
+			}
+			$recent = wc_get_orders( array( 'limit' => 1, 'return' => 'ids', 'type' => 'shop_order' ) );
+			if ( ! empty( $recent ) ) {
+				$order = wc_get_order( reset( $recent ) );
+				if ( $order ) {
+					return $order;
+				}
+			}
+			return false;
+		}
+
+		/**
+		 * Seam over woi_pdf_format_document_number so the handler is unit-testable.
+		 * woi_pdf_format_document_number() is defined in woi-pdf-functions.php before
+		 * Patchwork loads, so it cannot be stubbed via Brain\Monkey\Functions\when().
+		 *
+		 * @param int    $plain
+		 * @param string $prefix
+		 * @param string $suffix
+		 * @param int    $padding
+		 * @param object $document
+		 * @param object $order
+		 * @return string
+		 */
+		protected function format_document_number( int $plain, string $prefix, string $suffix, int $padding, $document, $order ): string {
+			return function_exists( 'woi_pdf_format_document_number' )
+				? (string) woi_pdf_format_document_number( $plain, $prefix, $suffix, $padding, $document, $order )
+				: '';
 		}
 
 		/**
