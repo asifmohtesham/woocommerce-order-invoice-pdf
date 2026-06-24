@@ -146,6 +146,25 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 				'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
 			),
 		) );
+
+		register_rest_route( 'woi-pdf/v1', '/document-naming', array(
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'handle_get_document_naming' ),
+				'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
+				'args'                => array(
+					'type' => array( 'type' => 'string', 'required' => true ),
+				),
+			),
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'handle_save_document_naming' ),
+				'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
+				'args'                => array(
+					'type' => array( 'type' => 'string', 'required' => true ),
+				),
+			),
+		) );
 	}
 
 	/**
@@ -562,25 +581,6 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 					'methods'             => \WP_REST_Server::DELETABLE,
 					'callback'            => array( $this, 'delete_document' ),
 					'permission_callback' => array( $this, 'permissions_check' ),
-				),
-			) );
-
-			register_rest_route( 'woi-pdf/v1', '/document-naming', array(
-				array(
-					'methods'             => 'GET',
-					'callback'            => array( $this, 'handle_get_document_naming' ),
-					'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
-					'args'                => array(
-						'type' => array( 'type' => 'string', 'required' => true ),
-					),
-				),
-				array(
-					'methods'             => 'POST',
-					'callback'            => array( $this, 'handle_save_document_naming' ),
-					'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
-					'args'                => array(
-						'type' => array( 'type' => 'string', 'required' => true ),
-					),
 				),
 			) );
 
