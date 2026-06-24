@@ -1948,6 +1948,7 @@ abstract class OrderDocument implements DocumentInterface {
 			'order_number'    => $order_number,
 			'order_id'        => $this->order_id,
 			'document_number' => '',
+			'document_number_sequence' => woi_pdf_document_number_sequence( $this->get_number() ),
 			'output_format'   => ! empty( $args['output'] ) ? esc_attr( $args['output'] ) : 'pdf',
 			'context'         => $context,
 			'filter_args'     => $args,

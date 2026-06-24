@@ -409,6 +409,23 @@ function woi_pdf_build_filename( array $args ): string {
 }
 
 /**
+ * Resolve the raw sequence counter for the {document_number_sequence} filename
+ * token from a DocumentNumber (or any object exposing get_plain()).
+ *
+ * @param mixed $document_number A DocumentNumber instance, or null.
+ * @return string The plain counter as a string, or '' when unavailable.
+ */
+function woi_pdf_document_number_sequence( $document_number ): string {
+	if ( is_object( $document_number ) && is_callable( array( $document_number, 'get_plain' ) ) ) {
+		$plain = $document_number->get_plain();
+		if ( null !== $plain ) {
+			return (string) $plain;
+		}
+	}
+	return '';
+}
+
+/**
  * Wrapper for deprecated functions so we can apply some extra logic.
  *
  * @since  2.0
