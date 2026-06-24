@@ -61,9 +61,14 @@ reconciliation logic.
    block-template authoring stays invoice-only. The switcher only selects which
    document type's numbering + filename settings are shown.
 3. **Storage:** shared. The Block editor reads/writes the **same** per-type
-   options (`woi_pdf_invoice`, `woi_pdf_proforma`, `woi_pdf_credit-note`,
-   `woi_pdf_receipt`) and the **same** sequential-number store the classic tabs
-   use. No separate Block-editor option; no sync logic.
+   options (`woi_pdf_documents_settings_invoice`,
+   `woi_pdf_documents_settings_proforma`,
+   `woi_pdf_documents_settings_credit-note`,
+   `woi_pdf_documents_settings_receipt`,
+   `woi_pdf_documents_settings_packing-slip`) and the **same** sequential-number
+   store the classic tabs use. No separate Block-editor option; no sync logic.
+   (Option name confirmed via `Settings::get_document_settings()` →
+   `woi_pdf_documents_settings_{type}`.)
 4. **Filename:** global default **+ optional per-type override**.
 5. **New token:** `{document_number_sequence}` = the raw counter (e.g. `123`).
    `{document_number}` is unchanged (formatted series number).
@@ -92,9 +97,10 @@ only the filename-override field shows.
 `woi_pdf_build_filename( array $args )` (`woi-pdf-functions.php`):
 
 - **Template resolution chain** (first non-empty wins):
-  1. per-type override — `get_option( "woi_pdf_{$type}" )['filename_template']`
+  1. per-type override — `get_option( "woi_pdf_documents_settings_{$type}" )['filename_template']`
   2. global — `woi_pdf_settings_general['filename_template']`
-  3. hard default — `{document_type}-{order_number}-{date}`
+  3. hard default — `{document_type}_{order_number}_{date}` (underscores — matches
+     the shipped default in `woi_pdf_get_filename_settings()`)
 - **Date-format resolution chain** mirrors the template chain
   (`filename_date_format`, default `Y-m-d`).
 - A small helper extends `woi_pdf_get_filename_settings()` to accept an optional
@@ -174,7 +180,7 @@ store (so it is the single write path the Block editor uses):
 ### Data flow
 
 ```
-Classic tab  ──┐                       ┌── reads ──> get_option("woi_pdf_{type}")
+Classic tab  ──┐                       ┌── reads ──> get_option("woi_pdf_documents_settings_{type}")
                ├── same per-type option ┤
 Block editor ──┘  (+ sequential store)  └── next_number ──> SequentialNumberStore
 
