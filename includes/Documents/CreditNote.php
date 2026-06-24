@@ -450,7 +450,7 @@ class CreditNote extends OrderDocumentMethods implements NumberedDocumentInterfa
 				'id'       => 'filename_template',
 				'title'    => __( 'PDF filename override', 'woocommerce-orders-invoice-pdf' ),
 				'callback' => 'text_element',
-				'section'  => $this->type,
+				'section'  => 'credit_note',
 				'args'     => array(
 					'option_name' => $option_name,
 					'id'          => 'filename_template',

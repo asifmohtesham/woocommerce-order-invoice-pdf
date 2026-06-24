@@ -187,7 +187,7 @@ class PackingSlip extends OrderDocumentMethods implements EmailAttachableInterfa
 				'id'       => 'filename_template',
 				'title'    => __( 'PDF filename override', 'woocommerce-orders-invoice-pdf' ),
 				'callback' => 'text_element',
-				'section'  => $this->type,
+				'section'  => 'packing_slip',
 				'args'     => array(
 					'option_name' => $option_name,
 					'id'          => 'filename_template',
