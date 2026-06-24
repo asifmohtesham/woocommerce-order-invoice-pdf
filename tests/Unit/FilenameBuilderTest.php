@@ -207,4 +207,111 @@ class FilenameBuilderTest extends TestCase {
 
 		$this->assertSame( array(), $captured[3] ); // no-order context -> empty order_ids
 	}
+
+	public function test_document_number_sequence_token_uses_raw_counter(): void {
+		Functions\when( 'get_option' )->justReturn( array(
+			'filename_template' => '{document_type}-{document_number_sequence}-{date}',
+		) );
+		$this->assertSame(
+			'invoice-123-2026-06-20.pdf',
+			woi_pdf_build_filename( $this->args( array( 'document_number_sequence' => '123' ) ) )
+		);
+	}
+
+	public function test_document_number_sequence_empty_collapses_separators(): void {
+		Functions\when( 'get_option' )->justReturn( array(
+			'filename_template' => '{document_type}-{document_number_sequence}-{date}',
+		) );
+		$this->assertSame(
+			'invoice-2026-06-20.pdf',
+			woi_pdf_build_filename( $this->args( array( 'document_number_sequence' => '' ) ) )
+		);
+	}
+
+	public function test_formatted_and_sequence_tokens_coexist(): void {
+		Functions\when( 'get_option' )->justReturn( array(
+			'filename_template' => '{document_number}-{document_number_sequence}',
+		) );
+		$this->assertSame(
+			'INV-2026-000123-123.pdf',
+			woi_pdf_build_filename( $this->args( array(
+				'document_number'          => 'INV-2026-000123',
+				'document_number_sequence' => '123',
+			) ) )
+		);
+	}
+
+	public function test_bulk_forces_sequence_token_empty(): void {
+		Functions\when( 'get_option' )->justReturn( array(
+			'filename_template' => '{document_type}-{document_number_sequence}-{date}',
+		) );
+		$this->assertSame(
+			'invoices-3-orders-2026-06-20.pdf',
+			woi_pdf_build_filename( $this->args( array(
+				'document_type'            => 'invoices',
+				'order_ids'                => array( 55, 56, 57 ),
+				'document_number_sequence' => '7', // ignored for bulk
+			) ) )
+		);
+	}
+
+	public function test_per_type_template_overrides_global(): void {
+		// Global template is one thing; the per-type option overrides it.
+		// get_option is called for BOTH 'woi_pdf_settings_general' and
+		// 'woi_pdf_documents_settings_invoice' — return per key.
+		Functions\when( 'get_option' )->alias( function ( $name, $default = array() ) {
+			if ( 'woi_pdf_settings_general' === $name ) {
+				return array( 'filename_template' => '{document_type}-{order_number}-{date}' );
+			}
+			if ( 'woi_pdf_documents_settings_invoice' === $name ) {
+				return array( 'filename_template' => 'INV_{order_number}' );
+			}
+			return $default;
+		} );
+		$this->assertSame(
+			'INV_1042.pdf',
+			woi_pdf_build_filename( $this->args() )
+		);
+	}
+
+	public function test_per_type_blank_falls_back_to_global(): void {
+		Functions\when( 'get_option' )->alias( function ( $name, $default = array() ) {
+			if ( 'woi_pdf_settings_general' === $name ) {
+				return array( 'filename_template' => '{document_type}-{order_number}' );
+			}
+			if ( 'woi_pdf_documents_settings_invoice' === $name ) {
+				return array( 'filename_template' => '   ' ); // whitespace only
+			}
+			return $default;
+		} );
+		$this->assertSame(
+			'invoice-1042.pdf',
+			woi_pdf_build_filename( $this->args() )
+		);
+	}
+
+	public function test_per_type_date_format_override(): void {
+		Functions\when( 'get_option' )->alias( function ( $name, $default = array() ) {
+			if ( 'woi_pdf_documents_settings_invoice' === $name ) {
+				return array( 'filename_date_format' => 'Ymd' );
+			}
+			return $default;
+		} );
+		$this->assertSame(
+			'invoice_1042_20260620.pdf',
+			woi_pdf_build_filename( $this->args() )
+		);
+	}
+
+	public function test_settings_resolver_per_type_override(): void {
+		Functions\when( 'get_option' )->alias( function ( $name, $default = array() ) {
+			if ( 'woi_pdf_documents_settings_receipt' === $name ) {
+				return array( 'filename_template' => 'RCPT-{order_number}', 'filename_date_format' => 'd/m/Y' );
+			}
+			return $default;
+		} );
+		$settings = woi_pdf_get_filename_settings( 'receipt' );
+		$this->assertSame( 'RCPT-{order_number}', $settings['template'] );
+		$this->assertSame( 'd/m/Y', $settings['date_format'] );
+	}
 }

@@ -290,17 +290,36 @@ function woi_pdf_get_document_output_format_extension( string $output_format ): 
 /**
  * Resolve the configurable filename settings, applying defaults.
  *
+ * Resolution order (first non-empty wins): per-type override (stored on the
+ * document's own settings option) -> global (woi_pdf_settings_general) ->
+ * hard default.
+ *
+ * @param string $type Optional machine document type (e.g. 'invoice') whose
+ *                     per-type override should take precedence.
  * @return array{template:string, date_format:string}
  */
-function woi_pdf_get_filename_settings(): array {
-	$settings = get_option( 'woi_pdf_settings_general', array() );
+function woi_pdf_get_filename_settings( string $type = '' ): array {
+	$global = get_option( 'woi_pdf_settings_general', array() );
 
-	$template = isset( $settings['filename_template'] ) ? trim( (string) $settings['filename_template'] ) : '';
+	$per_type = array();
+	if ( '' !== $type ) {
+		$per_type = (array) get_option( "woi_pdf_documents_settings_{$type}", array() );
+	}
+
+	$pick = static function ( $key ) use ( $per_type, $global ) {
+		$value = isset( $per_type[ $key ] ) ? trim( (string) $per_type[ $key ] ) : '';
+		if ( '' !== $value ) {
+			return $value;
+		}
+		return isset( $global[ $key ] ) ? trim( (string) $global[ $key ] ) : '';
+	};
+
+	$template = $pick( 'filename_template' );
 	if ( '' === $template ) {
 		$template = '{document_type}_{order_number}_{date}';
 	}
 
-	$date_format = isset( $settings['filename_date_format'] ) ? trim( (string) $settings['filename_date_format'] ) : '';
+	$date_format = $pick( 'filename_date_format' );
 	if ( '' === $date_format ) {
 		$date_format = 'Y-m-d';
 	}
@@ -324,18 +343,19 @@ function woi_pdf_get_filename_settings(): array {
  */
 function woi_pdf_build_filename( array $args ): string {
 	$args = array_merge( array(
-		'type'            => '',
-		'document_type'   => '',
-		'order_ids'       => array(),
-		'order_number'    => '',
-		'order_id'        => 0,
-		'document_number' => '',
-		'output_format'   => 'pdf',
-		'context'         => 'download',
-		'filter_args'     => array(),
+		'type'                     => '',
+		'document_type'            => '',
+		'order_ids'                => array(),
+		'order_number'             => '',
+		'order_id'                 => 0,
+		'document_number'          => '',
+		'document_number_sequence' => '',
+		'output_format'            => 'pdf',
+		'context'                  => 'download',
+		'filter_args'              => array(),
 	), $args );
 
-	$settings    = woi_pdf_get_filename_settings();
+	$settings    = woi_pdf_get_filename_settings( (string) $args['type'] );
 	$order_ids   = array_values( (array) $args['order_ids'] );
 	$order_count = max( 1, count( $order_ids ) );
 	$is_bulk     = $order_count > 1;
@@ -362,8 +382,9 @@ function woi_pdf_build_filename( array $args ): string {
 	$replacements = array(
 		'{document_type}'   => (string) $args['document_type'],
 		'{order_number}'    => $order_number,
-		'{document_number}' => $is_bulk ? '' : (string) $args['document_number'],
-		'{date}'            => date_i18n( $settings['date_format'] ),
+		'{document_number}'          => $is_bulk ? '' : (string) $args['document_number'],
+		'{document_number_sequence}' => $is_bulk ? $order_number : (string) $args['document_number_sequence'],
+		'{date}'                     => date_i18n( $settings['date_format'] ),
 	);
 
 	$filename = strtr( $settings['template'], $replacements );
