@@ -565,6 +565,25 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 				),
 			) );
 
+			register_rest_route( 'woi-pdf/v1', '/document-naming', array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'handle_get_document_naming' ),
+					'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
+					'args'                => array(
+						'type' => array( 'type' => 'string', 'required' => true ),
+					),
+				),
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'handle_save_document_naming' ),
+					'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
+					'args'                => array(
+						'type' => array( 'type' => 'string', 'required' => true ),
+					),
+				),
+			) );
+
 		}
 
 		/**
@@ -1108,6 +1127,192 @@ if ( ! class_exists( '\\WOI\\PDF\\Rest' ) ) :
 			$store = new \WOI\PDF\Visual\VisualTemplateStore();
 			$store->set_active_source( (string) $request->get_param( 'source' ) );
 			return array( 'source' => $store->get_active_source() );
+		}
+
+		/**
+		 * Document types that maintain a numbering series.
+		 *
+		 * @return string[]
+		 */
+		public static function numbering_types(): array {
+			return array( 'invoice', 'proforma', 'credit-note', 'receipt' );
+		}
+
+		/**
+		 * Document types configurable in the naming/filename panel (numbered
+		 * types + packing-slip, which has a filename override but no series).
+		 *
+		 * @return string[]
+		 */
+		public static function naming_types(): array {
+			return array_merge( self::numbering_types(), array( 'packing-slip' ) );
+		}
+
+		/**
+		 * Read the naming + filename settings for a type from its PDF settings
+		 * option. Does NOT include next_number (that needs a document instance).
+		 *
+		 * @param string $type
+		 * @return array
+		 */
+		public static function read_naming_settings( string $type ): array {
+			$option     = (array) get_option( "woi_pdf_documents_settings_{$type}", array() );
+			$has_series = in_array( $type, self::numbering_types(), true );
+			$format     = isset( $option['number_format'] ) && is_array( $option['number_format'] ) ? $option['number_format'] : array();
+
+			return array(
+				'type'                => $type,
+				'has_series'          => $has_series,
+				'prefix'              => isset( $format['prefix'] ) ? (string) $format['prefix'] : '',
+				'suffix'              => isset( $format['suffix'] ) ? (string) $format['suffix'] : '',
+				'padding'             => isset( $format['padding'] ) ? (string) $format['padding'] : '',
+				'reset_number_yearly' => ! empty( $option['reset_number_yearly'] ),
+				'filename_template'   => isset( $option['filename_template'] ) ? (string) $option['filename_template'] : '',
+			);
+		}
+
+		/**
+		 * Merge incoming naming fields into an existing settings option without
+		 * clobbering unrelated keys. Numbering fields are ignored when the type
+		 * has no series.
+		 *
+		 * @param array $existing  Current option array.
+		 * @param array $incoming  Sanitized incoming fields.
+		 * @param bool  $has_series
+		 * @return array
+		 */
+		public static function merge_naming_settings( array $existing, array $incoming, bool $has_series ): array {
+			$merged = $existing;
+
+			// Filename override applies to every naming type.
+			$merged['filename_template'] = isset( $incoming['filename_template'] ) ? (string) $incoming['filename_template'] : '';
+
+			if ( $has_series ) {
+				$merged['number_format'] = array(
+					'prefix'  => isset( $incoming['prefix'] ) ? (string) $incoming['prefix'] : '',
+					'suffix'  => isset( $incoming['suffix'] ) ? (string) $incoming['suffix'] : '',
+					'padding' => isset( $incoming['padding'] ) ? (string) $incoming['padding'] : '',
+				);
+				// Stored as a checkbox: present '1' when on, absent when off.
+				if ( ! empty( $incoming['reset_number_yearly'] ) ) {
+					$merged['reset_number_yearly'] = '1';
+				} else {
+					unset( $merged['reset_number_yearly'] );
+				}
+			}
+
+			return $merged;
+		}
+
+		/**
+		 * GET: read naming + filename settings (incl. live next_number) for a type.
+		 *
+		 * @param object $request
+		 * @return array|\WP_Error
+		 */
+		public function handle_get_document_naming( $request ) {
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				return new \WP_Error( 'forbidden', 'Insufficient permissions', array( 'status' => 403 ) );
+			}
+			$type = sanitize_text_field( (string) $request->get_param( 'type' ) );
+			if ( ! in_array( $type, self::naming_types(), true ) ) {
+				return new \WP_Error( 'invalid_type', 'Unknown document type', array( 'status' => 400 ) );
+			}
+
+			$data               = self::read_naming_settings( $type );
+			$data['next_number'] = $data['has_series'] ? $this->read_next_number( $type ) : null;
+
+			return $data;
+		}
+
+		/**
+		 * POST: persist naming + filename settings for a type, including the
+		 * sequential next_number (written through the document's number store).
+		 *
+		 * @param object $request
+		 * @return array|\WP_Error
+		 */
+		public function handle_save_document_naming( $request ) {
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				return new \WP_Error( 'forbidden', 'Insufficient permissions', array( 'status' => 403 ) );
+			}
+			$type = sanitize_text_field( (string) $request->get_param( 'type' ) );
+			if ( ! in_array( $type, self::naming_types(), true ) ) {
+				return new \WP_Error( 'invalid_type', 'Unknown document type', array( 'status' => 400 ) );
+			}
+			$has_series = in_array( $type, self::numbering_types(), true );
+
+			$incoming = array(
+				'prefix'              => sanitize_text_field( (string) $request->get_param( 'prefix' ) ),
+				'suffix'              => sanitize_text_field( (string) $request->get_param( 'suffix' ) ),
+				'padding'             => sanitize_text_field( (string) $request->get_param( 'padding' ) ),
+				'reset_number_yearly' => (bool) $request->get_param( 'reset_number_yearly' ),
+				'filename_template'   => sanitize_text_field( (string) $request->get_param( 'filename_template' ) ),
+			);
+
+			$existing = (array) get_option( "woi_pdf_documents_settings_{$type}", array() );
+			$merged   = self::merge_naming_settings( $existing, $incoming, $has_series );
+			update_option( "woi_pdf_documents_settings_{$type}", $merged );
+
+			// next_number is sequential-store state, not an option key. Write it
+			// through the document's own store (same mechanism as the classic
+			// next_number_edit save) AFTER the option update so the store name
+			// reflects the just-saved reset_number_yearly flag.
+			if ( $has_series ) {
+				$next = absint( $request->get_param( 'next_number' ) );
+				if ( $next > 0 ) {
+					$this->write_next_number( $type, $next );
+				}
+			}
+
+			$data                = self::read_naming_settings( $type );
+			$data['next_number'] = $has_series ? $this->read_next_number( $type ) : null;
+			return $data;
+		}
+
+		/**
+		 * Read the next sequential number for a type from its number store.
+		 *
+		 * @param string $type
+		 * @return int
+		 */
+		private function read_next_number( string $type ): int {
+			$document = $this->get_naming_document( $type );
+			if ( ! $document || ! is_callable( array( $document, 'get_sequential_number_store' ) ) ) {
+				return 0;
+			}
+			return (int) $document->get_sequential_number_store()->get_next();
+		}
+
+		/**
+		 * Write the next sequential number for a type to its number store.
+		 *
+		 * @param string $type
+		 * @param int    $number
+		 * @return void
+		 */
+		private function write_next_number( string $type, int $number ): void {
+			$document = $this->get_naming_document( $type );
+			if ( $document && is_callable( array( $document, 'get_sequential_number_store' ) ) ) {
+				$document->get_sequential_number_store()->set_next( $number );
+			}
+		}
+
+		/**
+		 * Get an orderless document instance for a numbered type (loads its
+		 * settings so the store name reflects reset_number_yearly).
+		 *
+		 * @param string $type
+		 * @return object|false
+		 */
+		private function get_naming_document( string $type ) {
+			if ( ! function_exists( 'WOI_PDF' ) || empty( WOI_PDF()->documents ) ) {
+				return false;
+			}
+			// Orderless instance: get_document( $type, $order ) requires the second
+			// arg; null yields an orderless document whose settings load from the
+			// per-type option (enough for the sequential-number store).
+			return WOI_PDF()->documents->get_document( $type, null );
 		}
 
 		/**
