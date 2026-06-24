@@ -115,9 +115,16 @@ function Editor( { initial, activeSource } ) {
 	// height isn't reclaimable in flow), #wpbody-content adds padding-bottom, and
 	// (verified live) the page can't shrink below the LEFT ADMIN MENU's height
 	// (~918px here). Measuring documentElement.scrollHeight after sizing captures
-	// all of that in one number; shrink by it (+4px for sub-pixel rounding). The
-	// 600px floor keeps the editor usable when the viewport is shorter than the
-	// admin menu — there the page scrolls regardless, but it's a single scrollbar.
+	// all of that in one number; shrink by it (+4px for sub-pixel rounding).
+	//
+	// Short viewports (the ADAPTIVE branch): when the viewport is shorter than the
+	// admin menu, the page MUST scroll no matter how small the editor gets. A
+	// bounded editor then shows TWO scrollbars at the right edge — the page's and
+	// the settings sidebar's own — which overlap (Firefox hits this because its
+	// window chrome leaves a shorter viewport than Chrome at the same monitor).
+	// So when residual overflow can't be removed, GROW the editor to its content
+	// height instead: the sidebar/canvas stop scrolling internally and ONLY the
+	// page scrolls — a single scrollbar. Verified live in Firefox via Playwright.
 	// Fullscreen keeps its own 100vh (the is-fullscreen class), so clear inline.
 	const wrapRef = useRef( null );
 	useEffect( () => {
@@ -125,13 +132,23 @@ function Editor( { initial, activeSource } ) {
 		if ( ! el ) { return undefined; }
 		const apply = () => {
 			if ( isFullscreen ) { el.style.height = ''; return; }
+			const de = document.documentElement;
 			const top = el.getBoundingClientRect().top;
 			const h = Math.max( 600, window.innerHeight - top - 16 );
 			el.style.height = h + 'px';
-			const de = document.documentElement;
-			const overflow = de.scrollHeight - de.clientHeight;
+			let overflow = de.scrollHeight - de.clientHeight;
 			if ( overflow > 0 ) {
 				el.style.height = Math.max( 600, h - overflow - 4 ) + 'px';
+				overflow = de.scrollHeight - de.clientHeight;
+			}
+			if ( overflow > 1 ) {
+				// Can't fit — grow so only the page scrolls (one scrollbar).
+				const sb = el.querySelector( '.interface-interface-skeleton__sidebar' );
+				const cv = el.querySelector( '.woi-canvas-scroll' );
+				const hdr = el.querySelector( '.interface-interface-skeleton__header' );
+				const need = Math.max( sb ? sb.scrollHeight : 0, cv ? cv.scrollHeight : 0 ) +
+					( hdr ? hdr.offsetHeight : 0 );
+				el.style.height = Math.max( need + 2, h ) + 'px';
 			}
 		};
 		apply();
