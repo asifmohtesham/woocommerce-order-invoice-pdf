@@ -293,6 +293,23 @@ class Invoice extends OrderDocumentMethods implements NumberedDocumentInterface,
 				)
 			),
 			array(
+				'type'     => 'setting',
+				'id'       => 'filename_template',
+				'title'    => __( 'PDF filename override', 'woocommerce-orders-invoice-pdf' ),
+				'callback' => 'text_element',
+				'section'  => $this->type,
+				'args'     => array(
+					'option_name' => $option_name,
+					'id'          => 'filename_template',
+					'size'        => 'regular',
+					'description' => sprintf(
+						/* translators: %s: comma-separated list of placeholder tokens */
+						__( 'Filename for this document\'s PDF. Leave blank to use the global template (Settings &rarr; General). Available tokens: %s. The extension is added automatically.', 'woocommerce-orders-invoice-pdf' ),
+						'<code>{document_type}</code>, <code>{order_number}</code>, <code>{document_number}</code>, <code>{document_number_sequence}</code>, <code>{date}</code>'
+					),
+				),
+			),
+			array(
 				'type'			=> 'setting',
 				'id'			=> 'display_shipping_address',
 				'title'			=> __( 'Display shipping address', 'woocommerce-orders-invoice-pdf' ),
