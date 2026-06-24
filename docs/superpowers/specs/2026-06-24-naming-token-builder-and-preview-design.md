@@ -30,45 +30,60 @@ Phase 2 and ships first.
 
 ---
 
-## Phase 1 — Filename-override persistence fix
+## Phase 1 — Apply the filename override to the Block-editor download
 
-### Root-cause method
+### Root cause (confirmed by live reproduction)
 
-Every code path round-trips `filename_template` correctly:
-- `buildNamingPayload` (src/block-editor/namingModel.js) always includes
-  `filename_template`.
-- The POST transport (`src/block-editor/store.js`) is the same proven helper
-  every other save uses.
-- `Rest::merge_naming_settings` / `read_naming_settings` write and read it from
-  the top level of `woi_pdf_documents_settings_{type}`.
-- The `/document-naming` route is not wrapped in any cache.
+The override **does** persist and round-trip correctly — that was a misframing.
+The real defect: the Block editor's **Download PDF** ignores the configured
+filename entirely. Live evidence: with the override set to
+`{document_type}_{document_number}_{date}`, the downloaded file is still
+`invoice-237.pdf`.
 
-The asymmetry (prefix/padding survive, the override does not) is explained by
-prefix/padding having been set via the **classic settings tab**, whereas the
-override exists only in the panel. The leading hypothesis is therefore a
-**stale REST GET response** served by the site's object cache — the admin bar's
-"Clear REST cache" button confirms such caching exists, so a reload's GET can
-return a pre-save snapshot. A second candidate is a deployed-bundle/source
-mismatch on the live site (deploy is a manual `git pull`).
+The chain:
+- `src/block-editor/index.js` `onDownloadPdf` hardcodes
+  `filename: 'invoice' + (orderId ? '-' + orderId : '') + '.pdf'`.
+- The server handler `Settings::ajax_preview` (the `woi_pdf_preview` AJAX
+  action) builds the real `$document`, renders the PDF, and returns
+  `{ preview_data, output_format }` — but **no filename**.
+- So the client has nothing authoritative to name the file with and falls back
+  to its hardcoded string.
 
-The fix is **investigation-led**: reproduce live with the debug-Chrome harness,
-confirm the actual cause, then apply the minimal correct fix (e.g. exclude the
-`/document-naming` GET from REST caching, or add cache-busting/`no-store`
-semantics, or correct the bundle deploy — whichever the repro proves).
+The classic admin download path is unaffected — it calls
+`$document->get_filename()` directly, which already resolves
+override → global → default + tokens (landed v1.5.86). Only the Block-editor
+download bypassed it.
+
+### Fix
+
+1. **Server (`includes/Settings.php`, `ajax_preview`):** before the success
+   response, resolve the filename from the already-built document and include
+   it:
+   `$filename = $document->get_filename( 'download', array( 'output' => $output_format ) );`
+   added to the `wp_send_json_success` payload as `'filename' => $filename`.
+   This reuses the authoritative resolver — the download name cannot drift from
+   what `get_filename()` produces elsewhere.
+2. **Client (`src/block-editor/pdfPreview.js`):** `fetchPdfBytes` returns
+   `{ bytes, filename }` (filename from `res.data.filename`); `downloadPdf` uses
+   the server filename, falling back to a default only if absent.
+3. **Client (`src/block-editor/index.js`):** `onDownloadPdf` stops constructing
+   a hardcoded filename and lets the server value drive the download name.
 
 ### Acceptance criterion (unambiguous)
 
-After entering a filename override in the panel, waiting for the debounced save
-to complete, and reloading the page, the override field shows the saved value.
-Verified live for **invoice** (a series type) **and packing-slip** (a no-series
-type, which shows only the override field).
+With a per-type override set (e.g. `{document_type}_{document_number}_{date}`),
+clicking **Download PDF** in the Block editor produces a file whose name is the
+resolved override (e.g. `invoice_2026-04-000004_2026-04-22.pdf`), not
+`invoice-237.pdf`. With the override blank, the name follows the global
+template. Verified live.
 
 ### Tests
 
-If the root cause is in code, add a regression test at the appropriate layer
-(PHPUnit for a REST/caching fix; Jest for a client fix). If the root cause is
-environmental (object cache / deploy), document it in the report and the
-version-coordination memory; the live acceptance check is the gate.
+- **Jest** (`src/block-editor/pdfPreview.test.js`): with `fetch` mocked to
+  return `{ success: true, data: { preview_data, output_format: 'pdf',
+  filename: 'custom.pdf' } }`, `downloadPdf` names the anchor `custom.pdf`; with
+  `filename` absent it falls back to the default. (The server one-liner reuses
+  `get_filename()`, already covered by `FilenameBuilderTest`; verified live.)
 
 ---
 
