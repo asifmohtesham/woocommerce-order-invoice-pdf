@@ -100,9 +100,15 @@ export function ContactStripEdit() {
 				</PanelBody>
 			</InspectorControls>
 			<div { ...blockProps }>
+				{ /* border-top width+style only — colour comes from the injected accent rule
+				   (.woi-contact-strip-row in optionsCss.js) so the divider follows the document
+				   accent like the PDF. 2px (vs the PDF's 1.5px) keeps the canvas from
+				   sub-pixel-rounding it to a hairline, so both render the same solid rule. A bare
+				   `border-top` shorthand would set an inline currentColor and beat the injected
+				   colour, so the colour is deliberately left unset here. */ }
 				<div
 					className="woi-contact-strip-row"
-					style={ { display: 'flex', borderTop: '1.5px solid #140858', borderBottom: '0.5pt solid #D9D4C9', padding: '4px 0' } }
+					style={ { display: 'flex', borderTopWidth: '2px', borderTopStyle: 'solid', borderBottom: '0.5pt solid #D9D4C9', padding: '4px 0' } }
 				>
 					{ items.map( ( it, i ) => {
 						const field = CONTACT_FIELDS[ it.field ];

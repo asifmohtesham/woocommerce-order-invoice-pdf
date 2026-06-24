@@ -18,6 +18,12 @@ export function optionsCss( opts ) {
 		'tr.grand-total th,tr.grand-total td,tr.grand-total th .woi-lbl-secondary{color:' + c + '}'
 	);
 	css.push( 'table.woi-contact{border-top-color:' + c + '}' );
+	// Editor-only: the contact-strip block renders a flex <div class="woi-contact-strip-row">,
+	// not a table.woi-contact, so the rule above can't reach it. Colour its divider with the
+	// accent too, so the editor matches the PDF instead of the old hardcoded navy. (Its width
+	// is set inline in contactStrip.js — thicker than the PDF's 1.5px to survive the canvas's
+	// sub-pixel rounding so both render the same solid rule.)
+	css.push( '.woi-contact-strip-row{border-top-color:' + c + '}' );
 	css.push( '.order-details thead th{border-top-color:' + c + ';border-bottom-color:' + c + '}' );
 	css.push( 'table.woi-parties td.woi-party{border-top-color:' + c + '}' );
 	css.push( 'tr.grand-total th,tr.grand-total td{border-top-color:' + c + ';border-bottom-color:' + c + '}' );

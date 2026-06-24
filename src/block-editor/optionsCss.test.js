@@ -19,3 +19,19 @@ describe( 'optionsCss row_color', () => {
 		expect( css ).not.toContain( '.order-details tbody td.position' );
 	} );
 } );
+
+describe( 'optionsCss contact divider', () => {
+	// The contact-strip block renders a flex <div class="woi-contact-strip-row">,
+	// not a table.woi-contact, so it needs its own accent rule to colour the
+	// divider like the PDF (which keys on table.woi-contact). Without it the editor
+	// divider stays the hardcoded navy and ignores the accent.
+	it( 'colours the editor divider with the red accent', () => {
+		const css = optionsCss( { accent: 'red' } );
+		expect( css ).toContain( '.woi-contact-strip-row{border-top-color:#9E0A0E}' );
+	} );
+
+	it( 'colours the editor divider with the navy accent by default', () => {
+		const css = optionsCss( {} );
+		expect( css ).toContain( '.woi-contact-strip-row{border-top-color:#140858}' );
+	} );
+} );
