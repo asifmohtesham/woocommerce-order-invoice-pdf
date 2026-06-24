@@ -107,8 +107,15 @@ function Editor( { initial, activeSource } ) {
 	// heading sit above the editor), so the browser added a PAGE-level scrollbar
 	// right next to the settings sidebar's own scrollbar — two scrollbars at the
 	// right edge. Sizing the wrap from its real top to the viewport bottom means
-	// the page never scrolls, leaving only the inner panels to scroll. The
-	// min-height guard keeps the editor usable on short screens (the page may
+	// the page never scrolls, leaving only the inner panels to scroll.
+	//
+	// The WP admin footer (#wpfooter, "Thank you for creating with WordPress")
+	// renders BELOW the editor in the page flow, so its height must be reserved
+	// too — otherwise the page still overflows by ~the footer height and keeps a
+	// thin page scrollbar. offsetHeight is layout-independent, so reading it here
+	// is not circular with the height we set.
+	//
+	// The min-height guard keeps the editor usable on short screens (the page may
 	// then scroll, but that's a single scrollbar). Fullscreen keeps its own
 	// fixed 100vh height (the is-fullscreen class), so we clear the inline value.
 	const wrapRef = useRef( null );
@@ -118,7 +125,9 @@ function Editor( { initial, activeSource } ) {
 		const apply = () => {
 			if ( isFullscreen ) { el.style.height = ''; return; }
 			const top = el.getBoundingClientRect().top;
-			const avail = window.innerHeight - top - 16;
+			const footer = document.getElementById( 'wpfooter' );
+			const footerH = footer ? footer.offsetHeight : 0;
+			const avail = window.innerHeight - top - footerH - 12;
 			el.style.height = Math.max( 600, avail ) + 'px';
 		};
 		apply();
