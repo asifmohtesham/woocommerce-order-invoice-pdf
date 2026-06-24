@@ -17,7 +17,7 @@
 - **Numbered types** (have a series): `invoice`, `proforma`, `credit-note`, `receipt`. **`packing-slip`** gets a filename override only (no series). `summary`/bulk: excluded.
 - **Filename token set:** `{document_type}`, `{order_number}`, `{document_number}` (already the *formatted* series number), `{document_number_sequence}` (new — raw counter), `{date}`.
 - **Default filename template** (shipped): `{document_type}_{order_number}_{date}` (underscores), date format `Y-m-d`. Do not change it.
-- **REST:** namespace `woi-pdf/v1`; permission `current_user_can( 'manage_woocommerce' )`; nonce via `X-WP-Nonce` header (matches `src/block-editor/store.js`). New routes register inside `Rest::rest_api_init()` (gated by the debug `enable_rest_api` flag, like the columns/editor-config routes).
+- **REST:** namespace `woi-pdf/v1`; permission `current_user_can( 'manage_woocommerce' )`; nonce via `X-WP-Nonce` header (matches `src/block-editor/store.js`). New routes register inside `Rest::register_visual_template_route()` — the ALWAYS-ON method (hooked unconditionally in the constructor) that already holds `/visual-columns` and `/editor-config`. Do NOT use `rest_api_init()` — that method is gated by the debug `enable_rest_api` flag, and the Block editor reaches the always-on routes unconditionally, so a gated `/document-naming` would 404 for most users.
 - **Version bump:** Touches PHP + JS, so bump BOTH strings in `woocommerce-orders-invoice-pdf.php` (header `Version` ~line 6 and `public string $version` ~line 24) and run `npm run build` — done **LAST, at landing**, on rebased source (see CLAUDE.md "Landing a feature"). Do NOT bump per-task.
 - **i18n text domain:** `woocommerce-orders-invoice-pdf`.
 
@@ -75,8 +75,11 @@ Append these methods to the `FilenameBuilderTest` class in `tests/Unit/FilenameB
 		Functions\when( 'get_option' )->justReturn( array(
 			'filename_template' => '{document_type}-{document_number_sequence}-{date}',
 		) );
+		// document_type="invoices", sequence forced empty for bulk; the `--`
+		// left by the empty token collapses to one `-`. No {order_number} in
+		// this template, so "N-orders" must NOT appear in the sequence slot.
 		$this->assertSame(
-			'invoices-3-orders-2026-06-20.pdf',
+			'invoices-2026-06-20.pdf',
 			woi_pdf_build_filename( $this->args( array(
 				'document_type'            => 'invoices',
 				'order_ids'                => array( 55, 56, 57 ),
@@ -362,7 +365,7 @@ and insert immediately AFTER it:
 			'document_number_sequence' => woi_pdf_document_number_sequence( $this->get_number() ),
 ```
 
-(The generic `OrderDocument::get_filename()` uses the same `'document_number' => (string) $this->get_number(),` line — add the sequence line there too. Match the surrounding indentation in each file.)
+NOTE: the generic `OrderDocument::get_filename()` (`~:1950`) is the exception — it deliberately hardcodes `'document_number' => ''` (it also serves refunds, where calling `get_number()` is inappropriate). To preserve the "sequence mirrors document_number" invariant, add `'document_number_sequence' => '',` there (NOT the helper call). The five subclasses use the real helper call; only the base class blanks it. Match the surrounding indentation in each file.
 
 - [ ] **Step 6: Verify nothing broke (PHP lints + full unit suite baseline)**
 
@@ -420,7 +423,9 @@ In `includes/Documents/Invoice.php`, inside `get_pdf_settings_fields()`, add thi
 
 - [ ] **Step 2: Add the SAME field to the other four classes**
 
-Add the identical array element to the settings-field array in `PackingSlip.php`, `Proforma.php`, `CreditNote.php`, and `Receipt.php`. In each, place it next to that class's existing `document_title` field (or, if absent, anywhere within the `$this->type` section before the closing of the fields array). Confirm `$option_name` is the in-scope variable in each method; if a class builds fields without `$option_name`, use `"woi_pdf_documents_settings_{$this->get_type()}"` literally.
+Add the identical array element to the settings-field array in `PackingSlip.php`, `Proforma.php`, `CreditNote.php`, and `Receipt.php`. In each, place it next to that class's existing `document_title` field (or, if absent, anywhere within that class's section before the closing of the fields array). Confirm `$option_name` is the in-scope variable in each method; if a class builds fields without `$option_name`, use `"woi_pdf_documents_settings_{$this->get_type()}"` literally.
+
+CRITICAL — `'section'` must equal that class's section ROW `'id'`, which is NOT always `$this->type`. Verified section ids: Invoice → `invoice` (= `$this->type`, OK), Proforma → `proforma` (OK), Receipt → `receipt` (OK), but **PackingSlip → `packing_slip`** and **CreditNote → `credit_note`** (UNDERSCORES — they differ from the hyphenated `$this->type`). For PackingSlip and CreditNote, set `'section' => 'packing_slip'` / `'section' => 'credit_note'` (the literal each class uses for its other fields), NOT `$this->type`, or the field renders in no section.
 
 - [ ] **Step 3: Verify PHP lints**
 
@@ -642,7 +647,7 @@ Expected: PASS.
 
 - [ ] **Step 5: Register the routes**
 
-In `includes/Rest.php`, inside `rest_api_init()`, immediately after the `editor-config` `register_rest_route(...)` block (ends ~`:148`), add:
+In `includes/Rest.php`, inside `register_visual_template_route()` (the ALWAYS-ON method, NOT `rest_api_init()`), immediately after the `editor-config` `register_rest_route(...)` block closes (~`:148`) and before the method's closing `}` (~`:149`), add:
 
 ```php
 			register_rest_route( 'woi-pdf/v1', '/document-naming', array(
@@ -915,7 +920,8 @@ export function buildNamingPayload( type, state ) {
 	if ( hasSeries( type ) ) {
 		payload.prefix = state.prefix || '';
 		payload.suffix = state.suffix || '';
-		payload.padding = state.padding || '';
+		// Nullish coalescing: '0' is a valid "no padding" value and must survive.
+		payload.padding = state.padding ?? '';
 		payload.reset_number_yearly = !! state.reset_number_yearly;
 		payload.next_number = state.next_number;
 	}
@@ -982,14 +988,19 @@ export default function NamingPanel() {
 	const [ values, setValues ] = useState( null ); // null => loading
 	const debounceRef = useRef( null );
 
-	// Load the selected type's settings whenever the type changes.
+	// Load the selected type's settings whenever the type changes. The cleanup
+	// both ignores a stale in-flight GET (active flag) AND cancels any pending
+	// debounced save, so a rapid type switch never POSTs the old type's payload.
 	useEffect( () => {
 		let active = true;
 		setValues( null );
 		getDocumentNaming( type )
 			.then( ( r ) => { if ( active ) { setValues( r ); } } )
 			.catch( () => { if ( active ) { setValues( {} ); } } );
-		return () => { active = false; };
+		return () => {
+			active = false;
+			if ( debounceRef.current ) { clearTimeout( debounceRef.current ); }
+		};
 	}, [ type ] );
 
 	const persist = useCallback( ( next ) => {
@@ -1115,7 +1126,7 @@ In WP admin → WooCommerce → Block Invoice Template, open the Document settin
 - Switching to "Packing slip" hides the numbering fields and shows only the filename override.
 - Editing a field and reloading the page persists the value; the SAME value appears in the classic settings tab for that type (and vice-versa).
 
-> If the REST endpoint 404s, confirm the debug setting `enable_rest_api` is on (the new routes register in `rest_api_init()`, gated like `editor-config`). The visual-template route is always on, but these follow the columns/editor-config pattern.
+> If the REST endpoint 404s, confirm the routes are registered in `register_visual_template_route()` (the always-on method that holds `/editor-config` and `/visual-columns`) — NOT in the gated `rest_api_init()`. The Block editor reaches the always-on routes unconditionally.
 
 - [ ] **Step 7: Commit**
 
@@ -1259,4 +1270,4 @@ git -C "C:/Users/asifm/source/repos/woocommerce-orders-invoice-pdf" pull --ff-on
 - `getDocumentNaming`/`saveDocumentNaming` — defined Task 6 store, consumed by `NamingPanel` Task 6. ✓
 - REST read shape keys (`has_series`, `next_number`, `filename_template`, …) consistent between PHP (`read_naming_settings` + handlers) and JS (`NamingPanel` field bindings). ✓
 
-**Known nuance flagged for implementer:** the REST routes register inside `rest_api_init()`, which is gated by the debug `enable_rest_api` flag (same as `visual-columns`/`editor-config`). If the Block editor can reach `editor-config` today, it can reach `document-naming`. The always-on `register_visual_template_route()` is a separate, narrower hook — do NOT move the new routes there.
+**Known nuance flagged for implementer:** the REST routes register inside `register_visual_template_route()` — the ALWAYS-ON method (hooked unconditionally in the constructor) that already holds `/visual-columns` and `/editor-config`. `rest_api_init()` is a separate method gated by the debug `enable_rest_api` flag; do NOT register the new routes there, or the Block editor's NamingPanel would 404 for users without that flag.
