@@ -56,3 +56,32 @@ describe( 'namingModel', () => {
 		expect( FILENAME_TOKENS ).toContain( '{document_number}' );
 	} );
 } );
+
+import { prefixTokens, filenameTokenChips } from './namingModel';
+
+describe( 'prefixTokens', () => {
+	it( 'includes the order placeholders and slug-based doc placeholders for invoice', () => {
+		const toks = prefixTokens( 'invoice' ).map( ( t ) => t.token );
+		expect( toks ).toEqual( expect.arrayContaining( [
+			'[order_year]', '[order_month]', '[order_day]', '[order_number]',
+			'[invoice_year]', '[invoice_month]', '[invoice_day]',
+		] ) );
+	} );
+
+	it( 'uses underscore slug for hyphenated types (credit-note)', () => {
+		const toks = prefixTokens( 'credit-note' ).map( ( t ) => t.token );
+		expect( toks ).toContain( '[credit_note_year]' );
+		expect( toks ).not.toContain( '[credit-note_year]' );
+	} );
+} );
+
+describe( 'filenameTokenChips', () => {
+	it( 'wraps every FILENAME_TOKENS entry as a {token,label} chip', () => {
+		const chips = filenameTokenChips();
+		expect( chips.map( ( c ) => c.token ) ).toContain( '{document_number_sequence}' );
+		chips.forEach( ( c ) => {
+			expect( typeof c.token ).toBe( 'string' );
+			expect( typeof c.label ).toBe( 'string' );
+		} );
+	} );
+} );

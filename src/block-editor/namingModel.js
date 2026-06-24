@@ -35,3 +35,32 @@ export function buildNamingPayload( type, state ) {
 	}
 	return payload;
 }
+
+// Prefix/suffix placeholders resolved by woi_pdf_format_document_number. The
+// slug-based set uses the doc type with hyphens -> underscores, matching
+// OrderDocument::$slug (e.g. credit-note -> credit_note).
+export function prefixTokens( type ) {
+	const slug = String( type || '' ).replace( /-/g, '_' );
+	return [
+		{ token: '[order_year]', label: __( 'Order year', 'woocommerce-orders-invoice-pdf' ) },
+		{ token: '[order_month]', label: __( 'Order month', 'woocommerce-orders-invoice-pdf' ) },
+		{ token: '[order_day]', label: __( 'Order day', 'woocommerce-orders-invoice-pdf' ) },
+		{ token: '[order_number]', label: __( 'Order #', 'woocommerce-orders-invoice-pdf' ) },
+		{ token: `[${ slug }_year]`, label: __( 'Doc year', 'woocommerce-orders-invoice-pdf' ) },
+		{ token: `[${ slug }_month]`, label: __( 'Doc month', 'woocommerce-orders-invoice-pdf' ) },
+		{ token: `[${ slug }_day]`, label: __( 'Doc day', 'woocommerce-orders-invoice-pdf' ) },
+	];
+}
+
+// Filename {...} tokens as {token,label} chips for TokenField (the raw strings
+// remain available as FILENAME_TOKENS for the help text).
+export function filenameTokenChips() {
+	const labels = {
+		'{document_type}': __( 'Type', 'woocommerce-orders-invoice-pdf' ),
+		'{order_number}': __( 'Order #', 'woocommerce-orders-invoice-pdf' ),
+		'{document_number}': __( 'Number', 'woocommerce-orders-invoice-pdf' ),
+		'{document_number_sequence}': __( 'Sequence', 'woocommerce-orders-invoice-pdf' ),
+		'{date}': __( 'Date', 'woocommerce-orders-invoice-pdf' ),
+	};
+	return FILENAME_TOKENS.map( ( token ) => ( { token, label: labels[ token ] || token } ) );
+}
