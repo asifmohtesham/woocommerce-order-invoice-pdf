@@ -3060,6 +3060,16 @@ if ( ! function_exists( 'woi_pdf_templates_get_totals' ) ) {
 	}
 }
 
+// Pure-PHP amount-in-words helpers live in their own dependency-free file so
+// they can be unit tested in isolation (the PHPUnit harness loads the composer
+// autoloader before ABSPATH is defined, which would otherwise skip this file).
+require_once __DIR__ . '/includes/amount-in-words.php';
+if ( function_exists( 'add_filter' ) ) {
+	// Default provider for the amount-in-words token: spell the grand total when
+	// no other filter has supplied a value. Priority 10 so explicit overrides win.
+	add_filter( 'woi_pdf_amount_in_words', 'woi_pdf_default_amount_in_words', 10, 2 );
+}
+
 if ( ! function_exists( 'woi_pdf_visual_document_css' ) ) {
 	/**
 	 * Single source of truth for the visual document stylesheet, shared by the
