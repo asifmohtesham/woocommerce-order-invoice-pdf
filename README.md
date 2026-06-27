@@ -107,9 +107,18 @@ Enable under **WooCommerce → PDF Documents → Debug Settings → Enable REST 
 
 | Method | Action |
 |---|---|
-| `GET` | Return all existing documents for an order |
+| `GET` | Stream a document's PDF (requires `type`; returns the raw PDF bytes) |
 | `POST` | Create or regenerate a document |
 | `DELETE` | Delete a document |
+
+A listing of an order's existing documents (as JSON, not PDF bytes) is also exposed via the `documents` field on the standard `GET wc/v3/orders/{order_id}` response.
+
+**GET parameters:**
+
+| Parameter | Type | Description |
+|---|---|---|
+| `type` | string | `invoice`, `packing-slip`, `proforma`, `credit-note`, `receipt`, `summary` — required |
+| `generate` | boolean | Generate the document on the fly if it does not already exist (otherwise a missing document returns an error) |
 
 **POST parameters:**
 
