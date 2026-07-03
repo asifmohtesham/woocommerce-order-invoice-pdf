@@ -141,7 +141,15 @@ table.order-details { width: 100%; table-layout: fixed; margin-top: 3mm; margin-
     border-top: 1.5px solid #140858;
     border-bottom: 1.5px solid #140858;
     padding: 2mm 2mm;
-    vertical-align: middle;
+    /* Top-align, not middle: with vertical-align:middle mPDF positions each
+       header's primary line by that cell's total content height, which varies
+       with the Arabic/secondary line's glyph box (e.g. the VAT column's
+       "ضريبة %" mixes a Latin % into Arabic and renders a taller line). The
+       taller cell then centres higher, so its primary sits above the others'
+       baseline in the PDF (the browser normalises this, so only the PDF drifts).
+       Top-aligning pins every primary line to the same y — headers share one
+       baseline in both the canvas and the PDF regardless of secondary height. */
+    vertical-align: top;
     overflow-wrap: normal;
 }
 /* Greys the Arabic header in the browser preview. mPDF never applies a colour to a
