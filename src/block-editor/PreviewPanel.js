@@ -6,6 +6,8 @@ import { renderPdfPreview } from './pdfPreview';
 export default function PreviewPanel( { blocks, source, hidden } ) {
 	const iframeRef = useRef( null );
 	const stageRef = useRef( null );
+	const pdfRef = useRef( null ); // { bytes, orderId } of the last successful render
+	const pdfTabSeen = useRef( false );
 	const [ tab, setTab ] = useState( 'html' ); // 'html' | 'pdf'
 	const [ tokens, setTokens ] = useState( () => ( window.woiBlocks && window.woiBlocks.sampleData ) || null );
 	const [ orderLabel, setOrderLabel ] = useState( '' );
@@ -13,6 +15,7 @@ export default function PreviewPanel( { blocks, source, hidden } ) {
 	const [ results, setResults ] = useState( null );
 	const [ term, setTerm ] = useState( '' );
 	const [ pdfStatus, setPdfStatus ] = useState( '' );
+	const [ hasPdf, setHasPdf ] = useState( false );
 
 	// Re-render the live HTML iframe (debounced) on block or token changes, only on the HTML tab.
 	useEffect( () => {
@@ -37,14 +40,47 @@ export default function PreviewPanel( { blocks, source, hidden } ) {
 	}, [] );
 
 	const renderPdf = useCallback( () => {
-		renderPdfPreview( { stageEl: stageRef.current, blocks, orderId, onStatus: setPdfStatus } );
+		renderPdfPreview( {
+			stageEl: stageRef.current,
+			blocks,
+			orderId,
+			onStatus: setPdfStatus,
+			onPdf: ( bytes ) => {
+				pdfRef.current = { bytes, orderId };
+				setHasPdf( true );
+			},
+		} );
 	}, [ blocks, orderId ] );
 
-	// Render the PDF once when the PDF tab becomes active.
+	// Render immediately when the PDF tab becomes active, then keep it fresh
+	// while active: debounce block/order changes (renderPdf's identity tracks
+	// them) so edits re-render without a manual click — parity with the
+	// GrapesJS editor. In-flight renders are superseded by the gen guard.
 	useEffect( () => {
-		if ( 'pdf' === tab ) { renderPdf(); }
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ tab ] );
+		if ( 'pdf' !== tab ) { pdfTabSeen.current = false; return undefined; }
+		if ( ! pdfTabSeen.current ) {
+			pdfTabSeen.current = true;
+			renderPdf();
+			return undefined;
+		}
+		const t = setTimeout( renderPdf, 1000 );
+		return () => clearTimeout( t );
+	}, [ tab, renderPdf ] );
+
+	const onDownload = useCallback( () => {
+		const last = pdfRef.current;
+		if ( ! last || ! last.bytes ) { return; }
+		const w = window.woiBlocks || {};
+		const blob = new Blob( [ last.bytes ], { type: 'application/pdf' } );
+		const url = window.URL.createObjectURL( blob );
+		const a = document.createElement( 'a' );
+		a.href = url;
+		a.download = ( w.docType || 'invoice' ) + '-' + ( last.orderId || 'preview' ) + '.pdf';
+		document.body.appendChild( a );
+		a.click();
+		document.body.removeChild( a );
+		window.URL.revokeObjectURL( url );
+	}, [] );
 
 	const onSearch = useCallback( () => {
 		fetchOrders( term ).then( ( data ) => setResults( data ) );
@@ -103,6 +139,7 @@ export default function PreviewPanel( { blocks, source, hidden } ) {
 			<div className="woi-block-pdf" hidden={ 'pdf' !== tab } style={ { flex: '1', display: 'pdf' === tab ? 'flex' : 'none', flexDirection: 'column', minHeight: '60vh' } }>
 				<div style={ { padding: '8px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' } }>
 					<button type="button" className="button button-primary" onClick={ renderPdf }>{ __( 'Render PDF', 'woocommerce-orders-invoice-pdf' ) }</button>
+					<button type="button" className="button" onClick={ onDownload } disabled={ ! hasPdf }>{ __( 'Download PDF', 'woocommerce-orders-invoice-pdf' ) }</button>
 					<span aria-live="polite">{ pdfStatus }</span>
 					{ 'blocks' !== source ? (
 						<span style={ { color: '#b32d2e' } }>{ __( 'PDF reflects the active source. Set "PDF source" to "Block editor" above to preview the block design.', 'woocommerce-orders-invoice-pdf' ) }</span>
