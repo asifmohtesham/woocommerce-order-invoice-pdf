@@ -858,7 +858,13 @@
                         if ( gen !== woiPdfRenderGen ) { return; } // superseded mid-render
                         return pdf.getPage( pageNum ).then( function ( page ) {
                             var canvas = document.createElement( 'canvas' );
-                            var vp     = page.getViewport( { scale: dpr } );
+                            // Render at displayed size × dpr so pages stay crisp instead of
+                            // upscaling PDF.js's 72dpi base (595px for A4). Cap at 4 to
+                            // bound canvas memory.
+                            var base   = page.getViewport( { scale: 1 } );
+                            var cssW   = stage.clientWidth || 820;
+                            var scale  = Math.min( Math.max( ( cssW / base.width ) * dpr, dpr ), 4 );
+                            var vp     = page.getViewport( { scale: scale } );
                             canvas.className = 'woi-a4-page';
                             canvas.width  = Math.floor( vp.width );
                             canvas.height = Math.floor( vp.height );
